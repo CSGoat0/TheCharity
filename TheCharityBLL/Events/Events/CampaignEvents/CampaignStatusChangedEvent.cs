@@ -1,7 +1,7 @@
 ﻿using TheCharityDAL.Entities;
 using TheCharityDAL.Enums;
 
-namespace TheCharityBLL.Events.CampaignEvents
+namespace TheCharityBLL.Events.Events.CampaignEvents
 {
     public class CampaignStatusChangedEvent
     {
