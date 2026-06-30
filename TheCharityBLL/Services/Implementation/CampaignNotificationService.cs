@@ -175,5 +175,66 @@ namespace TheCharityBLL.Services.Implementation
                 throw;
             }
         }
+
+        /// <summary>
+        /// Send notification to a specific organization's Admin and SubAdmins
+        /// </summary>
+        public async Task SendOrganizationNotificationAsync(
+            int organizationId,
+            string subject,
+            string message,
+            NotificationType type,
+            bool includeSubAdmins = true)
+        {
+            try
+            {
+                var recipients = new List<string>();
+
+                // 1. Get Organization Admin
+                var admin = await _organizationRepository.GetOrganizationAdminAsync(organizationId);
+                if (admin != null && !string.IsNullOrEmpty(admin.Email))
+                {
+                    recipients.Add(admin.Email);
+                }
+
+                // 2. Get Organization Sub-Admins (if requested)
+                if (includeSubAdmins)
+                {
+                    var subAdmins = await _organizationRepository.GetOrganizationSubAdminsAsync(organizationId);
+                    foreach (var subAdmin in subAdmins)
+                    {
+                        if (!string.IsNullOrEmpty(subAdmin.Email))
+                        {
+                            recipients.Add(subAdmin.Email);
+                        }
+                    }
+                }
+
+                // 3. Remove duplicates
+                var emailList = recipients.Distinct().ToList();
+
+                if (!emailList.Any())
+                {
+                    _logger.LogWarning("No email recipients found for organization {OrganizationId}", organizationId);
+                    return;
+                }
+
+                _logger.LogInformation("Sending '{Type}' notification to {Count} recipients for organization {OrganizationId}",
+                    type, emailList.Count, organizationId);
+
+                // Send to each recipient
+                foreach (var email in emailList)
+                {
+                    await _emailService.SendNotificationAsync(email, subject, message);
+                }
+
+                _logger.LogInformation("Successfully sent '{Type}' notification for organization {OrganizationId}", type, organizationId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send organization notification for organization {OrganizationId}", organizationId);
+                throw;
+            }
+        }
     }
 }

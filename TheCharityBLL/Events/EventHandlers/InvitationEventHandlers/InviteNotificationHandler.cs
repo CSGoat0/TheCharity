@@ -51,7 +51,6 @@ namespace TheCharityBLL.Events.EventHandlers.InvitationEventHandlers
                     $"To accept this invite, please visit your dashboard and go to 'Pending Invites'.\n\n" +
                     $"Thank you!";
 
-                // Send to ALL stakeholders of the invited organization
                 await _notificationService.SendOrganizationNotificationAsync(
                     invitedOrg.Id,
                     subject,
