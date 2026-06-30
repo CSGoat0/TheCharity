@@ -12,6 +12,7 @@ namespace TheCharityBLL.Services.Abstraction
             string subject,
             string message,
             NotificationType type);
+        Task SendOrganizationNotificationAsync(int id, string creatorExpiredSubject, string creatorExpiredMessage, NotificationType general, bool includeSubAdmins);
 
         /// <summary>
         /// Send notification to all SuperAdmins only
