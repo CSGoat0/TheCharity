@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.ViewModels.User;
@@ -45,28 +46,38 @@ namespace TheCharityPL.Controllers
 
         [HttpGet]
         [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> GetAll([FromQuery] bool showDeleted = false)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationParametersDto paginationDto, [FromQuery] bool showDeleted = false)
         {
             try
             {
                 _logger.LogInformation("Loading all users");
 
-                var users = await _userService.GetAllUsersAsync();
+                var users = await _userService.GetAllUsersAsync(paginationDto);
 
                 if (!showDeleted)
-                    users = users.Where(u => !u.IsDeleted);
+                    users.Items = users.Items.Where(u => !u.IsDeleted);
 
-                var result = users.Select(u => new UserListViewModel
+                var result = new PagedResultDto<UserListViewModel>
                 {
-                    Id = u.Id,
-                    UserName = u.UserName,
-                    Email = u.Email,
-                    FullName = u.FullName,
-                    PhoneNumber = u.PhoneNumber,
-                    IsDeleted = u.IsDeleted,
-                    RegistrationDate = u.RegistrationDate,
-                    EmailConfirmed = u.EmailConfirmed
-                }).OrderByDescending(u => u.RegistrationDate).ToList();
+                    Items = users.Items
+             .Select(u => new UserListViewModel
+             {
+                 Id = u.Id,
+                 UserName = u.UserName,
+                 Email = u.Email,
+                 FullName = u.FullName,
+                 PhoneNumber = u.PhoneNumber,
+                 IsDeleted = u.IsDeleted,
+                 RegistrationDate = u.RegistrationDate,
+                 EmailConfirmed = u.EmailConfirmed
+             })
+             .OrderByDescending(u => u.RegistrationDate)
+             .ToList(),
+
+                    TotalCount = users.TotalCount,
+                    PageNumber = users.PageNumber,
+                    PageSize = users.PageSize
+                };
 
                 return Ok(result);
             }

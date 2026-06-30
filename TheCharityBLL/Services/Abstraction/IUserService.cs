@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityDAL.Entities;
 
@@ -13,6 +14,7 @@ namespace TheCharityBLL.Services.Abstraction
     {
         // Queries
         Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync();
+        Task<PagedResultDto<UserResponseDTO>> GetAllUsersAsync(PaginationParametersDto paginationDto);
         Task<UserResponseDTO?> GetUserByIdAsync(string userId);
         Task<UserResponseDTO?> GetUserByEmailAsync(string email);
         Task<bool> UserExistsAsync(string userId);
