@@ -13,8 +13,10 @@ using TheCharityBLL.Authorization.Requirements;
 using TheCharityBLL.Events.Abstraction;
 using TheCharityBLL.Events.EventHandlers.CampaignEventHandlers;
 using TheCharityBLL.Events.EventHandlers.DonationEventHandlers;
+using TheCharityBLL.Events.EventHandlers.InvitationEventHandlers;
 using TheCharityBLL.Events.Events.CampaignEvents;
 using TheCharityBLL.Events.Events.DonationEvents;
+using TheCharityBLL.Events.Events.InvitationEvents;
 using TheCharityBLL.Events.Implementation;
 using TheCharityBLL.Jobs.Emails;
 using TheCharityBLL.Jobs.Registry.Abstraction;
@@ -84,6 +86,7 @@ namespace TheCharityBLL.Helpers
             services.AddScoped<IUserRepository, UserRepository>();
             // Services Injection
             services.AddScoped<IAuthorizationService, AuthorizationService>();
+            services.AddScoped<ICampaignInviteService, CampaignInviteService>();
             services.AddScoped<ICampaignNotificationService, CampaignNotificationService>();
             services.AddScoped<ICampaignService, CampaignService>();
             services.AddScoped<IDonatedItemService, DonatedItemService>();
@@ -111,6 +114,10 @@ namespace TheCharityBLL.Helpers
             services.AddScoped<IEventHandler<CampaignExpiredEvent>, CampaignExpiredEventHandler>();
             services.AddScoped<IEventHandler<CampaignPostponedEvent>, CampaignPostponedEventHandler>();
             services.AddScoped<IEventHandler<CampaignStatusChangedEvent>, CampaignStatusChangedEventHandler>();
+            services.AddScoped<IEventHandler<InviteAcceptedEvent>, InviteNotificationHandler>();
+            services.AddScoped<IEventHandler<InviteExpiredEvent>, InviteNotificationHandler>();
+            services.AddScoped<IEventHandler<InviteRejectedEvent>, InviteNotificationHandler>();
+            services.AddScoped<IEventHandler<InviteSentEvent>, InviteNotificationHandler>();
             // Register IHttpContextAccessor (for handlers)
             services.AddHttpContextAccessor();
             // Register Authorization Handlers

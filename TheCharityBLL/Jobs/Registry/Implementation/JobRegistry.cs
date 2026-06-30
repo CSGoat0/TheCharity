@@ -39,6 +39,12 @@ namespace TheCharityBLL.Jobs.Registry.Implementation
                 Cron.Weekly(DayOfWeek.Monday, 7)
             );
 
+            // Daily at 2 AM - expire old invites (NEW)
+            _jobScheduler.AddOrUpdateRecurringJob<ExpireOldInvitesJob>(
+                "expire-old-invites",
+                Cron.Daily(2)
+            );
+
             // Add more recurring jobs here as you create them
 
             _logger.LogInformation("All recurring jobs registered successfully");
