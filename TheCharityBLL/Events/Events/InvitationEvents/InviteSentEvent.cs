@@ -1,6 +1,12 @@
-﻿namespace TheCharityBLL.Events.Events.InvitationEvents
+﻿using TheCharityDAL.Entities;
+
+namespace TheCharityBLL.Events.Events.InvitationEvents
 {
-    internal class InviteSentEvent
+    public class InviteSentEvent
     {
+        public SharedCampaignInvite Invite { get; set; } = null!;
+        public SharedCampaign Campaign { get; set; } = null!;
+        public Organization InvitedOrganization { get; set; } = null!;
+        public User InvitedByUser { get; set; } = null!;
     }
 }
