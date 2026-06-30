@@ -231,8 +231,18 @@ namespace TheCharityBLL.Services.Implementation
                 // 8. Update invite status
                 await _campaignRepository.UpdateInviteStatusAsync(inviteId, InviteStatus.Accepted);
 
-                // 9. Dispatch event for notification
-                // TODO: Create and dispatch InviteAcceptedEvent
+                // 9. Get all related entities for the event
+                var invitedOrg = await _organizationRepository.GetOrganizationByIdAsync(invite.OrganizationId);
+                var acceptedByUser = await _userRepository.GetUserByIdAsync(userId);
+
+                // 10. Dispatch InviteAcceptedEvent
+                await _eventDispatcher.DispatchAsync(new InviteAcceptedEvent
+                {
+                    Invite = invite,
+                    Campaign = campaign!,
+                    InvitedOrganization = invitedOrg!,
+                    AcceptedByUser = acceptedByUser!
+                });
 
                 _logger.LogInformation("Invite {InviteId} accepted: Campaign {CampaignId} → Organization {OrganizationId}",
                     inviteId, invite.SharedCampaignId, invite.OrganizationId);
@@ -294,8 +304,19 @@ namespace TheCharityBLL.Services.Implementation
                 // 4. Update invite status
                 await _campaignRepository.UpdateInviteStatusAsync(inviteId, InviteStatus.Rejected);
 
-                // 5. Dispatch event for notification
-                // TODO: Create and dispatch InviteRejectedEvent
+                // 5. Get all related entities for the event
+                var campaign = await _campaignRepository.GetSharedCampaignByIdAsync(invite!.SharedCampaignId);
+                var invitedOrg = await _organizationRepository.GetOrganizationByIdAsync(invite.OrganizationId);
+                var rejectedByUser = await _userRepository.GetUserByIdAsync(userId);
+
+                // 6. Dispatch InviteRejectedEvent
+                await _eventDispatcher.DispatchAsync(new InviteRejectedEvent
+                {
+                    Invite = invite,
+                    Campaign = campaign!,
+                    InvitedOrganization = invitedOrg!,
+                    RejectedByUser = rejectedByUser!
+                });
 
                 _logger.LogInformation("Invite {InviteId} rejected: Campaign {CampaignId} → Organization {OrganizationId}",
                     inviteId, invite.SharedCampaignId, invite.OrganizationId);
