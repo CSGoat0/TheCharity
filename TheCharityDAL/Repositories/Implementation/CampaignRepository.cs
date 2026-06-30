@@ -28,17 +28,13 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         //pagination
-        public async Task<(IEnumerable<Campaign> Data,int TotalCount)> GetAllCampaignsAsync(int pageNumber , int pageSize, bool includeDeleted = false)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetAllCampaignsAsync(int pageNumber, int pageSize, bool includeDeleted = false)
         {
             var query = _context.Campaigns.AsQueryable();
             if (!includeDeleted)
                 query = query.Where(c => c.IsDeleted == false);
 
-            var totalCount = await query.CountAsync();
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize).ToListAsync();
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<Campaign?> GetCampaignByIdAsync(int id)
@@ -98,17 +94,9 @@ namespace TheCharityDAL.Repositories.Implementation
         //pagination
         public async Task<(IEnumerable<SoloCampaign> Data, int TotalCount)> GetAllSoloCampaignsAsync(int pageNumber, int pageSize)
         {
-            var query = _context.SoloCampaigns.Where(c => c.IsDeleted == false).AsQueryable();
+            var query = _context.SoloCampaigns.Where(c => c.IsDeleted == false).Include(c => c.Organization).AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Include(c => c.Organization)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<SoloCampaign?> GetSoloCampaignByIdAsync(int id)
@@ -144,17 +132,9 @@ namespace TheCharityDAL.Repositories.Implementation
         //pagination
         public async Task<(IEnumerable<SharedCampaign> Data, int TotalCount)> GetAllSharedCampaignsAsync(int pageNumber, int pageSize)
         {
-            var query = _context.SharedCampaigns.Where(c => c.IsDeleted == false).AsQueryable();
+            var query = _context.SharedCampaigns.Where(c => c.IsDeleted == false).Include(c => c.Organizations).AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Include(c => c.Organizations)
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<SharedCampaign?> GetSharedCampaignByIdAsync(int id)
@@ -192,14 +172,7 @@ namespace TheCharityDAL.Repositories.Implementation
         {
             var query = _context.Campaigns.Where(c => c.Status == status && (c.IsDeleted == false)).AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<IEnumerable<Campaign>> GetCampaignsByTypeAsync(CampaignType type)
@@ -214,16 +187,9 @@ namespace TheCharityDAL.Repositories.Implementation
         {
             var query = _context.Campaigns.Where(c => c.Type == type && (c.IsDeleted == false)).AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
-        
+
         public async Task<IEnumerable<Campaign>> GetActiveCampaignsAsync()
         {
             return await GetCampaignsByStatusAsync(CampaignStatus.Active);
@@ -257,14 +223,7 @@ namespace TheCharityDAL.Repositories.Implementation
                            (c.Title != null && c.Title.Contains(searchTerm)) ||
                            (c.Description != null && c.Description.Contains(searchTerm))).AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<IEnumerable<Campaign>> GetDeletedCampaignsAsync()
@@ -283,16 +242,9 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Where(c => c.IsDeleted == true)
                 .AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
-        
+
         public async Task<IEnumerable<SoloCampaign>> GetSoloCampaignsByOrganizationIdAsync(int organizationId)
         {
             return await _context.SoloCampaigns
@@ -311,14 +263,7 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Include(c => c.Organization)
                 .AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<IEnumerable<SharedCampaign>> GetSharedCampaignsByOrganizationIdAsync(int organizationId)
@@ -341,14 +286,7 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Include(c => c.Organizations)
                 .AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<IEnumerable<SoloCampaign>> GetSoloCampaignsByStatusAsync(CampaignStatus status)
@@ -365,14 +303,7 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Where(c => c.Status == status && (c.IsDeleted == false))
                 .AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<IEnumerable<SharedCampaign>> GetSharedCampaignsByStatusAsync(CampaignStatus status)
@@ -389,14 +320,7 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Where(c => c.Status == status && (c.IsDeleted == false))
                 .AsQueryable();
 
-            var totalCount = await query.CountAsync();
-
-            var data = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (data, totalCount);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         // ===== SharedCampaign Specific Operations =====
@@ -480,7 +404,7 @@ namespace TheCharityDAL.Repositories.Implementation
                            (c.IsDeleted == false))
                 .AsQueryable();
 
-           return await query.ToPagedResultAsync(pageNumber, pageSize);
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<IEnumerable<Campaign>> GetCampaignsByAchievementPercentageAsync(double minPercentage)
@@ -604,7 +528,7 @@ namespace TheCharityDAL.Repositories.Implementation
                 return 0;
 
             var totalPercentage = campaigns.Average(c =>
-                (c.Achieved ?? 1)/ (c.Target ?? 1) * 100);
+                (c.Achieved ?? 1) / (c.Target ?? 1) * 100);
 
             return totalPercentage;
         }
