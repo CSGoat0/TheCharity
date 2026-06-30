@@ -100,6 +100,7 @@ namespace TheCharityBLL.Helpers
             services.AddScoped<AutoExpireCampaignsJob>();
             services.AddScoped<CampaignDeadlineReminderJob>();
             services.AddScoped<DeadlineExtensionConfirmationJob>();
+            services.AddScoped<ExpireOldInvitesJob>();
             services.AddScoped<NewCampaignNotificationJob>();
             services.AddScoped<SendMilestoneEmailJob>();
             services.AddScoped<WeeklyCampaignDigestJob>();
