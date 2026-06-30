@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
 using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.Events.Abstraction;
+using TheCharityBLL.Events.Events.InvitationEvents;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.ViewModels;
 using TheCharityDAL.Entities;
@@ -104,9 +105,17 @@ namespace TheCharityBLL.Services.Implementation
                 // 7. Get inviter name
                 var inviter = await _userRepository.GetUserByIdAsync(invitedByUserId);
                 var inviterName = inviter?.FullName ?? inviter?.UserName ?? "Unknown User";
+                var invitedOrg = await _organizationRepository.GetOrganizationByIdAsync(organizationId);
+                var invitedByUser = await _userRepository.GetUserByIdAsync(invitedByUserId);
 
                 // 8. Dispatch event for notification
-                // TODO: Create and dispatch InviteSentEvent
+                await _eventDispatcher.DispatchAsync(new InviteSentEvent
+                {
+                    Invite = created,
+                    Campaign = campaign!,
+                    InvitedOrganization = invitedOrg!,
+                    InvitedByUser = invitedByUser!
+                });
 
                 var response = new InviteResponseDto
                 {
