@@ -4,13 +4,14 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TheCharityBLL.DTOs.DonationDTOs;
+using TheCharityBLL.DTOs.PaginationDTOs;
 
 namespace TheCharityBLL.Services.Abstraction.MoneyDonation
 {
     public interface IDonationService
     {
         // ===== CRUD =====
-        Task<IEnumerable<DonationResponseDto>> GetAllDonationsAsync(bool includeDeleted = false);
+        Task<PagedResultDto<DonationResponseDto>> GetAllDonationsAsync(PaginationParametersDto parametersDto,bool includeDeleted = false);
         Task<DonationResponseDto?> GetDonationByIdAsync(int id);
         Task<DonationResponseDto> CreateDonationAsync(CreateDonationDto dto);
         Task<DonationResponseDto?> UpdateDonationAsync(int id, UpdateDonationDto dto);
@@ -18,12 +19,12 @@ namespace TheCharityBLL.Services.Abstraction.MoneyDonation
         Task<bool> RestoreDonationAsync(int id);
 
         // ===== Filtering & Search =====
-        Task<IEnumerable<DonationResponseDto>> GetDonationsByUserAsync(string userId);
-        Task<IEnumerable<DonationResponseDto>> GetDonationsByCampaignAsync(int campaignId);
-        Task<IEnumerable<DonationResponseDto>> GetDonationsByAmountRangeAsync(double minAmount, double maxAmount);
-        Task<IEnumerable<DonationResponseDto>> GetDonationsByDateRangeAsync(DateTime startDate, DateTime endDate);
-        Task<IEnumerable<DonationResponseDto>> GetRecentDonationsAsync(int days = 30);
-        Task<IEnumerable<DonationResponseDto>> GetDeletedDonationsAsync();
+        Task<PagedResultDto<DonationResponseDto>> GetDonationsByUserAsync(PaginationParametersDto parametersDto, string userId);
+        Task<PagedResultDto<DonationResponseDto>> GetDonationsByCampaignAsync(PaginationParametersDto parametersDto, int campaignId);
+        Task<PagedResultDto<DonationResponseDto>> GetDonationsByAmountRangeAsync(PaginationParametersDto parametersDto, double minAmount, double maxAmount);
+        Task<PagedResultDto<DonationResponseDto>> GetDonationsByDateRangeAsync(PaginationParametersDto parametersDto, DateTime startDate, DateTime endDate);
+        Task<PagedResultDto<DonationResponseDto>> GetRecentDonationsAsync(PaginationParametersDto parametersDto, int days = 30);
+        Task<PagedResultDto<DonationResponseDto>> GetDeletedDonationsAsync(PaginationParametersDto parametersDto);
 
         // ===== Statistics =====
         Task<double> GetTotalDonationsAmountAsync();
@@ -45,10 +46,10 @@ namespace TheCharityBLL.Services.Abstraction.MoneyDonation
         // ===== Campaign-Specific =====
         Task<double> GetCampaignTotalRaisedAsync(int campaignId);
         Task<double> GetCampaignProgressPercentageAsync(int campaignId);
-        Task<IEnumerable<DonationResponseDto>> GetUsersDonationsOfACampaignAsync(int campaignId);
+        Task<PagedResultDto<DonationResponseDto>> GetUsersDonationsOfACampaignAsync(PaginationParametersDto parametersDto, int campaignId);
 
         // ===== User-Specific =====
-        Task<IEnumerable<DonationResponseDto>> GetUserDonationHistoryAsync(string userId);
+        Task<PagedResultDto<DonationResponseDto>> GetUserDonationHistoryAsync(PaginationParametersDto parametersDto, string userId);
         Task<DateTime?> GetUserLastDonationDateAsync(string userId);
         Task<IEnumerable<int>> GetCampaignsDonatedByUserAsync(string userId);
 
@@ -64,8 +65,8 @@ namespace TheCharityBLL.Services.Abstraction.MoneyDonation
         Task<DonationResponseDto?> GetDonationWithDetailsAsync(int id);
 
         // ===== Dashboard & Reporting =====
-        Task<IEnumerable<DonationResponseDto>> GetLatestDonationsAsync(int limit = 10);
-        Task<IEnumerable<DonationResponseDto>> GetLargestDonationsAsync(int limit = 10);
+        Task<PagedResultDto<DonationResponseDto>> GetLatestDonationsAsync(PaginationParametersDto parametersDto, int limit = 10);
+        Task<PagedResultDto<DonationResponseDto>> GetLargestDonationsAsync(PaginationParametersDto parametersDto, int limit = 10);
         Task<Dictionary<int, int>> GetDonationsPerCampaignCountAsync();
         Task<Dictionary<string, int>> GetDonationsPerUserCountAsync();
         Task<double> GetTodayDonationsTotalAsync();
@@ -83,19 +84,19 @@ namespace TheCharityBLL.Services.Abstraction.MoneyDonation
         Task<Dictionary<DateTime, double>> GetCampaignDonationTimelineAsync(int campaignId);
 
         // ===== User Engagement =====
-        Task<IEnumerable<DonationResponseDto>> GetRecurringDonorsAsync(int minDonations = 3);
-        Task<IEnumerable<DonationResponseDto>> GetFirstTimeDonorsAsync(DateTime startDate, DateTime endDate);
+        Task<PagedResultDto<DonationResponseDto>> GetRecurringDonorsAsync(PaginationParametersDto parametersDto, int minDonations = 3);
+        Task<PagedResultDto<DonationResponseDto>> GetFirstTimeDonorsAsync(PaginationParametersDto parametersDto, DateTime startDate, DateTime endDate);
         Task<Dictionary<string, double>> GetUserLifetimeValueAsync();
         Task<IEnumerable<string>> GetLoyalDonorsAsync(double minTotalAmount = 1000, int minDonations = 5);
 
         // ===== Search & Filter Combinations =====
-        Task<IEnumerable<DonationResponseDto>> SearchDonationsByUserAndCampaignAsync(string userId, int campaignId);
-        Task<IEnumerable<DonationResponseDto>> GetDonationsByMultipleUsersAsync(IEnumerable<string> userIds);
-        Task<IEnumerable<DonationResponseDto>> GetDonationsByMultipleCampaignsAsync(IEnumerable<int> campaignIds);
-        Task<IEnumerable<DonationResponseDto>> GetDonationsByAmountAndDateAsync(double minAmount, DateTime startDate);
+        Task<PagedResultDto<DonationResponseDto>> SearchDonationsByUserAndCampaignAsync(PaginationParametersDto parametersDto, string userId, int campaignId);
+        Task<PagedResultDto<DonationResponseDto>> GetDonationsByMultipleUsersAsync(PaginationParametersDto parametersDto, IEnumerable<string> userIds);
+        Task<PagedResultDto<DonationResponseDto>> GetDonationsByMultipleCampaignsAsync(PaginationParametersDto parametersDto, IEnumerable<int> campaignIds);
+        Task<PagedResultDto<DonationResponseDto>> GetDonationsByAmountAndDateAsync(PaginationParametersDto parametersDto, double minAmount, DateTime startDate);
 
         // ===== Audit =====
-        Task<IEnumerable<DonationResponseDto>> GetSuspiciousDonationsAsync(double amountThreshold = 10000);
+        Task<PagedResultDto<DonationResponseDto>> GetSuspiciousDonationsAsync(PaginationParametersDto parametersDto, double amountThreshold = 10000);
 
         // ===== Export =====
         Task<int> GetDonationRecordCountForPeriodAsync(DateTime startDate, DateTime endDate);

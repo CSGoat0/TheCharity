@@ -4,8 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TheCharityBLL.DTOs.DonationDTOs;
+using TheCharityBLL.DTOs.PaginationDTOs;
+using TheCharityBLL.Extensions;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction.MoneyDonation;
+using TheCharityDAL.Entities;
 using TheCharityDAL.Repositories.Abstraction;
 
 namespace TheCharityBLL.Services.Implementation.MoneyDonation
@@ -23,10 +26,12 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
 
         // ===== CRUD =====
 
-        public async Task<IEnumerable<DonationResponseDto>> GetAllDonationsAsync(bool includeDeleted = false)
+        public async Task<PagedResultDto<DonationResponseDto>> GetAllDonationsAsync(PaginationParametersDto parametersDto, bool includeDeleted = false)
         {
-            var donations = await _repo.GetAllDonationsAsync(includeDeleted);
-            return _mapper.MapToDonationResponseDtos(donations);
+            var donations = await _repo.GetAllDonationsAsync(parametersDto.PageNumber,parametersDto.PageSize,includeDeleted);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+
+            return donations.ToPagedResult(donationDtos, parametersDto);
         }
 
         public async Task<DonationResponseDto?> GetDonationByIdAsync(int id)
@@ -85,23 +90,48 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
 
         // ===== Filtering & Search =====
 
-        public async Task<IEnumerable<DonationResponseDto>> GetDonationsByUserAsync(string userId)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByUserAsync(userId));
+        public async Task<PagedResultDto<DonationResponseDto>> GetDonationsByUserAsync(PaginationParametersDto parametersDto, string userId)
+        {
+            var donations = await _repo.GetDonationsByUserAsync(parametersDto.PageNumber, parametersDto.PageSize, userId);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
+            
 
-        public async Task<IEnumerable<DonationResponseDto>> GetDonationsByCampaignAsync(int campaignId)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByCampaignAsync(campaignId));
+        public async Task<PagedResultDto<DonationResponseDto>> GetDonationsByCampaignAsync(PaginationParametersDto parametersDto, int campaignId)
+        {
+            var donations = await _repo.GetDonationsByCampaignAsync(parametersDto.PageNumber, parametersDto.PageSize, campaignId);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetDonationsByAmountRangeAsync(double minAmount, double maxAmount)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByAmountRangeAsync(minAmount, maxAmount));
+        public async Task<PagedResultDto<DonationResponseDto>> GetDonationsByAmountRangeAsync(PaginationParametersDto parametersDto, double minAmount, double maxAmount)
+        {
+            var donations = await _repo.GetDonationsByAmountRangeAsync(parametersDto.PageNumber, parametersDto.PageSize, minAmount, maxAmount);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetDonationsByDateRangeAsync(DateTime startDate, DateTime endDate)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByDateRangeAsync(startDate, endDate));
+        public async Task<PagedResultDto<DonationResponseDto>> GetDonationsByDateRangeAsync(PaginationParametersDto parametersDto, DateTime startDate, DateTime endDate)
+        {
+            var donations = await _repo.GetDonationsByDateRangeAsync(parametersDto.PageNumber, parametersDto.PageSize, startDate, endDate);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetRecentDonationsAsync(int days = 30)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetRecentDonationsAsync(days));
+        public async Task<PagedResultDto<DonationResponseDto>> GetRecentDonationsAsync(PaginationParametersDto parametersDto, int days = 30)
+        {
+            var donations = await _repo.GetRecentDonationsAsync(parametersDto.PageNumber, parametersDto.PageSize, days);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetDeletedDonationsAsync()
-            => _mapper.MapToDonationResponseDtos(await _repo.GetDeletedDonationsAsync());
+        public async Task<PagedResultDto<DonationResponseDto>> GetDeletedDonationsAsync(PaginationParametersDto parametersDto)
+        {
+            var donations = await _repo.GetDeletedDonationsAsync(parametersDto.PageNumber, parametersDto.PageSize);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
         // ===== Statistics =====
 
@@ -154,13 +184,21 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
         public Task<double> GetCampaignProgressPercentageAsync(int campaignId)
             => _repo.GetCampaignProgressPercentageAsync(campaignId);
 
-        public async Task<IEnumerable<DonationResponseDto>> GetUsersDonationsOfACampaignAsync(int campaignId)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetUsersDonationsOfACampaignAsync(campaignId));
+        public async Task<PagedResultDto<DonationResponseDto>> GetUsersDonationsOfACampaignAsync(PaginationParametersDto parametersDto, int campaignId)
+        {
+            var donations = await _repo.GetUsersDonationsOfACampaignAsync(parametersDto.PageNumber, parametersDto.PageSize, campaignId);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
         // ===== User-Specific =====
 
-        public async Task<IEnumerable<DonationResponseDto>> GetUserDonationHistoryAsync(string userId)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetUserDonationHistoryAsync(userId));
+        public async Task<PagedResultDto<DonationResponseDto>> GetUserDonationHistoryAsync(PaginationParametersDto parametersDto, string userId)
+        {
+            var donations = await _repo.GetUserDonationHistoryAsync(parametersDto.PageNumber, parametersDto.PageSize, userId);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
         public Task<DateTime?> GetUserLastDonationDateAsync(string userId)
             => _repo.GetUserLastDonationDateAsync(userId);
@@ -194,11 +232,19 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
 
         // ===== Dashboard & Reporting =====
 
-        public async Task<IEnumerable<DonationResponseDto>> GetLatestDonationsAsync(int limit = 10)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetLatestDonationsAsync(limit));
+        public async Task<PagedResultDto<DonationResponseDto>> GetLatestDonationsAsync(PaginationParametersDto parametersDto, int limit = 10)
+        {
+            var donations = await _repo.GetLatestDonationsAsync(parametersDto.PageNumber, parametersDto.PageSize, limit);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetLargestDonationsAsync(int limit = 10)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetLargestDonationsAsync(limit));
+        public async Task<PagedResultDto<DonationResponseDto>> GetLargestDonationsAsync(PaginationParametersDto parametersDto, int limit = 10)
+        {
+            var donations = await _repo.GetLargestDonationsAsync(parametersDto.PageNumber, parametersDto.PageSize, limit);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }   
 
         public Task<Dictionary<int, int>> GetDonationsPerCampaignCountAsync()
             => _repo.GetDonationsPerCampaignCountAsync();
@@ -239,11 +285,19 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
 
         // ===== User Engagement =====
 
-        public async Task<IEnumerable<DonationResponseDto>> GetRecurringDonorsAsync(int minDonations = 3)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetRecurringDonorsAsync(minDonations));
+        public async Task<PagedResultDto<DonationResponseDto>> GetRecurringDonorsAsync(PaginationParametersDto parametersDto, int minDonations = 3)
+        {
+            var donors = await _repo.GetRecurringDonorsAsync(parametersDto.PageNumber, parametersDto.PageSize, minDonations);
+            var donorsDtos = _mapper.MapToDonationResponseDtos(donors.Data);
+            return donors.ToPagedResult(donorsDtos, parametersDto);
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetFirstTimeDonorsAsync(DateTime startDate, DateTime endDate)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetFirstTimeDonorsAsync(startDate, endDate));
+        public async Task<PagedResultDto<DonationResponseDto>> GetFirstTimeDonorsAsync(PaginationParametersDto parametersDto, DateTime startDate, DateTime endDate)
+        {
+            var donors = await _repo.GetFirstTimeDonorsAsync(parametersDto.PageNumber, parametersDto.PageSize, startDate, endDate);
+            var donorsDtos = _mapper.MapToDonationResponseDtos(donors.Data);
+            return donors.ToPagedResult(donorsDtos, parametersDto);
+        }
 
         public Task<Dictionary<string, double>> GetUserLifetimeValueAsync()
             => _repo.GetUserLifetimeValueAsync();
@@ -253,22 +307,42 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
 
         // ===== Search & Filter Combinations =====
 
-        public async Task<IEnumerable<DonationResponseDto>> SearchDonationsByUserAndCampaignAsync(string userId, int campaignId)
-            => _mapper.MapToDonationResponseDtos(await _repo.SearchDonationsByUserAndCampaignAsync(userId, campaignId));
+        public async Task<PagedResultDto<DonationResponseDto>> SearchDonationsByUserAndCampaignAsync(PaginationParametersDto parametersDto,string userId, int campaignId)
+        {
+            var donations = await _repo.SearchDonationsByUserAndCampaignAsync(parametersDto.PageNumber, parametersDto.PageSize, userId, campaignId);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);    
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetDonationsByMultipleUsersAsync(IEnumerable<string> userIds)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByMultipleUsersAsync(userIds));
+        public async Task<PagedResultDto<DonationResponseDto>> GetDonationsByMultipleUsersAsync(PaginationParametersDto parametersDto,IEnumerable<string> userIds)
+        {
+            var donations = await _repo.GetDonationsByMultipleUsersAsync(parametersDto.PageNumber, parametersDto.PageSize, userIds);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetDonationsByMultipleCampaignsAsync(IEnumerable<int> campaignIds)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByMultipleCampaignsAsync(campaignIds));
+        public async Task<PagedResultDto<DonationResponseDto>> GetDonationsByMultipleCampaignsAsync(PaginationParametersDto parametersDto, IEnumerable<int> campaignIds)
+        {
+            var donations = await _repo.GetDonationsByMultipleCampaignsAsync(parametersDto.PageNumber, parametersDto.PageSize, campaignIds);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
-        public async Task<IEnumerable<DonationResponseDto>> GetDonationsByAmountAndDateAsync(double minAmount, DateTime startDate)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByAmountAndDateAsync(minAmount, startDate));
+        public async Task<PagedResultDto<DonationResponseDto>> GetDonationsByAmountAndDateAsync(PaginationParametersDto parametersDto, double minAmount, DateTime startDate)
+        {
+            var donations = await _repo.GetDonationsByAmountAndDateAsync(parametersDto.PageNumber, parametersDto.PageSize, minAmount, startDate);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
         // ===== Audit =====
 
-        public async Task<IEnumerable<DonationResponseDto>> GetSuspiciousDonationsAsync(double amountThreshold = 10000)
-            => _mapper.MapToDonationResponseDtos(await _repo.GetSuspiciousDonationsAsync(amountThreshold));
+        public async Task<PagedResultDto<DonationResponseDto>> GetSuspiciousDonationsAsync(PaginationParametersDto parametersDto, double amountThreshold = 10000)
+        {
+            var donations = await _repo.GetSuspiciousDonationsAsync(parametersDto.PageNumber, parametersDto.PageSize, amountThreshold);
+            var donationDtos = _mapper.MapToDonationResponseDtos(donations.Data);
+            return donations.ToPagedResult(donationDtos, parametersDto);
+        }
 
         // ===== Export =====
 
