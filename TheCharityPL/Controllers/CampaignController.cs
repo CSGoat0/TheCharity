@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TheCharityBLL.DTOs.CampaignDTOs;
+using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.ViewModels;
 using TheCharityDAL.Enums;
@@ -32,9 +33,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
+        public async Task<IActionResult> GetAll([FromQuery] PaginationParametersDto parametersDto, [FromQuery] bool includeDeleted = false)
         {
-            var result = await _campaignService.GetAllCampaignsAsync(includeDeleted);
+            var result = await _campaignService.GetAllCampaignsAsync(parametersDto, includeDeleted);
             return HandleResponse(result);
         }
 
@@ -104,9 +105,9 @@ namespace TheCharityPL.Controllers
         /// <param name="daysThreshold">Number of days threshold (default 7)</param>
         [HttpGet("expiring-soon")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetExpiringSoon([FromQuery] int daysThreshold = 7)
+        public async Task<IActionResult> GetExpiringSoon([FromQuery] PaginationParametersDto parametersDto, [FromQuery] int daysThreshold = 7)
         {
-            var result = await _campaignService.GetCampaignsExpiringSoonAsync(daysThreshold);
+            var result = await _campaignService.GetCampaignsExpiringSoonAsync(parametersDto, daysThreshold);
             return HandleResponse(result);
         }
 
@@ -115,9 +116,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("expired")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetExpired()
+        public async Task<IActionResult> GetExpired([FromQuery] PaginationParametersDto parametersDto)
         {
-            var result = await _campaignService.GetExpiredCampaignsAsync();
+            var result = await _campaignService.GetExpiredCampaignsAsync(parametersDto);
             return HandleResponse(result);
         }
 
@@ -154,9 +155,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("solo")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAllSolo([FromQuery] bool includeDeleted = false)
+        public async Task<IActionResult> GetAllSolo([FromQuery] PaginationParametersDto parametersDto, [FromQuery] bool includeDeleted = false)
         {
-            var result = await _campaignService.GetAllSoloCampaignsAsync(includeDeleted);
+            var result = await _campaignService.GetAllSoloCampaignsAsync(parametersDto, includeDeleted);
             return HandleResponse(result);
         }
 
@@ -201,9 +202,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("solo/by-organization/{organizationId:int}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetSoloByOrganization(int organizationId)
+        public async Task<IActionResult> GetSoloByOrganization([FromQuery] PaginationParametersDto parametersDto, int organizationId)
         {
-            var result = await _campaignService.GetSoloCampaignsByOrganizationIdAsync(organizationId);
+            var result = await _campaignService.GetSoloCampaignsByOrganizationIdAsync(parametersDto,organizationId);
             return HandleResponse(result);
         }
 
@@ -216,9 +217,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("shared")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetAllShared([FromQuery] bool includeDeleted = false)
+        public async Task<IActionResult> GetAllShared([FromQuery] PaginationParametersDto parametersDto, [FromQuery] bool includeDeleted = false)
         {
-            var result = await _campaignService.GetAllSharedCampaignsAsync(includeDeleted);
+            var result = await _campaignService.GetAllSharedCampaignsAsync(parametersDto, includeDeleted);
             return HandleResponse(result);
         }
 
@@ -263,9 +264,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("shared/by-organization/{organizationId:int}")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetSharedByOrganization(int organizationId)
+        public async Task<IActionResult> GetSharedByOrganization([FromQuery] PaginationParametersDto parametersDto, int organizationId)
         {
-            var result = await _campaignService.GetSharedCampaignsByOrganizationIdAsync(organizationId);
+            var result = await _campaignService.GetSharedCampaignsByOrganizationIdAsync(parametersDto, organizationId);
             return HandleResponse(result);
         }
 
@@ -348,9 +349,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("filter/by-status")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetByStatus([FromQuery] CampaignStatus status)
+        public async Task<IActionResult> GetByStatus([FromQuery] PaginationParametersDto parametersDto, [FromQuery] CampaignStatus status)
         {
-            var result = await _campaignService.GetCampaignsByStatusAsync(status);
+            var result = await _campaignService.GetCampaignsByStatusAsync(parametersDto,status);
             return HandleResponse(result);
         }
 
@@ -359,9 +360,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("filter/by-type")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetByType([FromQuery] CampaignType type)
+        public async Task<IActionResult> GetByType([FromQuery] PaginationParametersDto parametersDto,[FromQuery] CampaignType type)
         {
-            var result = await _campaignService.GetCampaignsByTypeAsync(type);
+            var result = await _campaignService.GetCampaignsByTypeAsync(parametersDto,type);
             return HandleResponse(result);
         }
 
@@ -370,9 +371,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("active")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetActive()
+        public async Task<IActionResult> GetActive([FromQuery] PaginationParametersDto parametersDto)
         {
-            var result = await _campaignService.GetActiveCampaignsAsync();
+            var result = await _campaignService.GetActiveCampaignsAsync(parametersDto);
             return HandleResponse(result);
         }
 
@@ -381,12 +382,12 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("search")]
         [AllowAnonymous]
-        public async Task<IActionResult> Search([FromQuery] string term)
+        public async Task<IActionResult> Search([FromQuery] PaginationParametersDto parametersDto, [FromQuery] string term)
         {
             if (string.IsNullOrWhiteSpace(term))
                 return BadRequest(new { message = "Search term is required." });
 
-            var result = await _campaignService.SearchCampaignsAsync(term);
+            var result = await _campaignService.SearchCampaignsAsync(parametersDto, term);
             return HandleResponse(result);
         }
 
@@ -395,9 +396,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("deleted")]
         [Authorize(Roles = "SuperAdmin")]
-        public async Task<IActionResult> GetDeleted()
+        public async Task<IActionResult> GetDeleted([FromQuery] PaginationParametersDto parametersDto)
         {
-            var result = await _campaignService.GetDeletedCampaignsAsync();
+            var result = await _campaignService.GetDeletedCampaignsAsync(parametersDto);
             return HandleResponse(result);
         }
 
@@ -406,9 +407,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("solo/by-status")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetSoloByStatus([FromQuery] CampaignStatus status)
+        public async Task<IActionResult> GetSoloByStatus([FromQuery] PaginationParametersDto parametersDto, [FromQuery] CampaignStatus status)
         {
-            var result = await _campaignService.GetSoloCampaignsByStatusAsync(status);
+            var result = await _campaignService.GetSoloCampaignsByStatusAsync(parametersDto,status);
             return HandleResponse(result);
         }
 
@@ -417,9 +418,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("shared/by-status")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetSharedByStatus([FromQuery] CampaignStatus status)
+        public async Task<IActionResult> GetSharedByStatus([FromQuery] PaginationParametersDto parametersDto, [FromQuery] CampaignStatus status)
         {
-            var result = await _campaignService.GetSharedCampaignsByStatusAsync(status);
+            var result = await _campaignService.GetSharedCampaignsByStatusAsync(parametersDto,status);
             return HandleResponse(result);
         }
 
@@ -432,9 +433,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("filter/by-target-range")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetByTargetRange([FromQuery] double minTarget, [FromQuery] double maxTarget)
+        public async Task<IActionResult> GetByTargetRange([FromQuery] PaginationParametersDto parametersDto, [FromQuery] double minTarget, [FromQuery] double maxTarget)
         {
-            var result = await _campaignService.GetCampaignsByTargetRangeAsync(minTarget, maxTarget);
+            var result = await _campaignService.GetCampaignsByTargetRangeAsync(parametersDto,minTarget, maxTarget);
             return HandleResponse(result);
         }
 
@@ -443,9 +444,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("filter/by-achievement")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetByAchievement([FromQuery] double minPercentage)
+        public async Task<IActionResult> GetByAchievement([FromQuery] PaginationParametersDto parametersDto, [FromQuery] double minPercentage)
         {
-            var result = await _campaignService.GetCampaignsByAchievementPercentageAsync(minPercentage);
+            var result = await _campaignService.GetCampaignsByAchievementPercentageAsync(parametersDto, minPercentage);
             return HandleResponse(result);
         }
 
@@ -454,9 +455,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("ending-soon")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetEndingSoon([FromQuery] double remainingValue = 1000)
+        public async Task<IActionResult> GetEndingSoon([FromQuery] PaginationParametersDto parametersDto, [FromQuery] double remainingValue = 1000)
         {
-            var result = await _campaignService.GetCampaignsEndingSoonAsync(remainingValue);
+            var result = await _campaignService.GetCampaignsEndingSoonAsync(parametersDto, remainingValue);
             return HandleResponse(result);
         }
 
@@ -572,9 +573,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("trending/top-by-achievement")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetTopByAchievement([FromQuery] int limit = 10)
+        public async Task<IActionResult> GetTopByAchievement([FromQuery] PaginationParametersDto parametersDto, [FromQuery] int limit = 10)
         {
-            var result = await _campaignService.GetTopCampaignsByAchievementAsync(limit);
+            var result = await _campaignService.GetTopCampaignsByAchievementAsync(parametersDto, limit);
             return HandleResponse(result);
         }
 
@@ -583,9 +584,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("trending/top-by-donations")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetTopByDonations([FromQuery] int limit = 10)
+        public async Task<IActionResult> GetTopByDonations([FromQuery] PaginationParametersDto parametersDto, [FromQuery] int limit = 10)
         {
-            var result = await _campaignService.GetTopCampaignsByDonationsAsync(limit);
+            var result = await _campaignService.GetTopCampaignsByDonationsAsync(parametersDto, limit);
             return HandleResponse(result);
         }
 
@@ -594,9 +595,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("trending/recent")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetRecent([FromQuery] int days = 30)
+        public async Task<IActionResult> GetRecent([FromQuery] PaginationParametersDto parametersDto, [FromQuery] int days = 30)
         {
-            var result = await _campaignService.GetRecentCampaignsAsync(days);
+            var result = await _campaignService.GetRecentCampaignsAsync(parametersDto, days);
             return HandleResponse(result);
         }
 
@@ -605,9 +606,9 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("trending/urgent")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetUrgent([FromQuery] double minPercentage = 75)
+        public async Task<IActionResult> GetUrgent([FromQuery] PaginationParametersDto parametersDto, [FromQuery] double minPercentage = 75)
         {
-            var result = await _campaignService.GetUrgentCampaignsAsync(minPercentage);
+            var result = await _campaignService.GetUrgentCampaignsAsync(parametersDto,minPercentage);
             return HandleResponse(result);
         }
 
