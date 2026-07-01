@@ -2,6 +2,9 @@
 using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Extensions;
+﻿using TheCharityBLL.DTOs.CampaignDTOs;
+using TheCharityBLL.Events.Abstraction;
+using TheCharityBLL.Events.CampaignEvents;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.ViewModels;
@@ -16,16 +19,20 @@ namespace TheCharityBLL.Services.Repository
         private readonly ICampaignRepository _campaignRepository;
         private readonly IDonationRepository _donationRepository;
         private readonly IOrganizationRepository _organizationRepository;
+        private readonly IEventDispatcher _eventDispatcher;
         private readonly CampaignMapper _mapper;
 
         public CampaignService(
             ICampaignRepository campaignRepository,
             IDonationRepository donationRepository,
-            IOrganizationRepository organizationRepository)
+            IOrganizationRepository organizationRepository,
+            IEventDispatcher eventDispatcher
+            )
         {
             _campaignRepository = campaignRepository;
             _donationRepository = donationRepository;
             _organizationRepository = organizationRepository;
+            _eventDispatcher = eventDispatcher;
             _mapper = new CampaignMapper();
         }
 
@@ -246,6 +253,11 @@ namespace TheCharityBLL.Services.Repository
 
             var campaign = _mapper.MapToSoloEntity(createDto);
             var created = await _campaignRepository.AddSoloCampaignAsync(campaign);
+
+            await _eventDispatcher.DispatchAsync(new CampaignCreatedEvent
+            {
+                Campaign = created
+            });
 
             return new ServiceResponse<int>
             {
@@ -641,10 +653,9 @@ namespace TheCharityBLL.Services.Repository
             // Check if target is reached
             if (campaign.Target.HasValue && campaign.Achieved >= campaign.Target)
             {
-                campaign.UpdateStatus(CampaignStatus.Completed);
-                await _campaignRepository.UpdateCampaignAsync(campaign);
+                await UpdateCampaignStatusAsync(campaignId, CampaignStatus.Completed);
             }
-
+   
             return new ServiceResponse<bool>
             {
                 Success = true,
@@ -664,6 +675,13 @@ namespace TheCharityBLL.Services.Repository
                     Message = $"Campaign with ID {campaignId} not found."
                 };
             }
+
+            await _eventDispatcher.DispatchAsync(new CampaignStatusChangedEvent
+            {
+                Campaign = campaign,
+                OldStatus = campaign.Status.Value,
+                NewStatus = status
+            });
 
             campaign.UpdateStatus(status);
             await _campaignRepository.UpdateCampaignAsync(campaign);
@@ -929,8 +947,8 @@ namespace TheCharityBLL.Services.Repository
         public async Task<ServiceResponse<CampaignStatisticsDto>> GetCampaignStatisticsAsync()
         {
             var statusCounts = await _campaignRepository.GetCampaignCountByStatusAsync();
-            var topCampaignsResult = await GetTopCampaignsByAchievementAsync(new PaginationParametersDto(), 1);
-            var topDonatedResult = await GetTopCampaignsByDonationsAsync(new PaginationParametersDto(), 1);
+            var topCampaignsResult = await GetTopCampaignsByAchievementAsync(1);
+            var topDonatedResult = await GetTopCampaignsByDonationsAsync(1);
 
             var statistics = new CampaignStatisticsDto
             {
@@ -943,8 +961,8 @@ namespace TheCharityBLL.Services.Repository
                 AverageAchievementPercentage = await _campaignRepository.GetAverageAchievementPercentageAsync(),
                 SoloCampaignsCount = await _campaignRepository.GetSoloCampaignsCountAsync(),
                 SharedCampaignsCount = await _campaignRepository.GetSharedCampaignsCountAsync(),
-                MostSuccessfulCampaign = topCampaignsResult.Data?.Items.FirstOrDefault(),
-                MostDonatedCampaign = topDonatedResult.Data?.Items.FirstOrDefault(),
+                MostSuccessfulCampaign = topCampaignsResult.Data?.FirstOrDefault(),
+                MostDonatedCampaign = topDonatedResult.Data?.FirstOrDefault(),
                 StatisticsDate = DateTime.UtcNow
             };
 
@@ -975,6 +993,21 @@ namespace TheCharityBLL.Services.Repository
             };
         }
 
+        public async Task<ServiceResponse<IEnumerable<CampaignResponseDto>>> GetTopCampaignsByAchievementAsync(int limit = 10)
+        {
+            if (limit <= 0) limit = 10;
+
+            var campaigns = await _campaignRepository.GetTopCampaignsByAchievementAsync(limit);
+            var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
+
+            return new ServiceResponse<IEnumerable<CampaignResponseDto>>
+            {
+                Success = true,
+                Data = campaignsDtos,
+                Message = $"Top {limit} campaigns by achievement retrieved successfully."
+            };
+        }
+
         public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetTopCampaignsByDonationsAsync(PaginationParametersDto parametersDto, int limit = 10)
         {
             if (limit <= 0) limit = 10;
@@ -988,6 +1021,23 @@ namespace TheCharityBLL.Services.Repository
             {
                 Success = true,
                 Data = response,
+                Message = $"Top {limit} campaigns by donations retrieved successfully."
+            };
+        }
+
+        public async Task<ServiceResponse<IEnumerable<CampaignResponseDto>>> GetTopCampaignsByDonationsAsync(int limit = 10)
+        {
+            if (limit <= 0) limit = 10;
+
+            var campaigns = await _campaignRepository.GetTopCampaignsByDonationsAsync(limit);
+
+            var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
+
+
+            return new ServiceResponse<IEnumerable<CampaignResponseDto>>
+            {
+                Success = true,
+                Data = campaignsDtos,
                 Message = $"Top {limit} campaigns by donations retrieved successfully."
             };
         }
@@ -1121,6 +1171,38 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
+        public async Task<ServiceResponse<IEnumerable<CampaignResponseDto>>> GetCampaignsExpiringSoonAsync(int daysThreshold = 7)
+        {
+            try
+            {
+                if (daysThreshold <= 0) daysThreshold = 7;
+
+                var campaigns = await _campaignRepository.GetCampaignsExpiringSoonAsync(daysThreshold);
+                var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
+
+                // Calculate days remaining for each campaign
+                foreach (var dto in campaignsDtos)
+                {
+                    // You might want to add a DaysRemaining property to CampaignResponseDto
+                }
+
+                return new ServiceResponse<IEnumerable<CampaignResponseDto>>
+                {
+                    Success = true,
+                    Message = $"Campaigns expiring within {daysThreshold} days retrieved successfully.",
+                    Data = campaignsDtos
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<IEnumerable<CampaignResponseDto>>
+                {
+                    Success = false,
+                    Message = $"Failed to retrieve expiring campaigns: {ex.Message}"
+                };
+            }
+        }
+
         public async Task<ServiceResponse<bool>> ExtendCampaignDeadlineAsync(int campaignId, DateTime newDeadline)
         {
             try
@@ -1154,6 +1236,12 @@ namespace TheCharityBLL.Services.Repository
                 }
 
                 var updatedCampaign = await _campaignRepository.ExtendCampaignDeadlineAsync(campaignId, newDeadline);
+
+                await _eventDispatcher.DispatchAsync(new CampaignDeadlineExtendedEvent
+                {
+                    Campaign = campaign,
+                    NewDeadline = newDeadline
+                });
 
                 return new ServiceResponse<bool>
                 {

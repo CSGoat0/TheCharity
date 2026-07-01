@@ -8,5 +8,6 @@
         public string? ImgPath { get; set; }
         /// <example>100000</example>
         public int? Target { get; set; }
+        public int CreatorOrganizationId { get; set; }
     }
 }

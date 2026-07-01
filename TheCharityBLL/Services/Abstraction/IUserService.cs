@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityDAL.Entities;
+using TheCharityDAL.Enums;
 
 namespace TheCharityBLL.Services.Abstraction
 {
@@ -45,7 +46,5 @@ namespace TheCharityBLL.Services.Abstraction
         Task<bool> IsInRoleAsync(string userId, string role);
         Task<IdentityResult> AddToRoleAsync(string userId, string role);
         Task<IdentityResult> RemoveFromRoleAsync(string userId, string role);
-
-       
     }
 }

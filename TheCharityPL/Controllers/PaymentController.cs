@@ -35,9 +35,11 @@ namespace TheCharityPL.Controllers
             _configuration = configuration;
             _userService = userService;
         }
-
-              [HttpPost("create")]
-        [Authorize]
+        /// <summary>
+        /// create payment request to donate to specific campaign by user
+        /// </summary>
+        [HttpPost("create")]
+              [Authorize]
         public async Task<IActionResult> Create([FromBody] CreatePaymentRequestDto request)
         {
             if (!ModelState.IsValid)
@@ -82,10 +84,12 @@ namespace TheCharityPL.Controllers
 
         // =====================================================================
         // POST api/payment/callback
-        // Anonymous — called by Paymob after payment.
-        // UserId + CampaignId are read from order metadata (no server state needed).
-        // On success: creates the donation record.
-        // Always returns 200 — Paymob retries on any other status code.
+        /// <summary>
+        /// Anonymous — called by Paymob after payment.
+        /// UserId + CampaignId are read from order metadata (no server state needed).
+        /// On success: creates the donation record.
+        /// Always returns 200 — Paymob retries on any other status code.
+        /// </summary>
         // =====================================================================
         [HttpPost("callback")]
         [AllowAnonymous]

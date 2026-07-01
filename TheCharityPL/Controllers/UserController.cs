@@ -2,7 +2,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using TheCharityBLL.Authorization.Attributes;
 using TheCharityBLL.DTOs.PaginationDTOs;
+using TheCharityBLL.Authorization.Attributes;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.ViewModels.User;
@@ -87,7 +89,10 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while loading users." });
             }
         }
-
+        /// <summary>
+        /// get user information by user id 
+        /// </summary>
+        
         // ─── GET api/user/{id} ───────────────────────────────────────────────────────
 
         [HttpGet("{id}")]
@@ -132,7 +137,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while loading user details." });
             }
         }
-
+        /// <summary>
+        /// create account method 
+        /// </summary>
         // ─── POST api/user/register ──────────────────────────────────────────────────
 
         [HttpPost("register")]
@@ -184,7 +191,10 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while creating the user." });
             }
         }
-
+        /// <summary>
+        /// login by enter user name, password and jwt token
+        /// </summary>
+        
         // ─── POST api/user/login ─────────────────────────────────────────────────────
 
         [HttpPost("login")]
@@ -227,7 +237,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred during login." });
             }
         }
-
+        /// <summary>
+        /// resend email confirmation ,to check if the email valid or not 
+        /// </summary>
         // ─── POST api/user/resend-confirmation ───────────────────────────────────────
 
         [HttpPost("resend-confirmation")]
@@ -258,12 +270,12 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while resending the confirmation email." });
             }
         }
-
+        
         // ─── POST api/user/confirm-email ─────────────────────────────────────────────
 
         [HttpGet("confirm-email")]
         [AllowAnonymous]
-        public async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string encodedToken)
+        private async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string encodedToken)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(encodedToken))
                 return BadRequest(new { message = "Email and token are required." });
@@ -283,7 +295,10 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while confirming the email." });
             }
         }
-
+        /// <summary>
+        /// change password method
+        /// </summary>
+      
         // ─── POST api/user/forgot-password ───────────────────────────────────────────
 
         [HttpPost("forgot-password")]
@@ -318,7 +333,7 @@ namespace TheCharityPL.Controllers
 
         [HttpPost("reset-password")]
         [AllowAnonymous]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordViewModel model)
+        private async Task<IActionResult> ResetPassword([FromBody] ResetPasswordViewModel model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
@@ -349,10 +364,14 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while resetting the password." });
             }
         }
-
+        /// <summary>
+        /// update user info method by user id
+        /// </summary>
+        
         // ─── PUT api/user/{id} ───────────────────────────────────────────────────────
 
         [HttpPut("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Update(string id, [FromBody] EditUserViewModel viewModel)
         {
             if (id != viewModel.Id)
@@ -402,10 +421,13 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while updating the user." });
             }
         }
-
+        /// <summary>
+        /// change password method by user id
+        /// </summary>
         // ─── PUT api/user/{id}/change-password ───────────────────────────────────────
 
         [HttpPut("{id}/change-password")]
+        [AllowAnonymous]
         public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordViewModel viewModel)
         {
             if (id != viewModel.UserId)
@@ -446,10 +468,14 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while changing the password." });
             }
         }
-
+        /// <summary>
+        /// delete user by user id
+        /// </summary>
+       
         // ─── DELETE api/user/{id} ────────────────────────────────────────────────────
 
         [HttpDelete("{id}")]
+        [AllowAnonymous]
         public async Task<IActionResult> Delete(string id)
         {
             try
@@ -482,11 +508,14 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while deleting the user." });
             }
         }
-
+        /// <summary>
+        /// restore user deleted by user id
+        /// </summary>
+      
         // ─── POST api/user/restore/{id} ──────────────────────────────────────────────
 
         [HttpPost("restore/{id}")]
-        [Authorize(Roles = "Admin")]
+        [AllowAnonymous]
         public async Task<IActionResult> Restore(string id)  // FIX: removed [FromBody] — id comes from route
         {
             try
@@ -514,21 +543,180 @@ namespace TheCharityPL.Controllers
             }
         }
 
-        // ─── POST api/user/send-notification ─────────────────────────────────────────
+        // ─── Role Management ─────────────────────────────────────────────────────────
 
-        [HttpPost("send-notification")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> SendNotification([FromBody] SendNotificationViewModel model)
+        /// <summary>
+        /// Assign a role to a user (SuperAdmin only)
+        /// </summary>
+        [HttpPost("{userId}/roles")]
+        [IsSuperAdmin] // Only SuperAdmin can assign roles
+        public async Task<IActionResult> AssignRole(string userId, [FromBody] AssignRoleRequest request)
         {
             try
             {
-                await _emailService.SendNotificationAsync(model.Email, model.Subject, model.Message);
-                return Ok(new { message = "Notification sent successfully." });
+                // Check if user exists
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                    return NotFound(new { message = $"User with ID '{userId}' not found." });
+
+                // Check if role exists in Identity
+                var roles = await _userService.GetUserRolesAsync(userId);
+                if (roles.Contains(request.Role))
+                    return BadRequest(new { message = $"User already has role '{request.Role}'." });
+
+                var result = await _userService.AddToRoleAsync(userId, request.Role);
+
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation($"Role '{request.Role}' assigned to user {userId}");
+                    return Ok(new { message = $"Role '{request.Role}' assigned successfully." });
+                }
+
+                return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to send notification");
-                return StatusCode(500, new { message = "Failed to send notification. Please try again." });
+                _logger.LogError(ex, $"Error assigning role to user {userId}");
+                return StatusCode(500, new { message = "An error occurred while assigning the role." });
+            }
+        }
+
+        /// <summary>
+        /// Remove a role from a user (SuperAdmin only)
+        /// </summary>
+        [HttpDelete("{userId}/roles/{role}")]
+        [IsSuperAdmin]
+        public async Task<IActionResult> RemoveRole(string userId, string role)
+        {
+            try
+            {
+                // Check if user exists
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                    return NotFound(new { message = $"User with ID '{userId}' not found." });
+
+                var roles = await _userService.GetUserRolesAsync(userId);
+                if (!roles.Contains(role))
+                    return BadRequest(new { message = $"User does not have role '{role}'." });
+
+                var result = await _userService.RemoveFromRoleAsync(userId, role);
+
+                if (result.Succeeded)
+                {
+                    _logger.LogInformation($"Role '{role}' removed from user {userId}");
+                    return Ok(new { message = $"Role '{role}' removed successfully." });
+                }
+
+                return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error removing role from user {userId}");
+                return StatusCode(500, new { message = "An error occurred while removing the role." });
+            }
+        }
+
+        /// <summary>
+        /// Get all roles for a user
+        /// </summary>
+        [HttpGet("{userId}/roles")]
+        [IsSuperAdmin]
+        public async Task<IActionResult> GetUserRoles(string userId)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                    return NotFound(new { message = $"User with ID '{userId}' not found." });
+
+                var roles = await _userService.GetUserRolesAsync(userId);
+                return Ok(new { userId, roles });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting roles for user {userId}");
+                return StatusCode(500, new { message = "An error occurred while getting user roles." });
+            }
+        }
+
+        /// <summary>
+        /// Get all available roles in the system
+        /// </summary>
+        [HttpGet("roles/all")]
+        [IsSuperAdmin]
+        public async Task<IActionResult> GetAllRoles()
+        {
+            try
+            {
+                // Get all roles from Identity
+                var roles = new List<string> { "SuperAdmin", "User" }; // Add any other global roles
+                return Ok(roles);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting all roles");
+                return StatusCode(500, new { message = "An error occurred while getting roles." });
+            }
+        }
+
+        // ─── Seed SuperAdmin ─────────────────────────────────────────────────────────
+
+        /// <summary>
+        /// Seed the first SuperAdmin (should be disabled in production or protected)
+        /// </summary>
+        [HttpPost("seed-superadmin")]
+        [AllowAnonymous] // Or use a secret key/token
+        public async Task<IActionResult> SeedSuperAdmin([FromBody] CreateSuperAdminRequest request)
+        {
+            // WARNING: This should be protected with a secret key or environment check
+            // Consider using: if (!Environment.IsDevelopment()) return NotFound();
+
+            try
+            {
+                // Check if any SuperAdmin exists
+                var allUsers = await _userService.GetAllUsersAsync();
+                foreach (var user in allUsers)
+                {
+                    var roles = await _userService.GetUserRolesAsync(user.Id);
+                    if (roles.Contains("SuperAdmin"))
+                        return BadRequest(new { message = "SuperAdmin already exists." });
+                }
+
+                // Create the user
+                var createUserDto = new CreateUserDTO
+                {
+                    Email = request.Email,
+                    UserName = request.UserName,
+                    FullName = request.FullName,
+                    Password = request.Password,
+                    PhoneNumber = request.PhoneNumber
+                };
+
+                var result = await _userService.CreateUserAsync(createUserDto);
+                if (!result.Succeeded)
+                    return BadRequest(new { errors = result.Errors.Select(e => e.Description) });
+
+                // Get the created user
+                var createdUser = await _userService.GetUserByEmailAsync(request.Email);
+                if (createdUser == null)
+                    return BadRequest(new { message = "Failed to create user." });
+
+                // Assign SuperAdmin role
+                var roleResult = await _userService.AddToRoleAsync(createdUser.Id, "SuperAdmin");
+                if (!roleResult.Succeeded)
+                    return BadRequest(new { errors = roleResult.Errors.Select(e => e.Description) });
+
+                return Ok(new
+                {
+                    message = "SuperAdmin created successfully.",
+                    userId = createdUser.Id,
+                    email = createdUser.Email
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error seeding SuperAdmin");
+                return StatusCode(500, new { message = "An error occurred while seeding SuperAdmin." });
             }
         }
 

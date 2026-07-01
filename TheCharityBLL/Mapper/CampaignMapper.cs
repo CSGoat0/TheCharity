@@ -17,6 +17,7 @@ namespace TheCharityBLL.Mapper
             return new CampaignResponseDto
             {
                 Id = campaign.Id,
+                OrganizationId = campaign.OrganizationId ?? 0,
                 Title = campaign.Title,
                 Description = campaign.Description,
                 ImgPath = campaign.ImgPath,
@@ -93,6 +94,12 @@ namespace TheCharityBLL.Mapper
                 IsDeleted = campaign.IsDeleted,
                 RegistrationDate = campaign.RegistrationDate,
                 UpdatedOn = campaign.UpdatedOn,
+                Deadline = campaign.Deadline,
+                DaysRemaining = campaign.Deadline.HasValue
+                    ? (int)Math.Ceiling((campaign.Deadline.Value - DateTime.Now).TotalDays)
+                    : null,
+                CreatorOrganizationId = campaign.CreatorOrganizationId,
+                CreatorOrganizationName = campaign.CreatorOrganization?.Name ?? string.Empty,
                 Organizations = campaign.Organizations?.Select(o => new OrganizationBasicDto
                 {
                     Id = o.Id,
@@ -143,7 +150,8 @@ namespace TheCharityBLL.Mapper
                 target: (int?)(dto.Target ?? 100),
                 achieved: 0,
                 status: CampaignStatus.Active,
-                type: CampaignType.type6
+                type: CampaignType.type6,
+                 creatorOrganizationId: dto.CreatorOrganizationId
             );
         }
     }

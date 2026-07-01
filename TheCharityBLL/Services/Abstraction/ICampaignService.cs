@@ -66,7 +66,9 @@ namespace TheCharityBLL.Services.Abstraction
 
         // ===== Featured & Trending =====
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetTopCampaignsByAchievementAsync(PaginationParametersDto parametersDto, int limit = 10);
+        Task<ServiceResponse<IEnumerable<CampaignResponseDto>>> GetTopCampaignsByAchievementAsync(int limit = 10);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetTopCampaignsByDonationsAsync(PaginationParametersDto parametersDto, int limit = 10);
+        Task<ServiceResponse<IEnumerable<CampaignResponseDto>>> GetTopCampaignsByDonationsAsync(int limit = 10);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetRecentCampaignsAsync(PaginationParametersDto parametersDto, int days = 30);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetUrgentCampaignsAsync(PaginationParametersDto parametersDto, double minPercentage = 75);
 
@@ -74,6 +76,7 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetCampaignsByDeadlineAsync(PaginationParametersDto parametersDto, DateTime deadlineDate, bool includeDeleted = false);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetExpiredCampaignsAsync(PaginationParametersDto parametersDto);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetCampaignsExpiringSoonAsync(PaginationParametersDto parametersDto, int daysThreshold = 7);
+        Task<ServiceResponse<IEnumerable<CampaignResponseDto>>> GetCampaignsExpiringSoonAsync(int daysThreshold = 7);
         Task<ServiceResponse<bool>> ExtendCampaignDeadlineAsync(int campaignId, DateTime newDeadline);
         Task<ServiceResponse<bool>> AutoExpireCampaignsAsync();
 

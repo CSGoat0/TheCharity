@@ -6,6 +6,8 @@ namespace TheCharityBLL.DTOs.CampaignDTOs
     {
         /// <example>1</example>
         public int Id { get; set; }
+        /// <example>1</example>
+        public int OrganizationId { get; set; }
         /// <example>Food for 1000 Families</example>
         public string? Title { get; set; }
         /// <example>Providing food packages to underprivileged families during Ramadan</example>

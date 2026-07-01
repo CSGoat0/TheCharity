@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TheCharityBLL.Authorization.Attributes;
 using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Services.Abstraction;
@@ -65,7 +66,7 @@ namespace TheCharityPL.Controllers
         /// Update campaign
         /// </summary>
         [HttpPut("{id:int}")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [CanManageCampaign] // ← SuperAdmin + OrganizationAdmin + SubAdmin
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCampaignDto dto)
         {
             dto.Id = id;
@@ -77,7 +78,7 @@ namespace TheCharityPL.Controllers
         /// Delete campaign (soft delete)
         /// </summary>
         [HttpDelete("{id:int}")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [IsSuperAdmin] // ← ONLY SuperAdmin
         public async Task<IActionResult> Delete(int id)
         {
             var result = await _campaignService.DeleteCampaignAsync(id);
@@ -88,7 +89,7 @@ namespace TheCharityPL.Controllers
         /// Restore deleted campaign
         /// </summary>
         [HttpPatch("{id:int}/restore")]
-        [Authorize(Roles = "SuperAdmin")]
+        [IsSuperAdmin] // ← ONLY SuperAdmin
         public async Task<IActionResult> Restore(int id)
         {
             var result = await _campaignService.RestoreCampaignAsync(id);
@@ -128,7 +129,7 @@ namespace TheCharityPL.Controllers
         /// <param name="id">Campaign ID</param>
         /// <param name="newDeadline">New deadline date</param>
         [HttpPatch("{id:int}/extend-deadline")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [CanManageCampaign] // ← SuperAdmin + OrganizationAdmin + SubAdmin
         public async Task<IActionResult> ExtendDeadline(int id, [FromQuery] DateTime newDeadline)
         {
             var result = await _campaignService.ExtendCampaignDeadlineAsync(id, newDeadline);
@@ -139,7 +140,7 @@ namespace TheCharityPL.Controllers
         /// Auto-expire campaigns (admin endpoint)
         /// </summary>
         [HttpPost("auto-expire")]
-        [Authorize(Roles = "SuperAdmin")]
+        [IsSuperAdmin] // ← ONLY SuperAdmin
         public async Task<IActionResult> AutoExpireCampaigns()
         {
             var result = await _campaignService.AutoExpireCampaignsAsync();
@@ -176,7 +177,7 @@ namespace TheCharityPL.Controllers
         /// Create solo campaign
         /// </summary>
         [HttpPost("solo")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [CanCreateCampaign] // ← SuperAdmin + OrganizationAdmin + SubAdmin
         public async Task<IActionResult> CreateSolo([FromBody] CreateSoloCampaignDto dto)
         {
             var result = await _campaignService.CreateSoloCampaignAsync(dto);
@@ -189,7 +190,7 @@ namespace TheCharityPL.Controllers
         /// Update solo campaign
         /// </summary>
         [HttpPut("solo/{id:int}")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [CanManageCampaign] // ← SuperAdmin + OrganizationAdmin + SubAdmin
         public async Task<IActionResult> UpdateSolo(int id, [FromBody] UpdateSoloCampaignDto dto)
         {
             dto.Id = id;
@@ -238,7 +239,7 @@ namespace TheCharityPL.Controllers
         /// Create shared campaign
         /// </summary>
         [HttpPost("shared")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [CanCreateCampaign] // ← SuperAdmin + OrganizationAdmin + SubAdmin
         public async Task<IActionResult> CreateShared([FromBody] CreateSharedCampaignDto dto)
         {
             var result = await _campaignService.CreateSharedCampaignAsync(dto);
@@ -251,7 +252,7 @@ namespace TheCharityPL.Controllers
         /// Update shared campaign
         /// </summary>
         [HttpPut("shared/{id:int}")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [CanManageCampaign] // ← SuperAdmin + OrganizationAdmin + SubAdmin
         public async Task<IActionResult> UpdateShared(int id, [FromBody] UpdateSharedCampaignDto dto)
         {
             dto.Id = id;
@@ -274,7 +275,7 @@ namespace TheCharityPL.Controllers
         /// Add organization to shared campaign
         /// </summary>
         [HttpPost("shared/{sharedCampaignId:int}/add-organization/{organizationId:int}")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [IsSharedCampaignCreator] // ← Only creator org Admin/SubAdmin + SuperAdmin
         public async Task<IActionResult> AddOrganizationToShared(int sharedCampaignId, int organizationId)
         {
             var result = await _campaignService.AddOrganizationToSharedCampaignAsync(sharedCampaignId, organizationId);
@@ -285,7 +286,7 @@ namespace TheCharityPL.Controllers
         /// Remove organization from shared campaign
         /// </summary>
         [HttpDelete("shared/{sharedCampaignId:int}/remove-organization/{organizationId:int}")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [IsSharedCampaignCreator] // ← Only creator org Admin/SubAdmin + SuperAdmin
         public async Task<IActionResult> RemoveOrganizationFromShared(int sharedCampaignId, int organizationId)
         {
             var result = await _campaignService.RemoveOrganizationFromSharedCampaignAsync(sharedCampaignId, organizationId);
@@ -311,7 +312,7 @@ namespace TheCharityPL.Controllers
         /// Update campaign achieved money
         /// </summary>
         [HttpPatch("{campaignId:int}/money")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [CanManageCampaign] // ← SuperAdmin + OrganizationAdmin + SubAdmin
         public async Task<IActionResult> UpdateCampaignMoney(int campaignId, [FromBody] UpdateCampaignMoneyDto dto)
         {
             var result = await _campaignService.UpdateCampaignMoneyAsync(campaignId, dto.Amount);
@@ -333,7 +334,7 @@ namespace TheCharityPL.Controllers
         /// Update campaign status
         /// </summary>
         [HttpPatch("{campaignId:int}/status")]
-        [Authorize(Roles = "SuperAdmin,OrganizationAdmin")]
+        [CanManageCampaign] // ← SuperAdmin + OrganizationAdmin + SubAdmin
         public async Task<IActionResult> UpdateCampaignStatus(int campaignId, [FromQuery] CampaignStatus status)
         {
             var result = await _campaignService.UpdateCampaignStatusAsync(campaignId, status);
@@ -396,6 +397,7 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("deleted")]
         [Authorize(Roles = "SuperAdmin")]
+        [IsSuperAdmin] // ← ONLY SuperAdmin
         public async Task<IActionResult> GetDeleted([FromQuery] PaginationParametersDto parametersDto)
         {
             var result = await _campaignService.GetDeletedCampaignsAsync(parametersDto);
@@ -620,7 +622,7 @@ namespace TheCharityPL.Controllers
         /// Bulk update campaign status
         /// </summary>
         [HttpPatch("bulk/update-status")]
-        [Authorize(Roles = "SuperAdmin")]
+        [CanPerformBulkOperations] // ← ONLY SuperAdmin
         public async Task<IActionResult> BulkUpdateStatus([FromQuery] CampaignStatus oldStatus, [FromQuery] CampaignStatus newStatus)
         {
             var result = await _campaignService.BulkUpdateCampaignStatusAsync(oldStatus, newStatus);
@@ -631,7 +633,7 @@ namespace TheCharityPL.Controllers
         /// Soft delete expired campaigns
         /// </summary>
         [HttpDelete("bulk/delete-expired")]
-        [Authorize(Roles = "SuperAdmin")]
+        [CanPerformBulkOperations] // ← ONLY SuperAdmin
         public async Task<IActionResult> DeleteExpired([FromQuery] int daysAfterCompletion = 30)
         {
             var result = await _campaignService.SoftDeleteExpiredCampaignsAsync(daysAfterCompletion);

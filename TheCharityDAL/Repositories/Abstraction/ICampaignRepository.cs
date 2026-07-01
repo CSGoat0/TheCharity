@@ -112,5 +112,19 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<bool> IsCampaignActiveAsync(int id);
         Task<double> GetCampaignAchievementPercentageAsync(int id);
         Task<CampaignType?> GetCampaignTypeAsync(int id);
+
+        // Campaign Ownership
+        Task<bool> IsCampaignOwnedByOrganizationAsync(int campaignId, int organizationId);
+        Task<int?> GetCampaignCreatorOrganizationIdAsync(int campaignId);
+
+        // Shared Campaign Invites
+        Task<SharedCampaignInvite> CreateInviteAsync(SharedCampaignInvite invite);
+        Task<SharedCampaignInvite?> GetInviteByIdAsync(int inviteId);
+        Task<IEnumerable<SharedCampaignInvite>> GetInvitesForSharedCampaignAsync(int sharedCampaignId);
+        Task<IEnumerable<SharedCampaignInvite>> GetPendingInvitesForOrganizationAsync(int organizationId);
+        Task<IEnumerable<SharedCampaignInvite>> GetInvitesSentByUserAsync(string userId);
+        Task<SharedCampaignInvite> UpdateInviteStatusAsync(int inviteId, InviteStatus status);
+        Task<bool> HasPendingInviteAsync(int sharedCampaignId, int organizationId);
+        Task<int> ExpireOldInvitesAsync(DateTime cutoffDate);
     }
 }

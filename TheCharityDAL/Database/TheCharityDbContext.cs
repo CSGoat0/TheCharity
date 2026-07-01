@@ -20,6 +20,8 @@ namespace TheCharityDAL.Database
         public DbSet<SharedCampaign> SharedCampaigns { get; set; }
         public DbSet<SoloCampaign> SoloCampaigns { get; set; }
         public DbSet<ScheduledJob> ScheduledJobs { get; set; }
+        public DbSet<OrganizationRole> OrganizationRoles { get; set; }
+        public DbSet<SharedCampaignInvite> SharedCampaignInvites { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -44,7 +46,7 @@ namespace TheCharityDAL.Database
                 .WithMany(o => o.SharedCampaigns)
                 .UsingEntity(j => j.ToTable("SharedCampaignOrganizations"));
 
-            // 4. DonatedItem - Attachment relationships (FIX THE ISSUE HERE)
+            // 4. DonatedItem - Attachment relationships
             builder.Entity<DonatedItem>()
                 .HasMany(di => di.ItemAttachments)
                 .WithOne(a => a.DonatedItem)
@@ -57,10 +59,52 @@ namespace TheCharityDAL.Database
                 .HasForeignKey(a => a.DonatedItemId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 5. Soft delete query filters
+            // 5. Organization - AdminUser relationship
+            builder.Entity<Organization>()
+                .HasOne(o => o.AdminUser)
+                .WithMany()  // No inverse navigation property
+                .HasForeignKey(o => o.AdminUserId)
+                .OnDelete(DeleteBehavior.Restrict); // Prevent accidental admin deletion
+
+            // 6. OrganizationRole - User relationship
+            builder.Entity<OrganizationRole>()
+                .HasOne(r => r.User)
+                .WithMany()
+                .HasForeignKey(r => r.UserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 7. SharedCampaign - CreatorOrganization relationship
+            builder.Entity<SharedCampaign>()
+                .HasOne(sc => sc.CreatorOrganization)
+                .WithMany()
+                .HasForeignKey(sc => sc.CreatorOrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 8. SharedCampaignInvite relationships
+            builder.Entity<SharedCampaignInvite>()
+                .HasOne(i => i.SharedCampaign)
+                .WithMany()
+                .HasForeignKey(i => i.SharedCampaignId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SharedCampaignInvite>()
+                .HasOne(i => i.Organization)
+                .WithMany()
+                .HasForeignKey(i => i.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<SharedCampaignInvite>()
+                .HasOne(i => i.InvitedByUser)
+                .WithMany()
+                .HasForeignKey(i => i.InvitedByUserId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // 9. Soft delete query filters
             builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
             builder.Entity<Campaign>().HasQueryFilter(c => !c.IsDeleted);
             builder.Entity<Organization>().HasQueryFilter(o => !o.IsDeleted);
+            builder.Entity<OrganizationRole>().HasQueryFilter(r => !r.IsDeleted);
+            builder.Entity<SharedCampaignInvite>().HasQueryFilter(i => !i.IsDeleted);
         }
     }
 }

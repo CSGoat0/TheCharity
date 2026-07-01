@@ -1,0 +1,8 @@
+﻿using Microsoft.AspNetCore.Authorization;
+
+namespace TheCharityBLL.Authorization.Requirements
+{
+    public class IsSharedCampaignCreatorRequirement : IAuthorizationRequirement
+    {
+    }
+}

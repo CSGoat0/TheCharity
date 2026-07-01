@@ -603,6 +603,183 @@ namespace TheCharityDAL.Repositories.Implementation
             return result;
         }
 
+        // Admin Management
+        public async Task<Organization> AssignOrganizationAdminAsync(int organizationId, string adminUserId)
+        {
+            var organization = await GetOrganizationByIdAsync(organizationId);
+            if (organization == null)
+                throw new Exception("Organization not found");
 
+            var user = await _context.Users.FindAsync(adminUserId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            organization.AssignAdmin(adminUserId);
+            await _context.SaveChangesAsync();
+            return organization;
+        }
+
+        public async Task<Organization> RemoveOrganizationAdminAsync(int organizationId)
+        {
+            var organization = await GetOrganizationByIdAsync(organizationId);
+            if (organization == null)
+                throw new Exception("Organization not found");
+
+            organization.RemoveAdmin();
+            await _context.SaveChangesAsync();
+            return organization;
+        }
+
+        public async Task<Organization> TransferOrganizationAdminAsync(int organizationId, string newAdminUserId)
+        {
+            var organization = await GetOrganizationByIdAsync(organizationId);
+            if (organization == null)
+                throw new Exception("Organization not found");
+
+            var user = await _context.Users.FindAsync(newAdminUserId);
+            if (user == null)
+                throw new Exception("User not found");
+
+            organization.RemoveAdmin();
+            organization.AssignAdmin(newAdminUserId);
+            await _context.SaveChangesAsync();
+            return organization;
+        }
+
+        public async Task<User?> GetOrganizationAdminAsync(int organizationId)
+        {
+            var organization = await GetOrganizationByIdAsync(organizationId);
+            if (organization == null || string.IsNullOrEmpty(organization.AdminUserId))
+                return null;
+
+            return await _context.Users
+                .Where(u => u.Id == organization.AdminUserId && !u.IsDeleted)
+                .FirstOrDefaultAsync();
+        }
+
+        // SubAdmin Management
+        public async Task<IEnumerable<User>> GetOrganizationSubAdminsAsync(int organizationId)
+        {
+            var roleIds = await _context.OrganizationRoles
+                .Where(r => r.OrganizationId == organizationId &&
+                           r.Role == OrganizationRoleType.SubAdmin &&
+                           !r.IsDeleted)
+                .Select(r => r.UserId)
+                .ToListAsync();
+
+            return await _context.Users
+                .Where(u => roleIds.Contains(u.Id) && !u.IsDeleted)
+                .ToListAsync();
+        }
+
+        public async Task<OrganizationRole> AddSubAdminAsync(int organizationId, string userId)
+        {
+            // Check if user is already an admin
+            var isAdmin = await _context.Organizations
+                .AnyAsync(o => o.Id == organizationId && o.AdminUserId == userId);
+
+            if (isAdmin)
+                throw new Exception("User is already an Organization Admin");
+
+            // Check if already a sub-admin
+            var existingRole = await _context.OrganizationRoles
+                .Where(r => r.OrganizationId == organizationId &&
+                           r.UserId == userId &&
+                           !r.IsDeleted)
+                .FirstOrDefaultAsync();
+
+            if (existingRole != null)
+            {
+                existingRole = new OrganizationRole(organizationId, userId, OrganizationRoleType.SubAdmin);
+                _context.OrganizationRoles.Update(existingRole);
+            }
+            else
+            {
+                var role = new OrganizationRole(organizationId, userId, OrganizationRoleType.SubAdmin);
+                _context.OrganizationRoles.Add(role);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return await _context.OrganizationRoles
+                .Where(r => r.OrganizationId == organizationId && r.UserId == userId)
+                .FirstOrDefaultAsync()!;
+        }
+
+        public async Task RemoveSubAdminAsync(int organizationId, string userId)
+        {
+            var role = await _context.OrganizationRoles
+                .Where(r => r.OrganizationId == organizationId &&
+                           r.UserId == userId &&
+                           r.Role == OrganizationRoleType.SubAdmin &&
+                           !r.IsDeleted)
+                .FirstOrDefaultAsync();
+
+            if (role != null)
+            {
+                role.Delete();
+                await _context.SaveChangesAsync();
+            }
+        }
+
+        public async Task<bool> IsUserSubAdminAsync(int organizationId, string userId)
+        {
+            return await _context.OrganizationRoles
+                .AnyAsync(r => r.OrganizationId == organizationId &&
+                              r.UserId == userId &&
+                              r.Role == OrganizationRoleType.SubAdmin &&
+                              !r.IsDeleted);
+        }
+
+        public async Task<IEnumerable<OrganizationRole>> GetOrganizationRolesAsync(int organizationId)
+        {
+            return await _context.OrganizationRoles
+                .Where(r => r.OrganizationId == organizationId && !r.IsDeleted)
+                .Include(r => r.User)
+                .ToListAsync();
+        }
+
+        public async Task<OrganizationRole> AddOrganizationRoleAsync(int organizationId, string userId, OrganizationRoleType role)
+        {
+            // Check if user already has a role in this organization
+            var existingRole = await _context.OrganizationRoles
+                .Where(r => r.OrganizationId == organizationId &&
+                           r.UserId == userId &&
+                           !r.IsDeleted)
+                .FirstOrDefaultAsync();
+
+            if (existingRole != null)
+            {
+                // Update existing role instead of creating new one
+                existingRole = new OrganizationRole(organizationId, userId, role);
+                _context.OrganizationRoles.Update(existingRole);
+            }
+            else
+            {
+                var organizationRole = new OrganizationRole(organizationId, userId, role);
+                _context.OrganizationRoles.Add(organizationRole);
+            }
+
+            await _context.SaveChangesAsync();
+
+            return await _context.OrganizationRoles
+                .Where(r => r.OrganizationId == organizationId && r.UserId == userId)
+                .FirstOrDefaultAsync()!;
+        }
+
+        public async Task RemoveOrganizationRoleAsync(int organizationId, string userId)
+        {
+            var role = await _context.OrganizationRoles
+                .Where(r => r.OrganizationId == organizationId &&
+                           r.UserId == userId &&
+                           !r.IsDeleted)
+                .FirstOrDefaultAsync();
+
+            if (role != null)
+            {
+                role.Delete();
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

@@ -12,15 +12,21 @@ namespace TheCharityBLL.DTOs.DonatedItemDTOs
     {
 
         [MaxLength(200, ErrorMessage = "Name cannot exceed 200 characters.")]
+        /// <example>Winter Jacket</example>
         public string? Name { get; set; }
 
         [MaxLength(2000, ErrorMessage = "Description cannot exceed 2000 characters.")]
+        /// <example>Lightweight winter jacket in excellent condition.</example>
         public string? Description { get; set; }
 
         [EnumDataType(typeof(ItemCategory), ErrorMessage = "Invalid item category.")]
+        /// <example>Clothes</example>
         public ItemCategory? ItemCategory { get; set; }
 
+        /// <example>true</example>
         public bool? IsAvailable { get; set; }
+
+        /// <example>2</example>
         public int? OrganizationId { get; set; }
 
     }

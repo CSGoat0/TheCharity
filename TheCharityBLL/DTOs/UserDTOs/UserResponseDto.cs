@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace TheCharityBLL.DTOs.UserDTOs
+﻿namespace TheCharityBLL.DTOs.UserDTOs
 {
     public class UserResponseDTO
     {
@@ -26,5 +20,6 @@ namespace TheCharityBLL.DTOs.UserDTOs
         public DateTimeOffset? LockoutEnd { get; set; }
         public int AccessFailedCount { get; set; }
         public string? FullName { get; set; }
+        public string? ImgPath { get; set; }
     }
 }

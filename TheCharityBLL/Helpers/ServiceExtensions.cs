@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -6,9 +7,18 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using TheCharityBLL.Authorization.Filters;
+using TheCharityBLL.Authorization.Handlers;
+using TheCharityBLL.Authorization.Requirements;
+using TheCharityBLL.Events.Abstraction;
+using TheCharityBLL.Events.CampaignEvents;
+using TheCharityBLL.Events.DonationEvents;
+using TheCharityBLL.Events.EventHandlers.CampaignEventHandlers;
+using TheCharityBLL.Events.EventHandlers.DonationEventHandlers;
+using TheCharityBLL.Events.Implementation;
+using TheCharityBLL.Jobs.Emails;
 using TheCharityBLL.Jobs.Registry.Abstraction;
 using TheCharityBLL.Jobs.Registry.Implementation;
-using TheCharityBLL.Jobs.Scheduled;
 using TheCharityBLL.Jobs.Services;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
@@ -23,6 +33,7 @@ using TheCharityDAL.Database;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Repositories.Abstraction;
 using TheCharityDAL.Repositories.Implementation;
+using IAuthorizationService = TheCharityBLL.Services.Abstraction.IAuthorizationService;
 
 namespace TheCharityBLL.Helpers
 {
@@ -43,7 +54,7 @@ namespace TheCharityBLL.Helpers
             .AddEntityFrameworkStores<TheCharityDbContext>()
             .AddDefaultTokenProviders();
         }
-        public static void FoxArtEmailConfiguration(this IServiceCollection services, IConfiguration configuration)
+        public static void TheCharityConfiguration(this IServiceCollection services, IConfiguration configuration)
         {
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
         }
@@ -72,14 +83,70 @@ namespace TheCharityBLL.Helpers
             services.AddScoped<IOrganizationRepository, OrganizationRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
             // Services Injection
+            services.AddScoped<IAuthorizationService, AuthorizationService>();
+            services.AddScoped<ICampaignNotificationService, CampaignNotificationService>();
             services.AddScoped<ICampaignService, CampaignService>();
-            services.AddScoped<IUserService, UserService>();
-            services.AddScoped<IEmailService, EmailService>();
-            services.AddScoped<IPaymobService,PaymobService>();
-            services.AddScoped<IOrganizationService, OrganizationService>();
             services.AddScoped<IDonatedItemService, DonatedItemService>();
-            services.AddScoped<IPaymentInfoService, PaymentInfoService>();
             services.AddScoped<IDonationService, DonationService>();
+            services.AddScoped<IEmailService, EmailService>();
+            services.AddScoped<IOrganizationService, OrganizationService>();
+            services.AddScoped<IPaymobService,PaymobService>();
+            services.AddScoped<IPaymentInfoService, PaymentInfoService>();
+            services.AddScoped<IUserService, UserService>();
+            // Email Job Services
+            services.AddScoped<AutoExpireCampaignsJob>();
+            services.AddScoped<CampaignDeadlineReminderJob>();
+            services.AddScoped<DeadlineExtensionConfirmationJob>();
+            services.AddScoped<NewCampaignNotificationJob>();
+            services.AddScoped<SendMilestoneEmailJob>();
+            services.AddScoped<WeeklyCampaignDigestJob>();
+            // Event Handlers
+            services.AddScoped<IEventDispatcher, EventDispatcher>();
+            services.AddScoped<IEventHandler<CampaignCompletedEvent>, CampaignCompletedEventHandler>();
+            services.AddScoped<IEventHandler<CampaignCreatedEvent>, CampaignCreatedEventHandler>();
+            services.AddScoped<IEventHandler<CampaignDeadlineExtendedEvent>, CampaignDeadlineExtendedEventHandler>();
+            services.AddScoped<IEventHandler<CampaignDismissedEvent>, CampaignDismissedEventHandler>();
+            services.AddScoped<IEventHandler<CampaignDonationReceivedEvent>, CampaignDonationEventHandler>();
+            services.AddScoped<IEventHandler<CampaignDonationReceivedEvent>, IncrementCampaignMoneyEventHandler>();
+            services.AddScoped<IEventHandler<CampaignExpiredEvent>, CampaignExpiredEventHandler>();
+            services.AddScoped<IEventHandler<CampaignPostponedEvent>, CampaignPostponedEventHandler>();
+            services.AddScoped<IEventHandler<CampaignStatusChangedEvent>, CampaignStatusChangedEventHandler>();
+            // Register IHttpContextAccessor (for handlers)
+            services.AddHttpContextAccessor();
+            // Register Authorization Handlers
+            services.AddScoped<IAuthorizationHandler, CanManageCampaignHandler>();
+            services.AddScoped<IAuthorizationHandler, CanManageOrganizationHandler>();
+            services.AddScoped<IAuthorizationHandler, CanManageSubAdminsHandler>();
+            services.AddScoped<IAuthorizationHandler, CanPerformBulkOperationsHandler>();
+            services.AddScoped<IAuthorizationHandler, CanUpdatePaymentInfoHandler>();
+            services.AddScoped<IAuthorizationHandler, IsSharedCampaignCreatorHandler>();
+            services.AddScoped<IAuthorizationHandler, IsSuperAdminHandler>();
+            // Register Authorization Filters
+            services.AddScoped<CanCreateCampaignFilter>();
+            // Add Authorization Policies
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("CanManageCampaign", policy =>
+                    policy.Requirements.Add(new CanManageCampaignRequirement()));
+
+                options.AddPolicy("CanManageOrganization", policy =>
+                    policy.Requirements.Add(new CanManageOrganizationRequirement()));
+
+                options.AddPolicy("CanManageSubAdmins", policy =>
+                    policy.Requirements.Add(new CanManageSubAdminsRequirement()));
+
+                options.AddPolicy("CanPerformBulkOperations", policy =>
+                    policy.Requirements.Add(new CanPerformBulkOperationsRequirement()));
+
+                options.AddPolicy("CanUpdatePaymentInfo", policy =>
+                    policy.Requirements.Add(new CanUpdatePaymentInfoRequirement()));
+
+                options.AddPolicy("IsSharedCampaignCreator", policy =>
+                    policy.Requirements.Add(new IsSharedCampaignCreatorRequirement()));
+
+                options.AddPolicy("IsSuperAdmin", policy =>
+                    policy.Requirements.Add(new IsSuperAdminRequirement()));
+            });
             // mapper Injection
             services.AddAutoMapper(cfg => {
                 cfg.AddProfile<UserMapperProfile>();
@@ -125,9 +192,6 @@ namespace TheCharityBLL.Helpers
         }
         public static void AddHangfireServices(this IServiceCollection services)
         {
-            // Add more jobs here as you create them
-            services.AddScoped<CheckExpiredCampaignsJob>();
-
             // Register services
             services.AddScoped<IJobSchedulerService, HangfireJobSchedulerService>();
             services.AddScoped<IJobRegistry, JobRegistry>();

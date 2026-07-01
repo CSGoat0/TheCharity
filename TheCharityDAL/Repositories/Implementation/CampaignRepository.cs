@@ -844,5 +844,135 @@ namespace TheCharityDAL.Repositories.Implementation
 
             return (await GetAllCampaignsAsync()).Cast<T>();
         }
+
+        // Campaign Ownership
+        public async Task<bool> IsCampaignOwnedByOrganizationAsync(int campaignId, int organizationId)
+        {
+            var campaign = await GetCampaignByIdAsync(campaignId);
+            if (campaign == null) return false;
+
+            if (campaign is SoloCampaign solo)
+                return solo.OrganizationId == organizationId;
+            else if (campaign is SharedCampaign shared)
+                return shared.CreatorOrganizationId == organizationId;
+
+            return false;
+        }
+
+        public async Task<int?> GetCampaignCreatorOrganizationIdAsync(int campaignId)
+        {
+            var campaign = await GetCampaignByIdAsync(campaignId);
+            if (campaign == null) return null;
+
+            if (campaign is SoloCampaign solo)
+                return solo.OrganizationId;
+            else if (campaign is SharedCampaign shared)
+                return shared.CreatorOrganizationId;
+
+            return null;
+        }
+
+        // Shared Campaign Invites
+        public async Task<SharedCampaignInvite> CreateInviteAsync(SharedCampaignInvite invite)
+        {
+            _context.SharedCampaignInvites.Add(invite);
+            await _context.SaveChangesAsync();
+            return invite;
+        }
+
+        public async Task<SharedCampaignInvite?> GetInviteByIdAsync(int inviteId)
+        {
+            return await _context.SharedCampaignInvites
+                .Where(i => i.Id == inviteId && !i.IsDeleted)
+                .Include(i => i.SharedCampaign)
+                .Include(i => i.Organization)
+                .Include(i => i.InvitedByUser)
+                .FirstOrDefaultAsync();
+        }
+
+        public async Task<IEnumerable<SharedCampaignInvite>> GetInvitesForSharedCampaignAsync(int sharedCampaignId)
+        {
+            return await _context.SharedCampaignInvites
+                .Where(i => i.SharedCampaignId == sharedCampaignId && !i.IsDeleted)
+                .Include(i => i.Organization)
+                .Include(i => i.InvitedByUser)
+                .OrderByDescending(i => i.RegistrationDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<SharedCampaignInvite>> GetPendingInvitesForOrganizationAsync(int organizationId)
+        {
+            return await _context.SharedCampaignInvites
+                .Where(i => i.OrganizationId == organizationId &&
+                           i.Status == InviteStatus.Pending &&
+                           i.ExpiresAt > DateTime.UtcNow &&
+                           !i.IsDeleted)
+                .Include(i => i.SharedCampaign)
+                .Include(i => i.InvitedByUser)
+                .OrderByDescending(i => i.RegistrationDate)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<SharedCampaignInvite>> GetInvitesSentByUserAsync(string userId)
+        {
+            return await _context.SharedCampaignInvites
+                .Where(i => i.InvitedByUserId == userId && !i.IsDeleted)
+                .Include(i => i.SharedCampaign)
+                .Include(i => i.Organization)
+                .OrderByDescending(i => i.RegistrationDate)
+                .ToListAsync();
+        }
+
+        public async Task<SharedCampaignInvite> UpdateInviteStatusAsync(int inviteId, InviteStatus status)
+        {
+            var invite = await GetInviteByIdAsync(inviteId);
+            if (invite == null)
+                throw new Exception("Invite not found");
+
+            switch (status)
+            {
+                case InviteStatus.Accepted:
+                    invite.Accept();
+                    break;
+                case InviteStatus.Rejected:
+                    invite.Reject();
+                    break;
+                case InviteStatus.Expired:
+                    invite.Expire();
+                    break;
+                default:
+                    throw new Exception("Invalid status");
+            }
+
+            await _context.SaveChangesAsync();
+            return invite;
+        }
+
+        public async Task<bool> HasPendingInviteAsync(int sharedCampaignId, int organizationId)
+        {
+            return await _context.SharedCampaignInvites
+                .AnyAsync(i => i.SharedCampaignId == sharedCampaignId &&
+                              i.OrganizationId == organizationId &&
+                              i.Status == InviteStatus.Pending &&
+                              i.ExpiresAt > DateTime.UtcNow &&
+                              !i.IsDeleted);
+        }
+
+        public async Task<int> ExpireOldInvitesAsync(DateTime cutoffDate)
+        {
+            var invites = await _context.SharedCampaignInvites
+                .Where(i => i.Status == InviteStatus.Pending &&
+                           i.ExpiresAt < cutoffDate &&
+                           !i.IsDeleted)
+                .ToListAsync();
+
+            foreach (var invite in invites)
+            {
+                invite.Expire();
+            }
+
+            await _context.SaveChangesAsync();
+            return invites.Count;
+        }
     }
 }

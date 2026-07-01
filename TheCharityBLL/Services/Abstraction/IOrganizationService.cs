@@ -1,6 +1,7 @@
 ﻿using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
+using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.ViewModels;
 using TheCharityDAL.Enums;
 
@@ -48,8 +49,19 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<int>> GetContactMethodCountByTypeAsync(int organizationId, ContactType type);
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsByContactTypeAsync(PaginationParametersDto filterDto,ContactType type);
 
-        //Task<ServiceResponse<bool> ValidatePaymentInfoAsync(int organizationId);
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsWithValidPaymentInfoAsync(PaginationParametersDto filterDto);
         Task<ServiceResponse<Dictionary<int, DateTime>>> GetOrganizationLastPaymentUpdateAsync();
+
+        // ===== Sub-Admin Management =====
+        Task<ServiceResponse<OrganizationRoleResponseDto>> AddSubAdminAsync(int organizationId, string userId);
+        Task<ServiceResponse<bool>> RemoveSubAdminAsync(int organizationId, string userId);
+        Task<ServiceResponse<IEnumerable<UserResponseDTO>>> GetOrganizationSubAdminsAsync(int organizationId);
+        Task<ServiceResponse<bool>> IsUserSubAdminAsync(int organizationId, string userId);
+
+        // ===== Organization Admin Management =====
+        Task<ServiceResponse<OrganizationResponseDto>> AssignOrganizationAdminAsync(int organizationId, string adminUserId);
+        Task<ServiceResponse<OrganizationResponseDto>> RemoveOrganizationAdminAsync(int organizationId);
+        Task<ServiceResponse<OrganizationResponseDto>> TransferOrganizationAdminAsync(int organizationId, string newAdminUserId);
+        Task<ServiceResponse<UserResponseDTO?>> GetOrganizationAdminAsync(int organizationId);
     }
 }

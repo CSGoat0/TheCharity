@@ -22,6 +22,9 @@ namespace TheCharityPL.Controllers
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
+        /// <summary>
+        /// get payment info ( paymob api keys ) related to specific organization by organization id  
+        /// </summary>
         // ─── GET api/paymentinfo/by-organization/{organizationId} ───────────────────
 
         [HttpGet("by-organization/{organizationId}")]
@@ -52,7 +55,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while loading payment info." });
             }
         }
-
+        /// <summary>
+        /// get payment info ( paymob api keys ) related to specific organization by payment info id  
+        /// </summary>
         // ─── GET api/paymentinfo/{paymentInfoId} ────────────────────────────────────
 
         [HttpGet("{paymentInfoId}")]
@@ -83,7 +88,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while loading payment info." });
             }
         }
-
+        /// <summary>
+        /// store payment info ( paymob api keys ) in db, related to specific organization   
+        /// </summary>
         // ─── POST api/paymentinfo/{organizationId} ───────────────────────────────────
 
         [HttpPost]
@@ -113,7 +120,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while creating payment info." });
             }
         }
-
+        /// <summary>
+        /// edit payment info ( paymob api keys ) related to specific organization by payment info id  
+        /// </summary>
         // ─── PUT api/paymentinfo/{paymentInfoId} ────────────────────────────────────
 
         [HttpPut("{paymentInfoId}")]
@@ -151,7 +160,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while updating payment info." });
             }
         }
-
+        /// <summary>
+        /// delete payment info ( paymob api keys ) related to specific organization by payment info id  
+        /// </summary>
         // ─── DELETE api/paymentinfo/{paymentInfoId} ──────────────────────────────────
 
         [HttpDelete("{paymentInfoId}")]
@@ -188,7 +199,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while deleting payment info." });
             }
         }
-
+        /// <summary>
+        /// restore deleted payment info ( paymob api keys ) related to specific organization by payment info id  
+        /// </summary>
         // ─── POST api/paymentinfo/restore/{paymentInfoId} ────────────────────────────
 
         [HttpPost("restore/{paymentInfoId}")]
@@ -223,7 +236,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while restoring payment info." });
             }
         }
-
+        /// <summary>
+        /// check if the organization have payment info ( paymob api keys )  
+        /// </summary>
         // ─── GET api/paymentinfo/has/{organizationId} ────────────────────────────────
 
         [HttpGet("has/{organizationId}")]
@@ -248,7 +263,9 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new { message = "An error occurred while checking payment info." });
             }
         }
-
+        /// <summary>
+        /// check if the organization have payment info ( paymob api keys )  
+        /// </summary>
         // ─── GET api/paymentinfo/validate/{organizationId} ───────────────────────────
 
         [HttpGet("validate/{organizationId}")]

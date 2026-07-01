@@ -2,6 +2,7 @@
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.PaymentInfoDTOs;
+using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.Extensions;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
@@ -14,11 +15,15 @@ namespace TheCharityBLL.Services.Implementation
     public class OrganizationService : IOrganizationService
     {
         private readonly IOrganizationRepository _repository;
-        private readonly OrganizationMaper _mapper;
-        public OrganizationService(IOrganizationRepository repository)
+        private readonly IAuthorizationService _authorizationService;
+        private readonly IUserService _userService;
+        private readonly OrganizationMapper _mapper;
+        public OrganizationService(IOrganizationRepository repository, IAuthorizationService authorizationService, IUserService userService)
         {
             _repository = repository;
-            _mapper = new OrganizationMaper();
+            _mapper = new OrganizationMapper();
+            _authorizationService = authorizationService;
+            _userService = userService;
         }
         public async Task<ServiceResponse<OrgContactMethodResponseDto>> CreateContactMethodAsync(CreateOrgContactMethodDto contactMethod)
         {
@@ -763,5 +768,399 @@ namespace TheCharityBLL.Services.Implementation
             };
         }
 
+        public async Task<ServiceResponse<OrganizationRoleResponseDto>> AddSubAdminAsync(int organizationId, string userId)
+        {
+            try
+            {
+                // Check if organization exists
+                var organization = await _repository.GetOrganizationByIdAsync(organizationId);
+                if (organization == null)
+                {
+                    return new ServiceResponse<OrganizationRoleResponseDto>
+                    {
+                        Success = false,
+                        Message = $"Organization with ID {organizationId} not found."
+                    };
+                }
+
+                // Check if user exists
+                var user = await _userService.GetUserByIdAsync(userId);
+                if (user == null)
+                {
+                    return new ServiceResponse<OrganizationRoleResponseDto>
+                    {
+                        Success = false,
+                        Message = $"User with ID {userId} not found."
+                    };
+                }
+
+                // Check if user is already an admin
+                var isAdmin = await _authorizationService.IsOrganizationAdminAsync(userId, organizationId);
+                if (isAdmin)
+                {
+                    return new ServiceResponse<OrganizationRoleResponseDto>
+                    {
+                        Success = false,
+                        Message = "User is already an Organization Admin. Cannot assign as Sub-Admin."
+                    };
+                }
+
+                // Add sub-admin role
+                var role = await _repository.AddSubAdminAsync(organizationId, userId);
+
+                var response = new OrganizationRoleResponseDto
+                {
+                    Id = role.Id,
+                    OrganizationId = role.OrganizationId,
+                    UserId = role.UserId,
+                    Role = role.Role,
+                    UserName = user.UserName,
+                    UserEmail = user.Email,
+                    UserFullName = user.FullName
+                };
+
+                return new ServiceResponse<OrganizationRoleResponseDto>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Sub-admin added successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<OrganizationRoleResponseDto>
+                {
+                    Success = false,
+                    Message = $"Error adding sub-admin: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ServiceResponse<bool>> RemoveSubAdminAsync(int organizationId, string userId)
+        {
+            try
+            {
+                // Check if organization exists
+                var organization = await _repository.GetOrganizationByIdAsync(organizationId);
+                if (organization == null)
+                {
+                    return new ServiceResponse<bool>
+                    {
+                        Success = false,
+                        Message = $"Organization with ID {organizationId} not found."
+                    };
+                }
+
+                // Check if user is actually a sub-admin
+                var isSubAdmin = await _repository.IsUserSubAdminAsync(organizationId, userId);
+                if (!isSubAdmin)
+                {
+                    return new ServiceResponse<bool>
+                    {
+                        Success = false,
+                        Message = "User is not a sub-admin of this organization."
+                    };
+                }
+
+                // Remove sub-admin role
+                await _repository.RemoveSubAdminAsync(organizationId, userId);
+
+                return new ServiceResponse<bool>
+                {
+                    Success = true,
+                    Data = true,
+                    Message = "Sub-admin removed successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<bool>
+                {
+                    Success = false,
+                    Message = $"Error removing sub-admin: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ServiceResponse<IEnumerable<UserResponseDTO>>> GetOrganizationSubAdminsAsync(int organizationId)
+        {
+            try
+            {
+                // Check if organization exists
+                var organization = await _repository.GetOrganizationByIdAsync(organizationId);
+                if (organization == null)
+                {
+                    return new ServiceResponse<IEnumerable<UserResponseDTO>>
+                    {
+                        Success = false,
+                        Message = $"Organization with ID {organizationId} not found."
+                    };
+                }
+
+                var users = await _repository.GetOrganizationSubAdminsAsync(organizationId);
+
+                var response = users.Select(u => new UserResponseDTO
+                {
+                    Id = u.Id,
+                    UserName = u.UserName,
+                    Email = u.Email,
+                    FullName = u.FullName,
+                    ImgPath = u.ImgPath,
+                    IsDeleted = u.IsDeleted,
+                    PhoneNumber = u.PhoneNumber,
+                    Address = u.Address
+                });
+
+                return new ServiceResponse<IEnumerable<UserResponseDTO>>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Sub-admins retrieved successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<IEnumerable<UserResponseDTO>>
+                {
+                    Success = false,
+                    Message = $"Error retrieving sub-admins: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ServiceResponse<bool>> IsUserSubAdminAsync(int organizationId, string userId)
+        {
+            try
+            {
+                // Check if organization exists
+                var organization = await _repository.GetOrganizationByIdAsync(organizationId);
+                if (organization == null)
+                {
+                    return new ServiceResponse<bool>
+                    {
+                        Success = false,
+                        Message = $"Organization with ID {organizationId} not found."
+                    };
+                }
+
+                var isSubAdmin = await _repository.IsUserSubAdminAsync(organizationId, userId);
+
+                return new ServiceResponse<bool>
+                {
+                    Success = true,
+                    Data = isSubAdmin,
+                    Message = isSubAdmin ? "User is a sub-admin." : "User is not a sub-admin."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<bool>
+                {
+                    Success = false,
+                    Message = $"Error checking sub-admin status: {ex.Message}"
+                };
+            }
+        }
+
+        // ===== NEW: Organization Admin Management =====
+
+        public async Task<ServiceResponse<OrganizationResponseDto>> AssignOrganizationAdminAsync(int organizationId, string adminUserId)
+        {
+            try
+            {
+                // Check if organization exists
+                var organization = await _repository.GetOrganizationByIdAsync(organizationId);
+                if (organization == null)
+                {
+                    return new ServiceResponse<OrganizationResponseDto>
+                    {
+                        Success = false,
+                        Message = $"Organization with ID {organizationId} not found."
+                    };
+                }
+
+                // Check if user exists
+                var user = await _userService.GetUserByIdAsync(adminUserId);
+                if (user == null)
+                {
+                    return new ServiceResponse<OrganizationResponseDto>
+                    {
+                        Success = false,
+                        Message = $"User with ID {adminUserId} not found."
+                    };
+                }
+
+                // Check if user is already a sub-admin and remove that role first
+                var isSubAdmin = await _repository.IsUserSubAdminAsync(organizationId, adminUserId);
+                if (isSubAdmin)
+                {
+                    await _repository.RemoveSubAdminAsync(organizationId, adminUserId);
+                }
+
+                // Assign as admin
+                var updatedOrg = await _repository.AssignOrganizationAdminAsync(organizationId, adminUserId);
+                var response = _mapper.MapToOrganizationResponseDto(updatedOrg);
+
+                return new ServiceResponse<OrganizationResponseDto>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Organization admin assigned successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<OrganizationResponseDto>
+                {
+                    Success = false,
+                    Message = $"Error assigning organization admin: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ServiceResponse<OrganizationResponseDto>> RemoveOrganizationAdminAsync(int organizationId)
+        {
+            try
+            {
+                // Check if organization exists
+                var organization = await _repository.GetOrganizationByIdAsync(organizationId);
+                if (organization == null)
+                {
+                    return new ServiceResponse<OrganizationResponseDto>
+                    {
+                        Success = false,
+                        Message = $"Organization with ID {organizationId} not found."
+                    };
+                }
+
+                var updatedOrg = await _repository.RemoveOrganizationAdminAsync(organizationId);
+                var response = _mapper.MapToOrganizationResponseDto(updatedOrg);
+
+                return new ServiceResponse<OrganizationResponseDto>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Organization admin removed successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<OrganizationResponseDto>
+                {
+                    Success = false,
+                    Message = $"Error removing organization admin: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ServiceResponse<OrganizationResponseDto>> TransferOrganizationAdminAsync(int organizationId, string newAdminUserId)
+        {
+            try
+            {
+                // Check if organization exists
+                var organization = await _repository.GetOrganizationByIdAsync(organizationId);
+                if (organization == null)
+                {
+                    return new ServiceResponse<OrganizationResponseDto>
+                    {
+                        Success = false,
+                        Message = $"Organization with ID {organizationId} not found."
+                    };
+                }
+
+                // Check if user exists
+                var user = await _userService.GetUserByIdAsync(newAdminUserId);
+                if (user == null)
+                {
+                    return new ServiceResponse<OrganizationResponseDto>
+                    {
+                        Success = false,
+                        Message = $"User with ID {newAdminUserId} not found."
+                    };
+                }
+
+                // Check if user is already a sub-admin and remove that role first
+                var isSubAdmin = await _repository.IsUserSubAdminAsync(organizationId, newAdminUserId);
+                if (isSubAdmin)
+                {
+                    await _repository.RemoveSubAdminAsync(organizationId, newAdminUserId);
+                }
+
+                // Transfer admin
+                var updatedOrg = await _repository.TransferOrganizationAdminAsync(organizationId, newAdminUserId);
+                var response = _mapper.MapToOrganizationResponseDto(updatedOrg);
+
+                return new ServiceResponse<OrganizationResponseDto>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Organization admin transferred successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<OrganizationResponseDto>
+                {
+                    Success = false,
+                    Message = $"Error transferring organization admin: {ex.Message}"
+                };
+            }
+        }
+
+        public async Task<ServiceResponse<UserResponseDTO?>> GetOrganizationAdminAsync(int organizationId)
+        {
+            try
+            {
+                // Check if organization exists
+                var organization = await _repository.GetOrganizationByIdAsync(organizationId);
+                if (organization == null)
+                {
+                    return new ServiceResponse<UserResponseDTO?>
+                    {
+                        Success = false,
+                        Message = $"Organization with ID {organizationId} not found."
+                    };
+                }
+
+                var admin = await _repository.GetOrganizationAdminAsync(organizationId);
+
+                if (admin == null)
+                {
+                    return new ServiceResponse<UserResponseDTO?>
+                    {
+                        Success = true,
+                        Data = null,
+                        Message = "No admin assigned to this organization."
+                    };
+                }
+
+                var response = new UserResponseDTO
+                {
+                    Id = admin.Id,
+                    UserName = admin.UserName,
+                    Email = admin.Email,
+                    FullName = admin.FullName,
+                    ImgPath = admin.ImgPath,
+                    IsDeleted = admin.IsDeleted,
+                    PhoneNumber = admin.PhoneNumber,
+                    Address = admin.Address
+                };
+
+                return new ServiceResponse<UserResponseDTO?>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Organization admin retrieved successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ServiceResponse<UserResponseDTO?>
+                {
+                    Success = false,
+                    Message = $"Error retrieving organization admin: {ex.Message}"
+                };
+            }
+        }
     }
 }
