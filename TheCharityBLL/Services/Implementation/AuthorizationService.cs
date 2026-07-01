@@ -10,16 +10,13 @@ namespace TheCharityBLL.Services.Implementation
     {
         private readonly IUserRepository _userRepository;
         private readonly ICampaignRepository _campaignRepository;
-        private readonly IDonatedItemsRepository _donatedItemsRepository;
 
         public AuthorizationService(
             IUserRepository userRepository,
-            ICampaignRepository campaignRepository,
-            IDonatedItemsRepository donatedItemsRepository)
+            ICampaignRepository campaignRepository)
         {
             _userRepository = userRepository;
             _campaignRepository = campaignRepository;
-            _donatedItemsRepository = donatedItemsRepository;
         }
 
         // ===== Helper Methods =====
@@ -211,38 +208,6 @@ namespace TheCharityBLL.Services.Implementation
         {
             // Same as CanSendInvite - only creator organization can remove
             return await CanSendInviteAsync(userId, campaignId);
-        }
-
-        // ===== Donated Item Permission Checks =====
-
-        public async Task<bool> CanManageDonatedItemAsync(string userId, int donatedItemId)
-        {
-            if (string.IsNullOrEmpty(userId)) return false;
-
-            // SuperAdmin can manage ANY donated item
-            if (await IsSuperAdminAsync(userId)) return true;
-
-            // Get the donated item
-            var donatedItem = await _donatedItemsRepository.GetDonatedItemByIdAsync(donatedItemId);
-            if (donatedItem == null) return false;
-
-            // Check if user is Admin/SubAdmin of the organization that owns the item
-            return await _userRepository.IsOrganizationAdminOrSubAdminAsync(userId, donatedItem.OrganizationId);
-        }
-
-        public async Task<bool> CanTransferDonatedItemAsync(string userId, int donatedItemId)
-        {
-            if (string.IsNullOrEmpty(userId)) return false;
-
-            // SuperAdmin can transfer ANY donated item
-            if (await IsSuperAdminAsync(userId)) return true;
-
-            // Get the donated item
-            var donatedItem = await _donatedItemsRepository.GetDonatedItemByIdAsync(donatedItemId);
-            if (donatedItem == null) return false;
-
-            // ONLY Organization Admin (NOT SubAdmin) can transfer items
-            return await _userRepository.IsOrganizationAdminAsync(userId, donatedItem.OrganizationId);
         }
 
         // ===== User Permission Checks =====
