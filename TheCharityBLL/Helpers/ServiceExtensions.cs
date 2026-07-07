@@ -80,7 +80,6 @@ namespace TheCharityBLL.Helpers
         {
             // Repository Injection
             services.AddScoped<ICampaignRepository, CampaignRepository>();
-            services.AddScoped<IDonatedItemsRepository, DonatedItemsRepository>();
             services.AddScoped<IDonationRepository, DonationRepository>();
             services.AddScoped<IOrganizationRepository, OrganizationRepository>();
             services.AddScoped<IUserRepository, UserRepository>();
@@ -89,7 +88,6 @@ namespace TheCharityBLL.Helpers
             services.AddScoped<ICampaignInviteService, CampaignInviteService>();
             services.AddScoped<ICampaignNotificationService, CampaignNotificationService>();
             services.AddScoped<ICampaignService, CampaignService>();
-            services.AddScoped<IDonatedItemService, DonatedItemService>();
             services.AddScoped<IDonationService, DonationService>();
             services.AddScoped<IEmailService, EmailService>();
             services.AddScoped<IOrganizationService, OrganizationService>();

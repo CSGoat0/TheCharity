@@ -31,10 +31,6 @@ namespace TheCharityBLL.Services.Abstraction
         Task<bool> CanAddOrganizationToSharedCampaignAsync(string userId, int campaignId);
         Task<bool> CanRemoveOrganizationFromSharedCampaignAsync(string userId, int campaignId);
 
-        // ===== Donated Item Permission Checks =====
-        Task<bool> CanManageDonatedItemAsync(string userId, int donatedItemId);
-        Task<bool> CanTransferDonatedItemAsync(string userId, int donatedItemId);
-
         // ===== User Permission Checks =====
         Task<bool> CanManageUserAsync(string userId, string targetUserId);
         Task<bool> CanManageUserRolesAsync(string userId);
