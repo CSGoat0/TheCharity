@@ -1,6 +1,6 @@
 ﻿using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.Events.Abstraction;
-using TheCharityBLL.Events.CampaignEvents;
+using TheCharityBLL.Events.Events.CampaignEvents;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.ViewModels;

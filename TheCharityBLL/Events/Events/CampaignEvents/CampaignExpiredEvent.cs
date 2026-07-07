@@ -1,8 +1,8 @@
 ﻿using TheCharityDAL.Entities;
 
-namespace TheCharityBLL.Events.CampaignEvents
+namespace TheCharityBLL.Events.Events.CampaignEvents
 {
-    public class CampaignCreatedEvent
+    public class CampaignExpiredEvent
     {
         public Campaign Campaign { get; set; } = null!;
     }
