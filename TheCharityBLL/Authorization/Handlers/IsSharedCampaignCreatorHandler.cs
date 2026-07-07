@@ -65,13 +65,13 @@ namespace TheCharityBLL.Authorization.Handlers
         private int? GetCampaignId(HttpContext httpContext)
         {
             if (httpContext.Request.RouteValues.TryGetValue("id", out var idObj) ||
-                httpContext.Request.RouteValues.TryGetValue("sharedCampaignId", out idObj))
+                httpContext.Request.RouteValues.TryGetValue("campaignId", out idObj))
             {
                 if (int.TryParse(idObj?.ToString(), out int id))
                     return id;
             }
 
-            if (httpContext.Request.Query.TryGetValue("sharedCampaignId", out var queryValue))
+            if (httpContext.Request.Query.TryGetValue("campaignId", out var queryValue))
             {
                 if (int.TryParse(queryValue, out int id))
                     return id;
