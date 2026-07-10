@@ -104,11 +104,10 @@ namespace TheCharityPL
             app.MapHealthChecks("/health");// check if the db connected or not
 
             // Configure the HTTP request pipeline.
-           
-                app.UseSwagger();
-                app.UseSwaggerUI();
-           
+            app.UseSwagger();
+            app.UseSwaggerUI();
             app.UseDeveloperExceptionPage();
+
             //global exception handling middleware
             app.UseMiddleware<ExceptionMiddleware>();
 
