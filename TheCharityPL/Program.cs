@@ -115,7 +115,8 @@ namespace TheCharityPL
             app.UseCors("AllowAngular");
             app.UseAuthentication();
             app.UseAuthorization();
-            // map to swager view as start view
+
+            // map to swagger view as start view
             app.MapGet("/", () => Results.Redirect("/swagger"));
 
             app.MapControllers();
