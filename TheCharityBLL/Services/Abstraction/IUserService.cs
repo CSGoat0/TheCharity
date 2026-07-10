@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Identity;
-
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.UserDTOs;
+using TheCharityDAL.Entities;
 
 
 namespace TheCharityBLL.Services.Abstraction
@@ -40,12 +40,6 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<bool>> IsInRoleAsync(string userId, string role);
         Task<ServiceResponse<IdentityResult>> AddToRoleAsync(string userId, string role);
         Task<ServiceResponse<IdentityResult>> RemoveFromRoleAsync(string userId, string role);
-
-       
-        Task<IList<string>> GetUserRolesAsync(string userId);
-        Task<bool> IsInRoleAsync(string userId, string role);
-        Task<IdentityResult> AddToRoleAsync(string userId, string role);
-        Task<IdentityResult> RemoveFromRoleAsync(string userId, string role);
 
         // Organization Management Queries
         Task<IEnumerable<Organization>> GetOrganizationsUserManagesAsync(string userId);
