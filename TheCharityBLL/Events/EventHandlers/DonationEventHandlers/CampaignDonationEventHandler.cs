@@ -1,5 +1,5 @@
 ﻿using TheCharityBLL.Events.Abstraction;
-using TheCharityBLL.Events.DonationEvents;
+using TheCharityBLL.Events.Events.DonationEvents;
 using TheCharityBLL.Jobs.Emails;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Repositories.Abstraction;

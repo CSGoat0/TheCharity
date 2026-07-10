@@ -95,6 +95,7 @@ namespace TheCharityDAL.Repositories.Abstraction
 
         // Shared Campaign Invites
         Task<SharedCampaignInvite> CreateInviteAsync(SharedCampaignInvite invite);
+        Task<IEnumerable<SharedCampaignInvite>> GetExpiredInvitesAsync(DateTime cutoffDate);
         Task<SharedCampaignInvite?> GetInviteByIdAsync(int inviteId);
         Task<IEnumerable<SharedCampaignInvite>> GetInvitesForSharedCampaignAsync(int sharedCampaignId);
         Task<IEnumerable<SharedCampaignInvite>> GetPendingInvitesForOrganizationAsync(int organizationId);

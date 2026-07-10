@@ -11,7 +11,6 @@ using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Entities;
-
 using TheCharityDAL.Repositories.Abstraction;
 
 namespace TheCharityBLL.Services.Repository
@@ -446,6 +445,21 @@ namespace TheCharityBLL.Services.Repository
             await _userRepository.AddLoginAsync(user, loginInfo);
         }
 
-      
+        public async Task<IEnumerable<Organization>> GetOrganizationsUserManagesAsync(string userId)
+        {
+            if (string.IsNullOrWhiteSpace(userId))
+                throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
+
+            try
+            {
+                _logger.LogInformation("Getting organizations managed by user: {UserId}", userId);
+                return await _userRepository.GetOrganizationsUserManagesAsync(userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting organizations managed by user: {UserId}", userId);
+                throw;
+            }
+        }
     }
 }

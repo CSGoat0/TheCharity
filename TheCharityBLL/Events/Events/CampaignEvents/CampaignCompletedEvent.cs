@@ -1,6 +1,6 @@
 ﻿using TheCharityDAL.Entities;
 
-namespace TheCharityBLL.Events.CampaignEvents
+namespace TheCharityBLL.Events.Events.CampaignEvents
 {
     public class CampaignCompletedEvent
     {

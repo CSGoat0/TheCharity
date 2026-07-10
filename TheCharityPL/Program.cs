@@ -118,6 +118,8 @@ namespace TheCharityPL
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // map to swagger view as start view
+            app.MapGet("/", () => Results.Redirect("/swagger"));
 
             app.MapControllers();
 

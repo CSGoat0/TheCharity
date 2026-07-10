@@ -20,5 +20,15 @@ namespace TheCharityBLL.Services.Abstraction
             string subject,
             string message,
             NotificationType type);
+
+        /// <summary>
+        /// Send notification to a specific organization's Admin and SubAdmins
+        /// </summary>
+        Task SendOrganizationNotificationAsync(
+            int organizationId,
+            string subject,
+            string message,
+            NotificationType type,
+            bool includeSubAdmins = true);
     }
 }

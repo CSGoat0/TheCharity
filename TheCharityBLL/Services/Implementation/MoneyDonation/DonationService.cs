@@ -3,7 +3,7 @@ using TheCharityBLL.DTOs;
 
 using TheCharityBLL.DTOs.DonationDTOs;
 using TheCharityBLL.Events.Abstraction;
-using TheCharityBLL.Events.DonationEvents;
+using TheCharityBLL.Events.Events.DonationEvents;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction.MoneyDonation;
 
