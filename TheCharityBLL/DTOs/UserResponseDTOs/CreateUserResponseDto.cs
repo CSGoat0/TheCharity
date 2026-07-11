@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TheCharityBLL.ViewModels.User
+namespace TheCharityBLL.DTOs.UserResponseDTOs
 {
-    public class CreateUserViewModel
+    public class CreateUserResponseDto
     {
         [Required(ErrorMessage = "Username is required")]
         [StringLength(256, MinimumLength = 3, ErrorMessage = "Username must be between 3 and 256 characters")]
@@ -15,7 +15,7 @@ namespace TheCharityBLL.ViewModels.User
         public string? UserName { get; set; }
 
         [Display(Name = "Full Name")]
-        public string ? FullName { get; set; }
+        public string? FullName { get; set; }
         [Required(ErrorMessage = "Email is required")]
         [EmailAddress(ErrorMessage = "Invalid email address")]
         [StringLength(256, ErrorMessage = "Email cannot exceed 256 characters")]

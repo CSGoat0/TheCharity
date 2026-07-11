@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.PaymentDTOs;
 using TheCharityBLL.Services.Abstraction.Payment;
 
@@ -22,9 +23,16 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
             _paymentInfoService = paymentInfoService;
         }
 
-        public async Task<string> CreatePayment(decimal amount, string currency = "EGP")
+        public async Task<ServiceResponse<string>> CreatePayment(decimal amount, string currency = "EGP")
         {
-            return await CreatePayment(amount, metadata: null, billingData: null, currency);
+            string result= await CreatePayment(amount, metadata: null, billingData: null, currency);
+            return new ServiceResponse<string>
+            {
+                Success = true,
+                Data = result
+                ,
+                Message = "Payment created successfully"
+            };
         }
 
         public async Task<string> CreatePayment(decimal amount, PaymentOrderMetadata? metadata, BillingData? billingData, string currency = "EGP")
@@ -32,7 +40,7 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
             // ── Step 1: Authentication ──────────────────────────────────────
             var _PaymentKeys = await _paymentInfoService.GetPaymentInfoByOrganizationIdAsync(metadata.OrganizationId);
 
-            var authBody = JsonSerializer.Serialize(new { api_key = _PaymentKeys.ApiKey });
+            var authBody = JsonSerializer.Serialize(new { api_key = _PaymentKeys.Data.ApiKey });
 
             var authResponse = await _httpClient.PostAsync(
                 "https://accept.paymob.com/api/auth/tokens",
@@ -97,7 +105,7 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
                 expiration = 3600,
                 order_id = orderId,
                 currency,
-                integration_id = int.Parse(_PaymentKeys.IntegrationId),
+                integration_id = int.Parse(_PaymentKeys.Data.IntegrationId),
 
                 billing_data = resolvedBilling,
                 extra = new Dictionary<string, string>
@@ -126,7 +134,7 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
             var paymentKey = paymentTokenEl.GetString()!;
 
             // ── Step 4: Return iFrame URL ───────────────────────────────────
-            return $"https://accept.paymob.com/api/acceptance/iframes/{_PaymentKeys.IframeId}?payment_token={paymentKey}";
+            return $"https://accept.paymob.com/api/acceptance/iframes/{_PaymentKeys.Data.IframeId}?payment_token={paymentKey}";
         }
         private static object ResolveBillingData(BillingData? billing)
         {
@@ -167,5 +175,7 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
                 state = billing.State ?? "NA"
             };
         }
+
+       
     }
 }

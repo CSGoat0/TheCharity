@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TheCharityBLL.ViewModels.User
+namespace TheCharityBLL.DTOs.UserResponseDTOs
 {
-    public class LoginViewModel
+    public class LoginResponseDto
     {
         [Required(ErrorMessage = "Username is required")]
         [Display(Name = "Username")]

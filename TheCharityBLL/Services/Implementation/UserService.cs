@@ -6,6 +6,8 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+
+using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Entities;
@@ -31,7 +33,7 @@ namespace TheCharityBLL.Services.Repository
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
-        public async Task<string?> LoginAsync(string usernameOrEmail, string password)
+        public async Task<ServiceResponse<string?>> LoginAsync(string usernameOrEmail, string password)
         {
             // 1. Resolve user by username or email
             var user = await _userRepository.FindByNameOrEmailAsync(usernameOrEmail);
@@ -51,7 +53,7 @@ namespace TheCharityBLL.Services.Repository
             await _userRepository.ResetAccessFailedCountAsync(user);
 
           
-            return await GenerateJwtTokenAsync(user);
+            return new ServiceResponse<string> {Success=true,Message="Login Successfully.", Data= await GenerateJwtTokenAsync(user) };
         }
         public async Task<string> GenerateJwtTokenAsync(UserResponseDTO UserDTO)
         {
@@ -89,7 +91,7 @@ namespace TheCharityBLL.Services.Repository
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
-        public async Task<IEnumerable<UserResponseDTO>> GetAllUsersAsync()
+        public async Task< IEnumerable<UserResponseDTO>> GetAllUsersAsync()
         {
             try
             {
@@ -104,7 +106,7 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<bool> ValidatePasswordAsync(string userId, string password)
+        public async Task<ServiceResponse<bool>> ValidatePasswordAsync(string userId, string password)
         {
             if (string.IsNullOrWhiteSpace(userId))
                 throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
@@ -119,7 +121,8 @@ namespace TheCharityBLL.Services.Repository
                 if (user == null)
                     throw new KeyNotFoundException($"User with ID {userId} not found");
 
-                return await _userRepository.CheckPasswordAsync(user, password);
+                bool IsValid= await _userRepository.CheckPasswordAsync(user, password);
+                return new ServiceResponse<bool> { Success = true, Message = IsValid ? "Password is valid." : "Password is invalid.", Data = IsValid }; 
             }
             catch (Exception ex)
             {
@@ -128,7 +131,7 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<IdentityResult> ChangeUserPasswordAsync(string userId, ChangePasswordDTO changePasswordDTO)
+        public async Task< IdentityResult> ChangeUserPasswordAsync(string userId, ChangePasswordDTO changePasswordDTO)
         {
             if (string.IsNullOrWhiteSpace(userId))
                 throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
@@ -218,7 +221,7 @@ namespace TheCharityBLL.Services.Repository
         {
             return await _userRepository.CreateExternalUserAsync(email);
         }
-        public async Task<IdentityResult> CreateUserAsync(CreateUserDTO createUserDTO)
+        public async Task<ServiceResponse< IdentityResult>> CreateUserAsync(CreateUserDTO createUserDTO)
         {
             if (createUserDTO == null)
                 throw new ArgumentNullException(nameof(createUserDTO));
@@ -240,7 +243,7 @@ namespace TheCharityBLL.Services.Repository
                 else
                     _logger.LogWarning("User creation failed. Errors: {Errors}", string.Join(", ", result.Errors));
 
-                return result;
+                return new ServiceResponse<IdentityResult> { Data = result, Success = true, Message = $"User created successfully with ID: {user.Id}" };
             }
             catch (Exception ex)
             {
@@ -349,7 +352,7 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<bool> UserExistsAsync(string userId)
+        public async Task<ServiceResponse<bool>> UserExistsAsync(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
                 throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
@@ -357,7 +360,8 @@ namespace TheCharityBLL.Services.Repository
             try
             {
                 _logger.LogDebug("Checking if user exists with ID: {UserId}", userId);
-                return await _userRepository.UserExistsAsync(userId);
+                bool IsExist= await _userRepository.UserExistsAsync(userId);
+                return new ServiceResponse<bool> { Success = true, Message = IsExist ? "User exists." : "User does not exist.", Data = IsExist };
             }
             catch (Exception ex)
             {
@@ -368,34 +372,40 @@ namespace TheCharityBLL.Services.Repository
 
       
 
-        public Task<bool> IsUserDeletedAsync(string userId)
+        public async Task<ServiceResponse< bool>> IsUserDeletedAsync(string userId)
         {
-            return _userRepository.IsUserDeletedAsync(userId);
+            bool IsDeleted=await _userRepository.IsUserDeletedAsync(userId);
+            return new ServiceResponse<bool> { Success = true, Message = IsDeleted ? "User is deleted." : "User is not deleted.", Data = IsDeleted };
         }
 
-        public Task<bool> CheckPasswordAsync(string userId, string password)
+        public async Task<ServiceResponse< bool>> CheckPasswordAsync(string userId, string password)
         {
-            return _userRepository.CheckPasswordAsync(userId, password);
+            bool IsValid=await _userRepository.CheckPasswordAsync(userId, password);
+            return new ServiceResponse<bool> { Success = true, Message = IsValid ? "Password is valid." : "Password is invalid.", Data = IsValid };
         }
 
-        public Task<IdentityResult> AddToRoleAsync(string userId, string role)
+        public async Task<ServiceResponse <IdentityResult>> AddToRoleAsync(string userId, string role)
         {
-            return _userRepository.AddToRoleAsync(userId, role);
+            var result=await _userRepository.AddToRoleAsync(userId, role);
+            return new ServiceResponse<IdentityResult> { Success = true, Message = "Role added successfully.", Data = result };
         }
 
-        public Task<IdentityResult> RemoveFromRoleAsync(string userId, string role)
+        public async Task<ServiceResponse< IdentityResult>> RemoveFromRoleAsync(string userId, string role)
         {
-            return _userRepository.RemoveFromRoleAsync(userId, role);
+            var result=await _userRepository.RemoveFromRoleAsync(userId, role);
+            return new ServiceResponse<IdentityResult> { Success = true, Message = "Role removed successfully.", Data = result };
         }
 
-        public Task<IList<string>> GetUserRolesAsync(string userId)
+        public async Task<ServiceResponse< IList<string>>> GetUserRolesAsync(string userId)
         {
-            return _userRepository.GetUserRolesAsync(userId);
+            var result=await _userRepository.GetUserRolesAsync(userId);
+            return new ServiceResponse<IList<string>> { Success = true, Message = "Roles retrieved successfully.", Data = result };
         }
 
-        public Task<bool> IsInRoleAsync(string userId, string role)
+        public async Task<ServiceResponse< bool>> IsInRoleAsync(string userId, string role)
         {
-            return _userRepository.IsInRoleAsync(userId, role);
+            var result=await _userRepository.IsInRoleAsync(userId, role);
+            return new ServiceResponse<bool> { Success = true, Message = result ? "User is in role." : "User is not in role.", Data = result };
         }
 
 

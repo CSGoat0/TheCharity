@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TheCharityBLL.ViewModels.User
+namespace TheCharityBLL.DTOs.UserResponseDTOs
 {
-    public class EditUserViewModel
+    public class EditUserResponseDto
     {
         public string? Id { get; set; }
 

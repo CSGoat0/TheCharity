@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TheCharityBLL.ViewModels.User
+namespace TheCharityBLL.DTOs.UserResponseDTOs
 {
-    public class SendNotificationViewModel
+    public class SendNotificationResponseDto
     {
         public string? Email { get; set; }
         public string? Subject { get; set; }

@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TheCharityBLL.ViewModels.User
+namespace TheCharityBLL.DTOs.UserResponseDTOs
 {
-    public class ConfirmEmailViewModel
+    public class ConfirmEmailResponseDto
     {
         public string email { get; set; }
         public string encodedToken { get; set; }

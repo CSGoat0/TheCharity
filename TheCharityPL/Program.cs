@@ -106,6 +106,7 @@ namespace TheCharityPL
             // Configure the HTTP request pipeline.
             app.UseSwagger();
             app.UseSwaggerUI();
+            app.UseDeveloperExceptionPage();
 
             //global exception handling middleware
             app.UseMiddleware<ExceptionMiddleware>();

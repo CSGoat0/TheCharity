@@ -1,9 +1,9 @@
 ﻿using Microsoft.Extensions.Logging;
+using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.Events.Abstraction;
 using TheCharityBLL.Events.Events.InvitationEvents;
 using TheCharityBLL.Services.Abstraction;
-using TheCharityBLL.ViewModels;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Enums;
 using TheCharityDAL.Repositories.Abstraction;

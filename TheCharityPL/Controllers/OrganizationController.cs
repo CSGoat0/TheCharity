@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using System.Security.Cryptography;
+
 using TheCharityBLL.Authorization.Attributes;
-using TheCharityBLL.DTOs;
+
 using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
-using TheCharityBLL.DTOs.PaymentInfoDTOs;
+
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Enums;
 

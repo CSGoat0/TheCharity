@@ -5,9 +5,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace TheCharityBLL.ViewModels.User
+namespace TheCharityBLL.DTOs.UserResponseDTOs
 {
-    public class ChangePasswordViewModel
+    public class ChangePasswordResponseDto
     {
         public string? UserId { get; set; }
         public string? UserName { get; set; }

@@ -1,5 +1,5 @@
-﻿using TheCharityBLL.DTOs.CampaignDTOs;
-using TheCharityBLL.ViewModels;
+﻿using TheCharityBLL.DTOs;
+using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityDAL.Enums;
 
 namespace TheCharityBLL.Services.Abstraction
