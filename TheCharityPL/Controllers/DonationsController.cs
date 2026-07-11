@@ -74,7 +74,7 @@ namespace TheCharityPL.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var updated = await _service.UpdateDonationAsync(id, dto);
-            return updated is null ? NotFound(new ServiceResponse{Success=false,Message="invalid user id." }) : Ok(updated);
+            return updated is null ? NotFound(new ServiceResponse<object?>{Success=false,Message="invalid user id." }) : Ok(updated);
         }
         /// <summary>
         /// delete specific donation  
@@ -84,7 +84,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteDonationAsync(id);
-            return success ? Ok(new ServiceResponse { Success=true,Message="Deleted Successfully."}) : NotFound(new ServiceResponse { Success = false, Message = "invalid user id." });
+            return success ? Ok(new ServiceResponse<object?> { Success=true,Message="Deleted Successfully."}) : NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." });
         }
         /// <summary>
         /// restore specific donation  after delete it  
@@ -94,7 +94,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> Restore(int id)
         {
             var success = await _service.RestoreDonationAsync(id);
-            return success ? Ok(new ServiceResponse { Success = true, Message = "Restored Successfully." }) : NotFound(new ServiceResponse { Success = false, Message = "invalid user id." });
+            return success ? Ok(new ServiceResponse<object?> { Success = true, Message = "Restored Successfully." }) : NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." });
         }
 
         // =====================================================================
@@ -440,7 +440,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> GetUserLastDonationDate(string userId)
         {
             var date = await _service.GetUserLastDonationDateAsync(userId);
-            return date is null ?  NotFound(new ServiceResponse { Success = false, Message = "invalid user id." }) : Ok(date);
+            return date is null ?  NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." }) : Ok(date);
         }
         /// <summary>
         /// get list of campaigns that a specific user has donated to, where userId parm: The unique identifier of the user for whom to retrieve the list of donated campaigns.

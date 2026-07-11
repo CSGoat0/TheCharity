@@ -82,7 +82,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading users");
-                return StatusCode(500, new ServiceResponse{Success = false, Message = "An error occurred while loading users." });
+                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while loading users." });
             }
         }
         /// <summary>
@@ -102,7 +102,7 @@ namespace TheCharityPL.Controllers
                 if (user == null)
                 {
                     _logger.LogWarning("User with ID {UserId} not found", id);
-                    return NotFound(new ServiceResponse { Success = false, Message = $"User with ID '{id}' not found." });
+                    return NotFound(new ServiceResponse<object?> { Success = false, Message = $"User with ID '{id}' not found." });
                 }
 
                 var ResponseDto = new UserDetailResponseDto
@@ -135,7 +135,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading details for user ID: {UserId}", id);
-                return StatusCode(500, new ServiceResponse { Success = false, Message = "An error occurred while loading user details." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while loading user details." });
             }
         }
         /// <summary>
@@ -157,11 +157,11 @@ namespace TheCharityPL.Controllers
                 var existingUsers = await _userService.GetAllUsersAsync();
 
                 if (existingUsers.Any(u => u.Email == ResponseDto.Email))
-                    return Conflict(new ServiceResponse{Success = false, Message = "This email is already registered." });
+                    return Conflict(new ServiceResponse<object?> {Success = false, Message = "This email is already registered." });
 
                 // FIX: original used return View() which is MVC-only — replaced with proper API response
                 if (existingUsers.Any(u => u.UserName == ResponseDto.UserName))
-                    return Conflict(new ServiceResponse { Success = false, Message = "This username is already taken." });
+                    return Conflict(new ServiceResponse<object?> { Success = false, Message = "This username is already taken." });
 
                 var createUserDTO = new CreateUserDTO
                 {
@@ -181,7 +181,7 @@ namespace TheCharityPL.Controllers
                     var confirmationLink = BuildFrontendLink("api/User/confirm-email", createUserDTO.Email, token);
                     await _emailService.SendEmailConfirmationAsync(createUserDTO.Email, confirmationLink);
 
-                    return Ok(new ServiceResponse{Success=true, Message = "Registration successful. Please check your email to confirm your account." });
+                    return Ok(new ServiceResponse<object?> {Success=true, Message = "Registration successful. Please check your email to confirm your account." });
                 }
 
                 return BadRequest(new ServiceResponse<IEnumerable< string>>{ Success=false,Message="your credentials is invalid", Data= result.Data.Errors.Select(e => e.Description) });
@@ -189,7 +189,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating user");
-                return StatusCode(500, new ServiceResponse{Success = false, Message = "An error occurred while creating the user." });
+                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while creating the user." });
             }
         }
         /// <summary>
@@ -216,10 +216,10 @@ namespace TheCharityPL.Controllers
                                .FirstOrDefault(u => u.UserName == ResponseDto.UserName && !u.IsDeleted);
 
                 if (user == null)
-                    return Unauthorized(new ServiceResponse{Success = false, Message = "Invalid credentials." });
+                    return Unauthorized(new ServiceResponse<object?> {Success = false, Message = "Invalid credentials." });
 
                 if (!user.EmailConfirmed)
-                    return Unauthorized(new ServiceResponse{Success = false, Message = "Please confirm your email before logging in." });
+                    return Unauthorized(new ServiceResponse<object?> {Success = false, Message = "Please confirm your email before logging in." });
 
                 // AuthService handles password validation, lockout, and JWT generation
                 var token = await _userService.LoginAsync(ResponseDto.UserName, ResponseDto.Password);
@@ -227,7 +227,7 @@ namespace TheCharityPL.Controllers
                 if (token == null)
                 {
                     _logger.LogWarning("Login failed for: {UserName}", ResponseDto.UserName);
-                    return Unauthorized(new ServiceResponse { Success = false, Message = "Invalid credentials." });
+                    return Unauthorized(new ServiceResponse<object?> { Success = false, Message = "Invalid credentials." });
                 }
 
                 _logger.LogInformation("User logged in successfully: {UserName}", ResponseDto.UserName);
@@ -236,7 +236,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during login for: {UserName}", ResponseDto.UserName);
-                return StatusCode(500, new ServiceResponse{Success = false, Message = "An error occurred during login." });
+                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred during login." });
             }
         }
         /// <summary>
@@ -249,27 +249,27 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> ResendEmailConfirmation([FromBody] string email)
         {
             if (string.IsNullOrEmpty(email))
-                return BadRequest(new ServiceResponse{Success = false, Message = "Email is required." });
+                return BadRequest(new ServiceResponse<object?> {Success = false, Message = "Email is required." });
 
             try
             {
                 var user = await _userService.GetUserByEmailAsync(email);
                 if (user == null)
-                    return NotFound(new ServiceResponse{Success = false, Message = "User not found." });
+                    return NotFound(new ServiceResponse<object?> {Success = false, Message = "User not found." });
 
                 if (user.EmailConfirmed)
-                    return BadRequest(new ServiceResponse{Success = false, Message = "Email is already confirmed." });
+                    return BadRequest(new ServiceResponse<object?> {Success = false, Message = "Email is already confirmed." });
 
                 var token = await _userService.GenerateEmailConfirmationTokenAsync(email);
                 var confirmationLink = BuildFrontendLink("api/User/confirm-email", email, token);
                 await _emailService.SendEmailConfirmationAsync(email, confirmationLink);
 
-                return Ok(new ServiceResponse{Success = true, Message = "If the email exists, a confirmation link has been sent." });
+                return Ok(new ServiceResponse<object?> {Success = true, Message = "If the email exists, a confirmation link has been sent." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error resending confirmation email");
-                return StatusCode(500, new ServiceResponse { Success = false, Message = "An error occurred while resending the confirmation email." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while resending the confirmation email." });
             }
         }
         
@@ -280,21 +280,21 @@ namespace TheCharityPL.Controllers
         private async Task<IActionResult> ConfirmEmail([FromQuery] string email, [FromQuery] string encodedToken)
         {
             if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(encodedToken))
-                return BadRequest(new ServiceResponse{Success = false, Message = "Email and token are required." });
+                return BadRequest(new ServiceResponse<object?> {Success = false, Message = "Email and token are required." });
 
             try
             {
                 var result = await _userService.ConfirmEmailAsync(email, encodedToken);
 
                 if (result.Succeeded)
-                    return Ok(new ServiceResponse{Success = true, Message = "Email confirmed successfully." });
+                    return Ok(new ServiceResponse<object?> {Success = true, Message = "Email confirmed successfully." });
 
                 return BadRequest(new ServiceResponse<IEnumerable<string>>{Success=false, Message = "Email confirmation failed.", Data = result.Errors.Select(e => e.Description) });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error confirming email");
-                return StatusCode(500, new ServiceResponse { Success = false, Message = "An error occurred while confirming the email." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while confirming the email." });
             }
         }
         /// <summary>
@@ -308,7 +308,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> ForgotPassword([FromBody] string email)
         {
             if (string.IsNullOrEmpty(email))
-                return BadRequest(new ServiceResponse { Success = false, Message = "Email is required." });
+                return BadRequest(new ServiceResponse<object?> { Success = false, Message = "Email is required." });
 
             try
             {
@@ -322,12 +322,12 @@ namespace TheCharityPL.Controllers
                     await _emailService.SendPasswordResetAsync(email, resetLink);
                 }
 
-                return Ok(new ServiceResponse { Success = true, Message = "If your email is registered, you will receive a password reset link shortly." });
+                return Ok(new ServiceResponse<object?> { Success = true, Message = "If your email is registered, you will receive a password reset link shortly." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error processing forgot password request");
-                return StatusCode(500, new ServiceResponse { Success = false, Message = "An error occurred while processing your request." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while processing your request." });
             }
         }
 
@@ -347,7 +347,7 @@ namespace TheCharityPL.Controllers
 
                 // Return Ok to avoid email enumeration
                 if (user == null)
-                    return Ok(new ServiceResponse { Success = true, Message = "Password has been reset successfully." });
+                    return Ok(new ServiceResponse<object?> { Success = true, Message = "Password has been reset successfully." });
 
                 var result = await _userService.ResetPasswordAsync(user.Id, model.Token, model.Password);
 
@@ -356,7 +356,7 @@ namespace TheCharityPL.Controllers
                     try { await _emailService.SendPasswordChangedNotificationAsync(user.Email); }
                     catch (Exception ex) { _logger.LogError(ex, "Failed to send password change notification"); }
 
-                    return Ok(new ServiceResponse { Success = true, Message = "Password has been reset successfully." });
+                    return Ok(new ServiceResponse<object?> { Success = true, Message = "Password has been reset successfully." });
                 }
 
                 return BadRequest(new ServiceResponse<IEnumerable<string>>{Message="your credentials is invalid",Success=false, Data = result.Errors.Select(e => e.Description) });
@@ -364,7 +364,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error resetting password");
-                return StatusCode(500, new ServiceResponse{Success = false, Message = "An error occurred while resetting the password." });
+                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while resetting the password." });
             }
         }
         /// <summary>
@@ -378,7 +378,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> Update(string id, [FromBody] EditUserResponseDto ResponseDto)
         {
             if (id != ResponseDto.Id)
-                return BadRequest(new ServiceResponse{Success = false, Message = "ID mismatch." });
+                return BadRequest(new ServiceResponse<object?> {Success = false, Message = "ID mismatch." });
 
             if (!ModelState.IsValid)
                 return BadRequest(new ServiceResponse<ModelStateDictionary> { Data = ModelState, Success = false, Message = "your credentials is invalid" });
@@ -390,15 +390,15 @@ namespace TheCharityPL.Controllers
 
                 var user = await _userService.GetUserByIdAsync(id);
                 if (user == null)
-                    return NotFound(new ServiceResponse{Success=false, Message = $"User with ID '{id}' not found." });
+                    return NotFound(new ServiceResponse<object?> {Success=false, Message = $"User with ID '{id}' not found." });
 
                 var existingUsers = await _userService.GetAllUsersAsync();
 
                 if (existingUsers.Any(u => u.UserName == ResponseDto.UserName && u.Id != id))
-                    return Conflict(new ServiceResponse{Success = false, Message = "This username is already taken." });
+                    return Conflict(new ServiceResponse<object?> {Success = false, Message = "This username is already taken." });
 
                 if (existingUsers.Any(u => u.Email == ResponseDto.Email && u.Id != id))
-                    return Conflict(new ServiceResponse { Success = false, Message = "This email is already registered." });
+                    return Conflict(new ServiceResponse<object?> { Success = false, Message = "This email is already registered." });
 
                 var updateUserDTO = new UpdateUserDTO
                 {
@@ -414,7 +414,7 @@ namespace TheCharityPL.Controllers
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User updated successfully with ID: {UserId}", id);
-                    return Ok(new ServiceResponse { Success = true, Message = $"User '{ResponseDto.UserName}' updated successfully." });
+                    return Ok(new ServiceResponse<object?> { Success = true, Message = $"User '{ResponseDto.UserName}' updated successfully." });
                 }
 
                 return BadRequest(new ServiceResponse<IEnumerable<string>>{Success=false,Message="your credentials is invalid", Data = result.Errors.Select(e => e.Description) });
@@ -422,7 +422,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating user ID: {UserId}", id);
-                return StatusCode(500, new ServiceResponse { Success = false, Message = "An error occurred while updating the user." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while updating the user." });
             }
         }
         /// <summary>
@@ -435,7 +435,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordResponseDto ResponseDto)
         {
             if (id != ResponseDto.UserId)
-                return BadRequest(new ServiceResponse{Success = false, Message = "ID mismatch." });
+                return BadRequest(new ServiceResponse<object?> {Success = false, Message = "ID mismatch." });
 
             if (!ModelState.IsValid)
                 return BadRequest(new ServiceResponse<ModelStateDictionary> { Data = ModelState, Success = false, Message = "your credentials is invalid" });
@@ -447,7 +447,7 @@ namespace TheCharityPL.Controllers
 
                 var user = await _userService.GetUserByIdAsync(id);
                 if (user == null)
-                    return NotFound(new ServiceResponse { Success = false, Message = $"User with ID '{id}' not found." });
+                    return NotFound(new ServiceResponse<object?> { Success = false, Message = $"User with ID '{id}' not found." });
 
                 var changePasswordDTO = new ChangePasswordDTO
                 {
@@ -462,7 +462,7 @@ namespace TheCharityPL.Controllers
                 {
                     await _emailService.SendPasswordChangedNotificationAsync(user.Email);
                     _logger.LogInformation("Password changed successfully for user ID: {UserId}", id);
-                    return Ok(new ServiceResponse{Success = true, Message = "Password changed successfully." });
+                    return Ok(new ServiceResponse<object?> {Success = true, Message = "Password changed successfully." });
                 }
 
                 return BadRequest(new ServiceResponse<IEnumerable<string>> { Success = false, Message = "your credentials is invalid", Data = result.Errors.Select(e => e.Description) });
@@ -471,7 +471,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error changing password for user ID: {UserId}", id);
-                return StatusCode(500, new ServiceResponse { Success = false, Message = "An error occurred while changing the password." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while changing the password." });
             }
         }
         /// <summary>
@@ -490,7 +490,7 @@ namespace TheCharityPL.Controllers
 
                 var user = await _userService.GetUserByIdAsync(id);
                 if (user == null)
-                    return NotFound(new ServiceResponse{Success = false, Message = $"User with ID '{id}' not found." });
+                    return NotFound(new ServiceResponse<object?> {Success = false, Message = $"User with ID '{id}' not found." });
 
                 var currentUserId = GetCurrentUserId();
                 var result = await _userService.DeleteUserAsync(user.Id);
@@ -501,17 +501,17 @@ namespace TheCharityPL.Controllers
 
                     // FIX: removed LogoutAsync() call — JWT is stateless, client discards the token
                     if (currentUserId == user.Id)
-                        return Ok(new ServiceResponse{ Message = "Your account has been deleted. Please discard your token.", Success = true });
+                        return Ok(new ServiceResponse<object?> { Message = "Your account has been deleted. Please discard your token.", Success = true });
 
-                    return Ok(new ServiceResponse { Success = true, Message = $"User '{user.UserName}' deleted successfully." });
+                    return Ok(new ServiceResponse<object?> { Success = true, Message = $"User '{user.UserName}' deleted successfully." });
                 }
 
-                return BadRequest(new ServiceResponse{Success = false, Message = "An error occurred while deleting the user." });
+                return BadRequest(new ServiceResponse<object?> {Success = false, Message = "An error occurred while deleting the user." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error deleting user ID: {UserId}", id);
-                return StatusCode(500, new ServiceResponse { Success = false, Message = "An error occurred while deleting the user." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while deleting the user." });
             }
         }
         /// <summary>
@@ -530,22 +530,22 @@ namespace TheCharityPL.Controllers
 
                 var user = await _userService.GetUserByIdAsync(id);
                 if (user == null)
-                    return NotFound(new ServiceResponse{Success=false, Message = $"User with ID '{id}' not found." });
+                    return NotFound(new ServiceResponse<object?> {Success=false, Message = $"User with ID '{id}' not found." });
 
                 var result = await _userService.RestoreUserAsync(id);
 
                 if (result.Succeeded)
                 {
                     _logger.LogInformation("User restored successfully with ID: {UserId}", id);
-                    return Ok(new ServiceResponse { Success = true, Message = "User restored successfully." });
+                    return Ok(new ServiceResponse<object?> { Success = true, Message = "User restored successfully." });
                 }
 
-                return BadRequest(new ServiceResponse { Success = false, Message = "An error occurred while restoring the user." });
+                return BadRequest(new ServiceResponse<object?> { Success = false, Message = "An error occurred while restoring the user." });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error restoring user ID: {UserId}", id);
-                return StatusCode(500, new ServiceResponse{Success = false, Message = "An error occurred while restoring the user." });
+                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while restoring the user." });
             }
         }
 
@@ -563,19 +563,19 @@ namespace TheCharityPL.Controllers
                 // Check if user exists
                 var user = await _userService.GetUserByIdAsync(userId);
                 if (user == null)
-                    return NotFound(new ServiceResponse{Success = false, Message = $"User with ID '{userId}' not found." });
+                    return NotFound(new ServiceResponse<object?> {Success = false, Message = $"User with ID '{userId}' not found." });
 
                 // Check if role exists in Identity
                 var roles = await _userService.GetUserRolesAsync(userId);
                 if (roles.Data.Contains(request.Role))
-                    return BadRequest(new ServiceResponse{Success=false, Message = $"User already has role '{request.Role}'." });
+                    return BadRequest(new ServiceResponse<object?> {Success=false, Message = $"User already has role '{request.Role}'." });
 
                 var result = await _userService.AddToRoleAsync(userId, request.Role);
 
                 if (result.Data.Succeeded)
                 {
                     _logger.LogInformation($"Role '{request.Role}' assigned to user {userId}");
-                    return Ok(new ServiceResponse { Success = false, Message = $"Role '{request.Role}' assigned successfully." });
+                    return Ok(new ServiceResponse<object?> { Success = false, Message = $"Role '{request.Role}' assigned successfully." });
                 }
 
                 return BadRequest(new ServiceResponse<IEnumerable<string>> {Data= result.Data.Errors.Select(e => e.Description) });
@@ -583,7 +583,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error assigning role to user {userId}");
-                return StatusCode(500, new ServiceResponse { Message = "An error occurred while assigning the role.", Success = false });
+                return StatusCode(500, new ServiceResponse<object?> { Message = "An error occurred while assigning the role.", Success = false });
             }
         }
 
@@ -599,18 +599,18 @@ namespace TheCharityPL.Controllers
                 // Check if user exists
                 var user = await _userService.GetUserByIdAsync(userId);
                 if (user == null)
-                    return NotFound(new ServiceResponse{Success = false, Message = $"User with ID '{userId}' not found." });
+                    return NotFound(new ServiceResponse<object?> {Success = false, Message = $"User with ID '{userId}' not found." });
 
                 var roles = await _userService.GetUserRolesAsync(userId);
                 if (!roles.Data.Contains(role))
-                    return BadRequest(new ServiceResponse{Success = false, Message = $"User does not have role '{role}'." });
+                    return BadRequest(new ServiceResponse<object?> {Success = false, Message = $"User does not have role '{role}'." });
 
                 var result = await _userService.RemoveFromRoleAsync(userId, role);
 
                 if (result.Data.Succeeded)
                 {
                     _logger.LogInformation($"Role '{role}' removed from user {userId}");
-                    return Ok(new ServiceResponse { Success = true, Message = $"Role '{role}' removed successfully." });
+                    return Ok(new ServiceResponse<object?> { Success = true, Message = $"Role '{role}' removed successfully." });
                 }
 
                 return BadRequest(new ServiceResponse<IEnumerable<string>>{Success=false,Message="your credentials invalid", Data = result.Data.Errors.Select(e => e.Description) });
@@ -618,7 +618,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error removing role from user {userId}");
-                return StatusCode(500, new ServiceResponse{Success = false, Message = "An error occurred while removing the role." });
+                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while removing the role." });
             }
         }
 
@@ -633,7 +633,7 @@ namespace TheCharityPL.Controllers
             {
                 var user = await _userService.GetUserByIdAsync(userId);
                 if (user == null)
-                    return NotFound(new ServiceResponse { Success = false, Message = $"User with ID '{userId}' not found." });
+                    return NotFound(new ServiceResponse<object?> { Success = false, Message = $"User with ID '{userId}' not found." });
 
                 var roles = await _userService.GetUserRolesAsync(userId);
                 return Ok(new { roles });
@@ -641,7 +641,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error getting roles for user {userId}");
-                return StatusCode(500, new ServiceResponse{Success = false, Message = "An error occurred while getting user roles." });
+                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while getting user roles." });
             }
         }
 
@@ -661,7 +661,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all roles");
-                return StatusCode(500, new ServiceResponse{ Message = "An error occurred while getting roles.",Success=false });
+                return StatusCode(500, new ServiceResponse<object?> { Message = "An error occurred while getting roles.",Success=false });
             }
         }
 
@@ -685,7 +685,7 @@ namespace TheCharityPL.Controllers
                 {
                     var roles = await _userService.GetUserRolesAsync(user.Id);
                     if (roles.Data.Contains("SuperAdmin"))
-                        return BadRequest(new ServiceResponse{Success = false, Message = "SuperAdmin already exists." });
+                        return BadRequest(new ServiceResponse<object?> {Success = false, Message = "SuperAdmin already exists." });
                 }
 
                 // Create the user
@@ -705,14 +705,14 @@ namespace TheCharityPL.Controllers
                 // Get the created user
                 var createdUser = await _userService.GetUserByEmailAsync(request.Email);
                 if (createdUser == null)
-                    return BadRequest(new ServiceResponse { Success = false, Message = "Failed to create user." });
+                    return BadRequest(new ServiceResponse<object?> { Success = false, Message = "Failed to create user." });
 
                 // Assign SuperAdmin role
                 var roleResult = await _userService.AddToRoleAsync(createdUser.Id, "SuperAdmin");
                 if (!roleResult.Data.Succeeded)
                     return BadRequest(new ServiceResponse<IEnumerable<string>>{Data = roleResult.Data.Errors.Select(e => e.Description),Success=false,Message="faild to add role to the user." });
 
-                return Ok(new ServiceResponse
+                return Ok(new ServiceResponse<object?>
                 {
                     Message = $"SuperAdmin created for user id:{createdUser.Id} and Email:{createdUser.Email} successfully."
                    ,Success=true
@@ -721,7 +721,7 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error seeding SuperAdmin");
-                return StatusCode(500, new ServiceResponse{ Message = "An error occurred while seeding SuperAdmin.",Success=false });
+                return StatusCode(500, new ServiceResponse<object?> { Message = "An error occurred while seeding SuperAdmin.",Success=false });
             }
         }
 

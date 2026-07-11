@@ -40,13 +40,13 @@ namespace TheCharityPL.Controllers
             returnUrl = returnUrl ?? "/";
 
             if (remoteError != null)
-                return BadRequest(new ServiceResponse{ Success = false, Message = $"Error from external provider: {remoteError}" });
+                return BadRequest(new ServiceResponse<object?> { Success = false, Message = $"Error from external provider: {remoteError}" });
 
             // Get the external login info from the authentication cookie
             var authenticateResult = await HttpContext.AuthenticateAsync("ExternalCookie");
 
             if (!authenticateResult.Succeeded)
-                return BadRequest(new ServiceResponse { Message = "Error loading external login information." ,Success=false});
+                return BadRequest(new ServiceResponse<object?> { Message = "Error loading external login information." ,Success=false});
 
             // Extract provider info
             var externalUser = authenticateResult.Principal;
@@ -55,7 +55,7 @@ namespace TheCharityPL.Controllers
             var email = externalUser.FindFirstValue(ClaimTypes.Email);
 
             if (email == null)
-                return BadRequest(new ServiceResponse { Success = false, Message = $"Email claim not received from: {loginProvider}" });
+                return BadRequest(new ServiceResponse<object?> { Success = false, Message = $"Email claim not received from: {loginProvider}" });
 
             // Check if user exists
             var user = await _userService.GetUserByEmailAsync(email);
@@ -72,7 +72,7 @@ namespace TheCharityPL.Controllers
             }
            
             if (user == null)
-                return BadRequest(new ServiceResponse { Success = false, Message = "Failed to retrieve or create user." });
+                return BadRequest(new ServiceResponse<object?> { Success = false, Message = "Failed to retrieve or create user." });
 
             // Check if external login is linked
 
