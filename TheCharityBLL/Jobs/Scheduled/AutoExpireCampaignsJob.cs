@@ -26,33 +26,42 @@ namespace TheCharityBLL.Jobs.Emails
 
         public override async Task<IJobResult> ExecuteAsync(JobContext context)
         {
-            // Use repository directly to get entities
-            var expiredCampaigns = await _campaignRepository.GetExpiredCampaignsAsync();
+            const int batchSize = 100;
+            int pageNumber = 1;
+            int totalExpired = 0;
+            bool hasMore = true;
 
-            if (expiredCampaigns == null || !expiredCampaigns.Any())
-                return JobResult.Success("No expired campaigns found");
-
-            var expiredCount = 0;
-
-            foreach (var campaign in expiredCampaigns)
+            while (hasMore)
             {
-                // Only expire active campaigns
-                if (campaign.Status == CampaignStatus.Active)
+                var (expiredCampaigns, totalCount) = await _campaignRepository
+                    .GetExpiredCampaignsAsync(pageNumber, batchSize);
+
+                if (!expiredCampaigns.Any())
+                    break;
+
+                foreach (var campaign in expiredCampaigns)
                 {
-                    // Update status using repository
-                    await _campaignRepository.UpdateCampaignStatusAsync(campaign.Id, CampaignStatus.Expired);
-
-                    // Fire event with the actual Campaign entity
-                    await _eventDispatcher.DispatchAsync(new CampaignExpiredEvent
+                    // Only expire active campaigns
+                    if (campaign.Status == CampaignStatus.Active)
                     {
-                        Campaign = campaign
-                    });
+                        // Update status using repository
+                        await _campaignRepository.UpdateCampaignStatusAsync(campaign.Id, CampaignStatus.Expired);
 
-                    expiredCount++;
+                        // Fire event with the actual Campaign entity
+                        await _eventDispatcher.DispatchAsync(new CampaignExpiredEvent
+                        {
+                            Campaign = campaign
+                        });
+                        totalExpired++;
+                    }
                 }
+
+                // Check if there are more pages
+                hasMore = pageNumber * batchSize < totalCount;
+                pageNumber++;
             }
 
-            return JobResult.Success($"Expired {expiredCount} campaigns and fired events");
+            return JobResult.Success($"Expired {totalExpired} campaigns and fired events");
         }
     }
 }
