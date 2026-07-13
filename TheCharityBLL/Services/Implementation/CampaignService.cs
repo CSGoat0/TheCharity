@@ -997,7 +997,12 @@ namespace TheCharityBLL.Services.Repository
         {
             if (limit <= 0) limit = 10;
 
-            var campaigns = await _campaignRepository.GetTopCampaignsByAchievementAsync(limit);
+            const int pageNumber = 1;
+            const int pageSize = int.MaxValue;
+
+            var (campaigns, totalCount) = await _campaignRepository
+                .GetTopCampaignsByAchievementAsync(pageNumber, pageSize, limit);
+
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
 
             return new ServiceResponse<IEnumerable<CampaignResponseDto>>
@@ -1029,10 +1034,13 @@ namespace TheCharityBLL.Services.Repository
         {
             if (limit <= 0) limit = 10;
 
-            var campaigns = await _campaignRepository.GetTopCampaignsByDonationsAsync(limit);
+            const int pageNumber = 1;
+            const int pageSize = int.MaxValue;
+
+            var (campaigns, totalCount) = await _campaignRepository
+                .GetTopCampaignsByDonationsAsync(pageNumber, pageSize, limit);
 
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
-
 
             return new ServiceResponse<IEnumerable<CampaignResponseDto>>
             {
@@ -1177,14 +1185,13 @@ namespace TheCharityBLL.Services.Repository
             {
                 if (daysThreshold <= 0) daysThreshold = 7;
 
-                var campaigns = await _campaignRepository.GetCampaignsExpiringSoonAsync(daysThreshold);
-                var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
+                const int pageSize = int.MaxValue;
+                const int pageNumber = 1;
 
-                // Calculate days remaining for each campaign
-                foreach (var dto in campaignsDtos)
-                {
-                    // You might want to add a DaysRemaining property to CampaignResponseDto
-                }
+                var (campaigns, totalCount) = await _campaignRepository
+                    .GetCampaignsExpiringSoonAsync(pageNumber, pageSize, daysThreshold);
+
+                var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
 
                 return new ServiceResponse<IEnumerable<CampaignResponseDto>>
                 {
@@ -1264,7 +1271,13 @@ namespace TheCharityBLL.Services.Repository
         {
             try
             {
-                var expiredCampaigns = await _campaignRepository.GetExpiredCampaignsAsync();
+                // Use THE ONLY method - the paged one with int.MaxValue
+                const int pageSize = int.MaxValue;
+                const int pageNumber = 1;
+
+                var (expiredCampaigns, totalCount) = await _campaignRepository
+                    .GetExpiredCampaignsAsync(pageNumber, pageSize);
+
                 int expiredCount = 0;
 
                 foreach (var campaign in expiredCampaigns)
