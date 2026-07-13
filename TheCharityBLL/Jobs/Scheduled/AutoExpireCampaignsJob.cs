@@ -26,42 +26,37 @@ namespace TheCharityBLL.Jobs.Emails
 
         public override async Task<IJobResult> ExecuteAsync(JobContext context)
         {
-            const int batchSize = 100;
-            int pageNumber = 1;
-            int totalExpired = 0;
-            bool hasMore = true;
+            // Use a large page size to get ALL expired campaigns in one query
+            const int pageSize = int.MaxValue; // or 10000 if you want a safety limit
+            const int pageNumber = 1;
 
-            while (hasMore)
+            var (expiredCampaigns, totalCount) = await _campaignRepository
+                .GetExpiredCampaignsAsync(pageNumber, pageSize);
+
+            if (expiredCampaigns == null || !expiredCampaigns.Any())
+                return JobResult.Success("No expired campaigns found");
+
+            var expiredCount = 0;
+
+            foreach (var campaign in expiredCampaigns)
             {
-                var (expiredCampaigns, totalCount) = await _campaignRepository
-                    .GetExpiredCampaignsAsync(pageNumber, batchSize);
-
-                if (!expiredCampaigns.Any())
-                    break;
-
-                foreach (var campaign in expiredCampaigns)
+                // Only expire active campaigns
+                if (campaign.Status == CampaignStatus.Active)
                 {
-                    // Only expire active campaigns
-                    if (campaign.Status == CampaignStatus.Active)
+                    await _campaignRepository.UpdateCampaignStatusAsync(
+                        campaign.Id, CampaignStatus.Expired);
+
+                    // Fire event with the actual Campaign entity
+                    await _eventDispatcher.DispatchAsync(new CampaignExpiredEvent
                     {
-                        // Update status using repository
-                        await _campaignRepository.UpdateCampaignStatusAsync(campaign.Id, CampaignStatus.Expired);
+                        Campaign = campaign
+                    });
 
-                        // Fire event with the actual Campaign entity
-                        await _eventDispatcher.DispatchAsync(new CampaignExpiredEvent
-                        {
-                            Campaign = campaign
-                        });
-                        totalExpired++;
-                    }
+                    expiredCount++;
                 }
-
-                // Check if there are more pages
-                hasMore = pageNumber * batchSize < totalCount;
-                pageNumber++;
             }
 
-            return JobResult.Success($"Expired {totalExpired} campaigns and fired events");
+            return JobResult.Success($"Expired {expiredCount} campaigns and fired events");
         }
     }
 }
