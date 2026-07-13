@@ -93,8 +93,15 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
 
         public async Task<bool> RestoreDonationAsync(int id)
         {
-            var deleted = await _repo.GetDeletedDonationsAsync();
-            if (!deleted.Any(d => d.Id == id)) return false;
+            // Check if the donation exists and is deleted using a direct query
+            var exists = await _repo.DonationExistsAsync(id);
+            if (!exists)
+                return false;
+
+            // Get the donation to check if it's actually deleted
+            var donation = await _repo.GetDonationByIdAsync(id);
+            if (donation == null || !donation.IsDeleted)
+                return false;
 
             await _repo.RestoreDonationAsync(id);
             return true;
@@ -215,8 +222,21 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
         public Task<DateTime?> GetUserLastDonationDateAsync(string userId)
             => _repo.GetUserLastDonationDateAsync(userId);
 
-        public Task<IEnumerable<int>> GetCampaignsDonatedByUserAsync(string userId)
-            => _repo.GetCampaignsDonatedByUserAsync(userId);
+        public async Task<PagedResultDto<int>> GetCampaignsDonatedByUserAsync(PaginationParametersDto parametersDto, string userId)
+        {
+            var (campaignIds, totalCount) = await _repo.GetCampaignsDonatedByUserAsync(
+                parametersDto.PageNumber,
+                parametersDto.PageSize,
+                userId);
+
+            return new PagedResultDto<int>
+            {
+                Items = campaignIds,
+                TotalCount = totalCount,
+                PageNumber = parametersDto.PageNumber,
+                PageSize = parametersDto.PageSize
+            };
+        }
 
         // ===== Bulk Operations =====
 
@@ -314,8 +334,22 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
         public Task<Dictionary<string, double>> GetUserLifetimeValueAsync()
             => _repo.GetUserLifetimeValueAsync();
 
-        public Task<IEnumerable<string>> GetLoyalDonorsAsync(double minTotalAmount = 1000, int minDonations = 5)
-            => _repo.GetLoyalDonorsAsync(minTotalAmount, minDonations);
+        public async Task<PagedResultDto<string>> GetLoyalDonorsAsync(PaginationParametersDto parametersDto, double minTotalAmount = 1000, int minDonations = 5)
+        {
+            var (loyalDonors, totalCount) = await _repo.GetLoyalDonorsAsync(
+                parametersDto.PageNumber,
+                parametersDto.PageSize,
+                minTotalAmount,
+                minDonations);
+
+            return new PagedResultDto<string>
+            {
+                Items = loyalDonors,
+                TotalCount = totalCount,
+                PageNumber = parametersDto.PageNumber,
+                PageSize = parametersDto.PageSize
+            };
+        }
 
         // ===== Search & Filter Combinations =====
 

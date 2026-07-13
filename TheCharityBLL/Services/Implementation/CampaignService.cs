@@ -1,8 +1,6 @@
-﻿using TheCharityBLL.DTOs;
-using TheCharityBLL.DTOs.CampaignDTOs;
+﻿using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Extensions;
-﻿using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.Events.Abstraction;
 using TheCharityBLL.Events.CampaignEvents;
 using TheCharityBLL.Mapper;
@@ -71,10 +69,15 @@ namespace TheCharityBLL.Services.Repository
                 };
             }
 
-            var donations = await _donationRepository.GetDonationsByCampaignAsync(id);
+            // Get only the 10 most recent donations (paginated)
+            const int pageNumber = 1;
+            const int pageSize = 10;
+
+            var (donations, totalDonationsCount) = await _donationRepository
+                .GetDonationsByCampaignAsync(pageNumber, pageSize, id);
+
             var recentDonations = donations
                 .OrderByDescending(d => d.RegistrationDate)
-                .Take(10)
                 .Select(d => new DonationBasicDto
                 {
                     Id = d.Id,
@@ -98,7 +101,7 @@ namespace TheCharityBLL.Services.Repository
                 UpdatedOn = campaign.UpdatedOn,
                 AchievementPercentage = CalculatePercentage(campaign.Achieved, campaign.Target),
                 RemainingAmount = (campaign.Target ?? 0) - (campaign.Achieved ?? 0),
-                TotalDonationsCount = donations.Count(),
+                TotalDonationsCount = totalDonationsCount,  // Use the total count from the paged result
                 RecentDonations = recentDonations
             };
 
@@ -947,8 +950,16 @@ namespace TheCharityBLL.Services.Repository
         public async Task<ServiceResponse<CampaignStatisticsDto>> GetCampaignStatisticsAsync()
         {
             var statusCounts = await _campaignRepository.GetCampaignCountByStatusAsync();
-            var topCampaignsResult = await GetTopCampaignsByAchievementAsync(1);
-            var topDonatedResult = await GetTopCampaignsByDonationsAsync(1);
+
+            // Use PaginationParametersDto with int.MaxValue to get ALL data
+            var allParams = new PaginationParametersDto
+            {
+                PageNumber = 1,
+                PageSize = int.MaxValue  // Get all records
+            };
+
+            var topCampaignsResult = await GetTopCampaignsByAchievementAsync(allParams, 1);
+            var topDonatedResult = await GetTopCampaignsByDonationsAsync(allParams, 1);
 
             var statistics = new CampaignStatisticsDto
             {
@@ -961,8 +972,8 @@ namespace TheCharityBLL.Services.Repository
                 AverageAchievementPercentage = await _campaignRepository.GetAverageAchievementPercentageAsync(),
                 SoloCampaignsCount = await _campaignRepository.GetSoloCampaignsCountAsync(),
                 SharedCampaignsCount = await _campaignRepository.GetSharedCampaignsCountAsync(),
-                MostSuccessfulCampaign = topCampaignsResult.Data?.FirstOrDefault(),
-                MostDonatedCampaign = topDonatedResult.Data?.FirstOrDefault(),
+                MostSuccessfulCampaign = topCampaignsResult.Data?.Items?.FirstOrDefault(),
+                MostDonatedCampaign = topDonatedResult.Data?.Items?.FirstOrDefault(),
                 StatisticsDate = DateTime.UtcNow
             };
 
@@ -993,26 +1004,6 @@ namespace TheCharityBLL.Services.Repository
             };
         }
 
-        public async Task<ServiceResponse<IEnumerable<CampaignResponseDto>>> GetTopCampaignsByAchievementAsync(int limit = 10)
-        {
-            if (limit <= 0) limit = 10;
-
-            const int pageNumber = 1;
-            const int pageSize = int.MaxValue;
-
-            var (campaigns, totalCount) = await _campaignRepository
-                .GetTopCampaignsByAchievementAsync(pageNumber, pageSize, limit);
-
-            var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
-
-            return new ServiceResponse<IEnumerable<CampaignResponseDto>>
-            {
-                Success = true,
-                Data = campaignsDtos,
-                Message = $"Top {limit} campaigns by achievement retrieved successfully."
-            };
-        }
-
         public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetTopCampaignsByDonationsAsync(PaginationParametersDto parametersDto, int limit = 10)
         {
             if (limit <= 0) limit = 10;
@@ -1026,26 +1017,6 @@ namespace TheCharityBLL.Services.Repository
             {
                 Success = true,
                 Data = response,
-                Message = $"Top {limit} campaigns by donations retrieved successfully."
-            };
-        }
-
-        public async Task<ServiceResponse<IEnumerable<CampaignResponseDto>>> GetTopCampaignsByDonationsAsync(int limit = 10)
-        {
-            if (limit <= 0) limit = 10;
-
-            const int pageNumber = 1;
-            const int pageSize = int.MaxValue;
-
-            var (campaigns, totalCount) = await _campaignRepository
-                .GetTopCampaignsByDonationsAsync(pageNumber, pageSize, limit);
-
-            var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
-
-            return new ServiceResponse<IEnumerable<CampaignResponseDto>>
-            {
-                Success = true,
-                Data = campaignsDtos,
                 Message = $"Top {limit} campaigns by donations retrieved successfully."
             };
         }

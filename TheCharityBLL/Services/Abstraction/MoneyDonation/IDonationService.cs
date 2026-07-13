@@ -51,7 +51,7 @@ namespace TheCharityBLL.Services.Abstraction.MoneyDonation
         // ===== User-Specific =====
         Task<PagedResultDto<DonationResponseDto>> GetUserDonationHistoryAsync(PaginationParametersDto parametersDto, string userId);
         Task<DateTime?> GetUserLastDonationDateAsync(string userId);
-        Task<IEnumerable<int>> GetCampaignsDonatedByUserAsync(string userId);
+        Task<PagedResultDto<int>> GetCampaignsDonatedByUserAsync(PaginationParametersDto parametersDto, string userId);
 
         // ===== Bulk Operations =====
         Task<int> TransferDonationsToCampaignAsync(int fromCampaignId, int toCampaignId);
@@ -87,7 +87,7 @@ namespace TheCharityBLL.Services.Abstraction.MoneyDonation
         Task<PagedResultDto<DonationResponseDto>> GetRecurringDonorsAsync(PaginationParametersDto parametersDto, int minDonations = 3);
         Task<PagedResultDto<DonationResponseDto>> GetFirstTimeDonorsAsync(PaginationParametersDto parametersDto, DateTime startDate, DateTime endDate);
         Task<Dictionary<string, double>> GetUserLifetimeValueAsync();
-        Task<IEnumerable<string>> GetLoyalDonorsAsync(double minTotalAmount = 1000, int minDonations = 5);
+        Task<PagedResultDto<string>> GetLoyalDonorsAsync(PaginationParametersDto parametersDto, double minTotalAmount = 1000, int minDonations = 5);
 
         // ===== Search & Filter Combinations =====
         Task<PagedResultDto<DonationResponseDto>> SearchDonationsByUserAndCampaignAsync(PaginationParametersDto parametersDto, string userId, int campaignId);
