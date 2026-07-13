@@ -455,8 +455,10 @@ namespace TheCharityPL.Controllers
 
         // GET api/donations/users/userId123/campaigns
         [HttpGet("users/{userId}/campaigns")]
-        public async Task<IActionResult> GetCampaignsDonatedByUser(string userId)
-            => Ok(await _service.GetCampaignsDonatedByUserAsync(userId));
+        public async Task<IActionResult> GetCampaignsDonatedByUser(
+            [FromQuery] PaginationParametersDto parametersDto,
+            string userId)
+            => Ok(await _service.GetCampaignsDonatedByUserAsync(parametersDto, userId));
 
         // =====================================================================
         // Bulk Operations
@@ -536,8 +538,10 @@ namespace TheCharityPL.Controllers
         // GET api/donations/engagement/loyal?minAmount=1000&minDonations=5
         [HttpGet("engagement/loyal")]
         public async Task<IActionResult> GetLoyalDonors(
-            [FromQuery] double minTotalAmount = 1000, [FromQuery] int minDonations = 5)
-            => Ok(await _service.GetLoyalDonorsAsync(minTotalAmount, minDonations));
+            [FromQuery] PaginationParametersDto parametersDto,
+            [FromQuery] double minTotalAmount = 1000,
+            [FromQuery] int minDonations = 5)
+            => Ok(await _service.GetLoyalDonorsAsync(parametersDto, minTotalAmount, minDonations));
 
         // =====================================================================
         // Audit
