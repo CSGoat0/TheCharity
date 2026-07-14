@@ -1,6 +1,6 @@
 ---
 name: Custom issue template
-about: This is the main Issue Template for all types of Issues
+about: This is the main issue template for all types of issues
 title: ''
 labels: ''
 assignees: ''
