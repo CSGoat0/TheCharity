@@ -384,7 +384,7 @@ namespace TheCharityDAL.Repositories.Implementation
             var userExists = await _context.Users.AnyAsync(u => u.Id == donation.UserId);
             if (!userExists) return false;
 
-           
+
             var campaignExists = await _context.Campaigns
                 .AnyAsync(c => c.Id == donation.CampaignId);
             if (!campaignExists) return false;
@@ -395,7 +395,7 @@ namespace TheCharityDAL.Repositories.Implementation
 
             return true;
         }
-      
+
         // ===== Eager Loading =====
         public async Task<Donation?> GetDonationWithDetailsAsync(int id)
         {

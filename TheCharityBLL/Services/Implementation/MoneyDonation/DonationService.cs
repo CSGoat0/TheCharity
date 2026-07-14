@@ -216,66 +216,66 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
             => new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetLatestDonationsAsync(limit)), Success = true, Message = "retrieved latest donations successfully." };
 
         public async Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetLargestDonationsAsync(int limit = 10)
-            =>new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetLargestDonationsAsync(limit)), Success = true, Message = "retrieved largest donations successfully" };
+            => new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetLargestDonationsAsync(limit)), Success = true, Message = "retrieved largest donations successfully" };
 
         public async Task<ServiceResponse<Dictionary<int, int>>> GetDonationsPerCampaignCountAsync()
-            =>new ServiceResponse<Dictionary<int, int>> { Data = await _repo.GetDonationsPerCampaignCountAsync(), Success = true, Message = "retrieved count of the donations per campaign successfully." };
+            => new ServiceResponse<Dictionary<int, int>> { Data = await _repo.GetDonationsPerCampaignCountAsync(), Success = true, Message = "retrieved count of the donations per campaign successfully." };
 
         public async Task<ServiceResponse<Dictionary<string, int>>> GetDonationsPerUserCountAsync()
-            =>new ServiceResponse<Dictionary<string, int>> { Data = await _repo.GetDonationsPerUserCountAsync(), Success = true, Message = "retrieved count of the donations per user successfully." };
+            => new ServiceResponse<Dictionary<string, int>> { Data = await _repo.GetDonationsPerUserCountAsync(), Success = true, Message = "retrieved count of the donations per user successfully." };
 
         public async Task<ServiceResponse<double>> GetTodayDonationsTotalAsync()
             => new ServiceResponse<double> { Data = await _repo.GetTodayDonationsTotalAsync(), Success = true, Message = "retrieved count for this day donations successfully." };
 
         public async Task<ServiceResponse<double>> GetThisWeekDonationsTotalAsync()
-            =>new ServiceResponse<double> { Data = await _repo.GetThisWeekDonationsTotalAsync(), Success = true, Message = "retrieved count for this week donations successfully." };
+            => new ServiceResponse<double> { Data = await _repo.GetThisWeekDonationsTotalAsync(), Success = true, Message = "retrieved count for this week donations successfully." };
 
         public async Task<ServiceResponse<double>> GetThisMonthDonationsTotalAsync()
-            =>new ServiceResponse<double> { Data = await _repo.GetThisMonthDonationsTotalAsync(), Success = true, Message = "retrieved count for this month donations successfully." };
+            => new ServiceResponse<double> { Data = await _repo.GetThisMonthDonationsTotalAsync(), Success = true, Message = "retrieved count for this month donations successfully." };
 
         // ===== Financial Reporting =====
 
         public async Task<ServiceResponse<Dictionary<string, double>>> GetMonthlyDonationsReportAsync(int year)
-            =>new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetMonthlyDonationsReportAsync(year), Success = true, Message = "retrieved Monthly Donations Report successfully." };
+            => new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetMonthlyDonationsReportAsync(year), Success = true, Message = "retrieved Monthly Donations Report successfully." };
 
         public async Task<ServiceResponse<Dictionary<string, double>>> GetQuarterlyDonationsReportAsync(int year)
-            =>new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetQuarterlyDonationsReportAsync(year), Success = true, Message = "retrieved Quarterly Donations Report successfully." };
+            => new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetQuarterlyDonationsReportAsync(year), Success = true, Message = "retrieved Quarterly Donations Report successfully." };
 
         public async Task<ServiceResponse<Dictionary<string, double>>> GetYearlyDonationsReportAsync(int yearsBack = 5)
-            =>new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetYearlyDonationsReportAsync(yearsBack), Success = true, Message = "retrieved yearly donations report successfully." };
+            => new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetYearlyDonationsReportAsync(yearsBack), Success = true, Message = "retrieved yearly donations report successfully." };
 
         public async Task<ServiceResponse<Dictionary<string, double>>> GetDonationsByTimeOfDayAsync()
-            =>new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetDonationsByTimeOfDayAsync(), Success = true, Message = "retrieved the donations by time of a day successfully." };
+            => new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetDonationsByTimeOfDayAsync(), Success = true, Message = "retrieved the donations by time of a day successfully." };
 
         public async Task<ServiceResponse<Dictionary<string, double>>> GetDonationsByDayOfWeekAsync()
-            =>new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetDonationsByDayOfWeekAsync(), Success = true, Message = "retrieved the donations by day of a week successfully." };
+            => new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetDonationsByDayOfWeekAsync(), Success = true, Message = "retrieved the donations by day of a week successfully." };
 
         // ===== Campaign Performance =====
 
         public async Task<ServiceResponse<Dictionary<DateTime, double>>> GetCampaignDonationTimelineAsync(int campaignId)
-            =>new ServiceResponse<Dictionary<DateTime, double>> { Data = await _repo.GetCampaignDonationTimelineAsync(campaignId), Success = true, Message = "retrieved the donation time line for specific campaign successfully." };
+            => new ServiceResponse<Dictionary<DateTime, double>> { Data = await _repo.GetCampaignDonationTimelineAsync(campaignId), Success = true, Message = "retrieved the donation time line for specific campaign successfully." };
 
         // ===== User Engagement =====
 
         public async Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetRecurringDonorsAsync(int minDonations = 3)
-            =>new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetRecurringDonorsAsync(minDonations)), Success = true, Message = "retrieved Recurring Donors successfully." };
+            => new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetRecurringDonorsAsync(minDonations)), Success = true, Message = "retrieved Recurring Donors successfully." };
 
         public async Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetFirstTimeDonorsAsync(DateTime startDate, DateTime endDate)
-            =>new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetFirstTimeDonorsAsync(startDate, endDate)), Success = true, Message = "retrieved first time donors successfully." };
+            => new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetFirstTimeDonorsAsync(startDate, endDate)), Success = true, Message = "retrieved first time donors successfully." };
 
         public async Task<ServiceResponse<Dictionary<string, double>>> GetUserLifetimeValueAsync()
-            =>new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetUserLifetimeValueAsync(), Success = true, Message = "retrieved list of users assigned with life time value successfully." };
+            => new ServiceResponse<Dictionary<string, double>> { Data = await _repo.GetUserLifetimeValueAsync(), Success = true, Message = "retrieved list of users assigned with life time value successfully." };
 
         public async Task<ServiceResponse<IEnumerable<string>>> GetLoyalDonorsAsync(double minTotalAmount = 1000, int minDonations = 5)
-            =>new ServiceResponse<IEnumerable<string>> { Data = await _repo.GetLoyalDonorsAsync(minTotalAmount, minDonations), Success = true, Message = "retrieved the loyal donors successfully." };
+            => new ServiceResponse<IEnumerable<string>> { Data = await _repo.GetLoyalDonorsAsync(minTotalAmount, minDonations), Success = true, Message = "retrieved the loyal donors successfully." };
 
         // ===== Search & Filter Combinations =====
 
         public async Task<ServiceResponse<IEnumerable<DonationResponseDto>>> SearchDonationsByUserAndCampaignAsync(string userId, int campaignId)
-            =>new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.SearchDonationsByUserAndCampaignAsync(userId, campaignId)), Success = true, Message = "retrieved the donations for specific user and campaign successfuly." };
+            => new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.SearchDonationsByUserAndCampaignAsync(userId, campaignId)), Success = true, Message = "retrieved the donations for specific user and campaign successfuly." };
 
         public async Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetDonationsByMultipleUsersAsync(IEnumerable<string> userIds)
-            =>new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByMultipleUsersAsync(userIds)), Success = true, Message = "retrieved the Donations by multiple users successfully." };
+            => new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByMultipleUsersAsync(userIds)), Success = true, Message = "retrieved the Donations by multiple users successfully." };
 
         public async Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetDonationsByMultipleCampaignsAsync(IEnumerable<int> campaignIds)
             => new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetDonationsByMultipleCampaignsAsync(campaignIds)), Success = true, Message = "retrieved the Donations by multiple campaigns successfully." };
@@ -286,7 +286,7 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
         // ===== Audit =====
 
         public async Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetSuspiciousDonationsAsync(double amountThreshold = 10000)
-            =>new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetSuspiciousDonationsAsync(amountThreshold)), Success = true, Message = "retrieved Suspicious Donations successfully." };
+            => new ServiceResponse<IEnumerable<DonationResponseDto>> { Data = _mapper.MapToDonationResponseDtos(await _repo.GetSuspiciousDonationsAsync(amountThreshold)), Success = true, Message = "retrieved Suspicious Donations successfully." };
 
         // ===== Export =====
 
@@ -298,7 +298,6 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
     }
 }
 
- 
-      
 
-    
+
+

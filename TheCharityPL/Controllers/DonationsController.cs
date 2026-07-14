@@ -74,7 +74,7 @@ namespace TheCharityPL.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var updated = await _service.UpdateDonationAsync(id, dto);
-            return updated is null ? NotFound(new ServiceResponse<object?>{Success=false,Message="invalid user id." }) : Ok(updated);
+            return updated is null ? NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." }) : Ok(updated);
         }
         /// <summary>
         /// delete specific donation  
@@ -84,7 +84,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteDonationAsync(id);
-            return success ? Ok(new ServiceResponse<object?> { Success=true,Message="Deleted Successfully."}) : NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." });
+            return success ? Ok(new ServiceResponse<object?> { Success = true, Message = "Deleted Successfully." }) : NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." });
         }
         /// <summary>
         /// restore specific donation  after delete it  
@@ -426,7 +426,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// get list of user donations history, including the details of the campaigns they donated to and the amounts donated.
         /// </summary>
-        
+
         // GET api/donations/users/userId123/history
         [HttpGet("users/{userId}/history")]
         public async Task<IActionResult> GetUserHistory(string userId)
@@ -434,18 +434,18 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// get the date of the last donation made by a specific user, where userId parm: The unique identifier of the user for whom to retrieve the last donation date.
         /// </summary>
-      
+
         // GET api/donations/users/userId123/last-donation-date
         [HttpGet("users/{userId}/last-donation-date")]
         public async Task<IActionResult> GetUserLastDonationDate(string userId)
         {
             var date = await _service.GetUserLastDonationDateAsync(userId);
-            return date is null ?  NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." }) : Ok(date);
+            return date is null ? NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." }) : Ok(date);
         }
         /// <summary>
         /// get list of campaigns that a specific user has donated to, where userId parm: The unique identifier of the user for whom to retrieve the list of donated campaigns.
         /// </summary>
-       
+
         // GET api/donations/users/userId123/campaigns
         [HttpGet("users/{userId}/campaigns")]
         public async Task<IActionResult> GetCampaignsDonatedByUser(string userId)
@@ -457,25 +457,25 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// get the total number of donations transferred from one campaign to another, where from parm: The ID of the source campaign from which donations will be transferred. to parm: The ID of the target campaign to which donations will be transferred.
         /// </summary>
-       
+
         // POST api/donations/bulk/transfer?from=1&to=2
         [HttpPost("bulk/transfer")]
         public async Task<IActionResult> TransferDonations(
             [FromQuery] int from, [FromQuery] int to)
         {
             var count = await _service.TransferDonationsToCampaignAsync(from, to);
-            return Ok( count );
+            return Ok(count);
         }
         /// <summary>
         /// get the total number of donations deleted that are older than a specified number of days, where daysOld parm: The age threshold in days. Donations older than this number of days will be deleted. Defaults to 365 days.
         /// </summary>
-       
+
         // DELETE api/donations/bulk/old?daysOld=365
         [HttpDelete("bulk/old")]
         public async Task<IActionResult> DeleteOldDonations([FromQuery] int daysOld = 365)
         {
             var count = await _service.DeleteOldDonationsAsync(daysOld);
-            return Ok( count );
+            return Ok(count);
         }
 
         // =====================================================================
@@ -507,7 +507,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// get list of users who made their first donation within a specified date range, where startDate parm: The start date of the range. endDate parm: The end date of the range.
         /// </summary>
-        
+
         // GET api/donations/engagement/first-time?startDate=2024-01-01&endDate=2024-12-31
         [HttpGet("engagement/first-time")]
         public async Task<IActionResult> GetFirstTimeDonors(
@@ -524,7 +524,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// get list of users who have donated a total amount exceeding a specified threshold and have made a minimum number of donations, where minTotalAmount parm: The minimum total donation amount a user must have contributed to be considered loyal. Defaults to 1000. minDonations parm: The minimum number of donations a user must have made to be considered loyal. Defaults to 5.
         /// </summary>
-       
+
         // GET api/donations/engagement/loyal?minAmount=1000&minDonations=5
         [HttpGet("engagement/loyal")]
         public async Task<IActionResult> GetLoyalDonors(

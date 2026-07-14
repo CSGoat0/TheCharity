@@ -1,4 +1,5 @@
-﻿using TheCharityBLL.Jobs.Base;
+﻿using TheCharityBLL.DTOs.PaginationDTOs;
+using TheCharityBLL.Jobs.Base;
 using TheCharityBLL.Jobs.Context;
 using TheCharityBLL.Jobs.Result.Abstraction;
 using TheCharityBLL.Jobs.Result.Implementation;
@@ -24,14 +25,21 @@ namespace TheCharityBLL.Jobs.Emails
 
         public override async Task<IJobResult> ExecuteAsync(JobContext context)
         {
-            var expiringCampaigns = await _campaignService.GetCampaignsExpiringSoonAsync(7);
+            // Use paginated method with int.MaxValue to get ALL expiring campaigns
+            var allParams = new PaginationParametersDto
+            {
+                PageNumber = 1,
+                PageSize = int.MaxValue
+            };
 
-            if (!expiringCampaigns.Success || expiringCampaigns.Data == null)
+            var expiringCampaigns = await _campaignService.GetCampaignsExpiringSoonAsync(allParams, 7);
+
+            if (!expiringCampaigns.Success || expiringCampaigns.Data?.Items == null)
                 return JobResult.Failure("Failed to get expiring campaigns");
 
             var remindersSent = 0;
 
-            foreach (var campaign in expiringCampaigns.Data)
+            foreach (var campaign in expiringCampaigns.Data.Items)
             {
                 var daysLeft = campaign.Deadline.HasValue ? (campaign.Deadline.Value - DateTime.UtcNow).Days : 0;
                 var percentage = campaign.Target > 0 ? (campaign.Achieved / campaign.Target) * 100 : 0;

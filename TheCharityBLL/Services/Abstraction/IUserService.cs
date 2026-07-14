@@ -23,7 +23,7 @@ namespace TheCharityBLL.Services.Abstraction
         Task<IdentityResult> DeleteUserAsync(string userId);
         Task<IdentityResult> RestoreUserAsync(string id);
         Task<IdentityResult> CreateExternalUserAsync(string email);
-        public Task AddLoginAsync(UserResponseDTO UserDTO , UserLoginInfo loginInfo);
+        public Task AddLoginAsync(UserResponseDTO UserDTO, UserLoginInfo loginInfo);
         // Password
         Task<ServiceResponse<bool>> ValidatePasswordAsync(string userId, string password);
         Task<ServiceResponse<bool>> CheckPasswordAsync(string userId, string password);

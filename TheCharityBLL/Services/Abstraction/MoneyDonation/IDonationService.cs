@@ -20,58 +20,58 @@ namespace TheCharityBLL.Services.Abstraction.MoneyDonation
 
         // ===== Filtering & Search =====
         Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetDonationsByUserAsync(string userId);
-        Task<ServiceResponse<IEnumerable <DonationResponseDto>>> GetDonationsByCampaignAsync(int campaignId);
-        Task<ServiceResponse<IEnumerable <DonationResponseDto>>> GetDonationsByAmountRangeAsync(double minAmount, double maxAmount);
-        Task<ServiceResponse<IEnumerable <DonationResponseDto>>> GetDonationsByDateRangeAsync(DateTime startDate, DateTime endDate);
-        Task<ServiceResponse< IEnumerable<DonationResponseDto>>> GetRecentDonationsAsync(int days = 30);
-        Task<ServiceResponse< IEnumerable<DonationResponseDto>>> GetDeletedDonationsAsync();
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetDonationsByCampaignAsync(int campaignId);
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetDonationsByAmountRangeAsync(double minAmount, double maxAmount);
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetDonationsByDateRangeAsync(DateTime startDate, DateTime endDate);
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetRecentDonationsAsync(int days = 30);
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetDeletedDonationsAsync();
 
         // ===== Statistics =====
-        Task<ServiceResponse< double>> GetTotalDonationsAmountAsync();
-        Task<ServiceResponse< double>> GetTotalDonationsAmountByUserAsync(string userId);
-        Task<ServiceResponse< double>> GetTotalDonationsAmountByCampaignAsync(int campaignId);
-        Task<ServiceResponse< int>> GetTotalDonationsCountAsync();
-        Task<ServiceResponse< int>> GetDonationsCountByUserAsync(string userId);
-        Task<ServiceResponse< int>> GetDonationsCountByCampaignAsync(int campaignId);
+        Task<ServiceResponse<double>> GetTotalDonationsAmountAsync();
+        Task<ServiceResponse<double>> GetTotalDonationsAmountByUserAsync(string userId);
+        Task<ServiceResponse<double>> GetTotalDonationsAmountByCampaignAsync(int campaignId);
+        Task<ServiceResponse<int>> GetTotalDonationsCountAsync();
+        Task<ServiceResponse<int>> GetDonationsCountByUserAsync(string userId);
+        Task<ServiceResponse<int>> GetDonationsCountByCampaignAsync(int campaignId);
 
         // ===== Advanced Analytics =====
-        Task<ServiceResponse< double>> GetAverageDonationAmountAsync();
-        Task<ServiceResponse< double>> GetAverageDonationAmountByUserAsync(string userId);
-        Task<ServiceResponse< double>> GetAverageDonationAmountByCampaignAsync(int campaignId);
-        Task<ServiceResponse< Dictionary<string, double>>> GetTopDonorsByAmountAsync(int limit = 10);
-        Task<ServiceResponse< Dictionary<int, double>>> GetTopCampaignsByDonationsAsync(int limit = 10);
+        Task<ServiceResponse<double>> GetAverageDonationAmountAsync();
+        Task<ServiceResponse<double>> GetAverageDonationAmountByUserAsync(string userId);
+        Task<ServiceResponse<double>> GetAverageDonationAmountByCampaignAsync(int campaignId);
+        Task<ServiceResponse<Dictionary<string, double>>> GetTopDonorsByAmountAsync(int limit = 10);
+        Task<ServiceResponse<Dictionary<int, double>>> GetTopCampaignsByDonationsAsync(int limit = 10);
         Task<ServiceResponse<Dictionary<DateTime, double>>> GetDonationsTrendAsync(int days = 30);
-        Task<ServiceResponse< Dictionary<string, int>>> GetDonationFrequencyByUserAsync();
+        Task<ServiceResponse<Dictionary<string, int>>> GetDonationFrequencyByUserAsync();
 
         // ===== Campaign-Specific =====
-        Task<ServiceResponse< double>> GetCampaignTotalRaisedAsync(int campaignId);
-        Task<ServiceResponse< double>> GetCampaignProgressPercentageAsync(int campaignId);
-        Task<ServiceResponse< IEnumerable<DonationResponseDto>>> GetUsersDonationsOfACampaignAsync(int campaignId);
+        Task<ServiceResponse<double>> GetCampaignTotalRaisedAsync(int campaignId);
+        Task<ServiceResponse<double>> GetCampaignProgressPercentageAsync(int campaignId);
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetUsersDonationsOfACampaignAsync(int campaignId);
 
         // ===== User-Specific =====
-        Task<ServiceResponse< IEnumerable<DonationResponseDto>>> GetUserDonationHistoryAsync(string userId);
-        Task<ServiceResponse< DateTime?>> GetUserLastDonationDateAsync(string userId);
-        Task<ServiceResponse< IEnumerable<int>>> GetCampaignsDonatedByUserAsync(string userId);
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetUserDonationHistoryAsync(string userId);
+        Task<ServiceResponse<DateTime?>> GetUserLastDonationDateAsync(string userId);
+        Task<ServiceResponse<IEnumerable<int>>> GetCampaignsDonatedByUserAsync(string userId);
 
         // ===== Bulk Operations =====
-        Task<ServiceResponse< int>> TransferDonationsToCampaignAsync(int fromCampaignId, int toCampaignId);
-        Task<ServiceResponse< int>> DeleteOldDonationsAsync(int daysOld = 365);
+        Task<ServiceResponse<int>> TransferDonationsToCampaignAsync(int fromCampaignId, int toCampaignId);
+        Task<ServiceResponse<int>> DeleteOldDonationsAsync(int daysOld = 365);
 
         // ===== Validation & Checks =====
-        Task<ServiceResponse< bool>> DonationExistsAsync(int id);
-        Task<ServiceResponse< bool>> HasUserDonatedToCampaignAsync(string userId, int campaignId);
+        Task<ServiceResponse<bool>> DonationExistsAsync(int id);
+        Task<ServiceResponse<bool>> HasUserDonatedToCampaignAsync(string userId, int campaignId);
 
         // ===== Eager Loading =====
-        Task<ServiceResponse< DonationResponseDto?>> GetDonationWithDetailsAsync(int id);
+        Task<ServiceResponse<DonationResponseDto?>> GetDonationWithDetailsAsync(int id);
 
         // ===== Dashboard & Reporting =====
-        Task<ServiceResponse< IEnumerable<DonationResponseDto>>> GetLatestDonationsAsync(int limit = 10);
-        Task< ServiceResponse<IEnumerable<DonationResponseDto>>> GetLargestDonationsAsync(int limit = 10);
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetLatestDonationsAsync(int limit = 10);
+        Task<ServiceResponse<IEnumerable<DonationResponseDto>>> GetLargestDonationsAsync(int limit = 10);
         Task<ServiceResponse<Dictionary<int, int>>> GetDonationsPerCampaignCountAsync();
-        Task<ServiceResponse< Dictionary<string, int>>> GetDonationsPerUserCountAsync();
-        Task<ServiceResponse< double>> GetTodayDonationsTotalAsync();
-        Task<ServiceResponse< double>> GetThisWeekDonationsTotalAsync();
-        Task<ServiceResponse< double>> GetThisMonthDonationsTotalAsync();
+        Task<ServiceResponse<Dictionary<string, int>>> GetDonationsPerUserCountAsync();
+        Task<ServiceResponse<double>> GetTodayDonationsTotalAsync();
+        Task<ServiceResponse<double>> GetThisWeekDonationsTotalAsync();
+        Task<ServiceResponse<double>> GetThisMonthDonationsTotalAsync();
 
         // ===== Financial Reporting =====
         Task<ServiceResponse<Dictionary<string, double>>> GetMonthlyDonationsReportAsync(int year);

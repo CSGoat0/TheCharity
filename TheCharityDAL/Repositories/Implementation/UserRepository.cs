@@ -192,7 +192,7 @@ namespace TheCharityDAL.Repositories.Implementation
             }
             return await _userManager.ConfirmEmailAsync(user, token);
         }
-       
+
         ////////////new addations
         public async Task AccessFailedAsync(User user)
            => await _userManager.AccessFailedAsync(user);

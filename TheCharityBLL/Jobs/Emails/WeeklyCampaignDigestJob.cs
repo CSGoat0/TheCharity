@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Jobs.Base;
 using TheCharityBLL.Jobs.Context;
 using TheCharityBLL.Jobs.Result.Abstraction;
@@ -31,8 +32,16 @@ namespace TheCharityBLL.Jobs.Emails
 
             var activeCount = await _campaignService.GetTotalActiveCampaignsCountAsync();
             var totalRaised = await _campaignService.GetTotalMoneyRaisedAsync();
-            var expiringSoon = await _campaignService.GetCampaignsExpiringSoonAsync(7);
-            var topCampaigns = await _campaignService.GetTopCampaignsByDonationsAsync(5);
+
+            // Use paginated methods with int.MaxValue to get ALL data
+            var allParams = new PaginationParametersDto
+            {
+                PageNumber = 1,
+                PageSize = int.MaxValue
+            };
+
+            var expiringSoon = await _campaignService.GetCampaignsExpiringSoonAsync(allParams, 7);
+            var topCampaigns = await _campaignService.GetTopCampaignsByDonationsAsync(allParams, 5);
 
             var digestMessage = new StringBuilder();
             digestMessage.AppendLine("📊 Weekly Campaign Digest");
@@ -44,14 +53,26 @@ namespace TheCharityBLL.Jobs.Emails
             digestMessage.AppendLine($"📌 Total Money Raised: ${totalRaised.Data:F2}");
             digestMessage.AppendLine($"📌 Average Achievement: {statistics.Data?.AverageAchievementPercentage:F1}%");
             digestMessage.AppendLine();
-            digestMessage.AppendLine($"⚠️ Campaigns expiring within 7 days: {expiringSoon.Data?.Count() ?? 0}");
+            digestMessage.AppendLine($"⚠️ Campaigns expiring within 7 days: {expiringSoon.Data?.Items?.Count() ?? 0}");
             digestMessage.AppendLine();
+
+            if (expiringSoon.Data?.Items != null && expiringSoon.Data.Items.Any())
+            {
+                digestMessage.AppendLine("⏰ Expiring Campaigns:");
+                foreach (var campaign in expiringSoon.Data.Items.Take(5))
+                {
+                    var daysLeft = campaign.Deadline.HasValue ? (campaign.Deadline.Value - DateTime.UtcNow).Days : 0;
+                    digestMessage.AppendLine($"  - {campaign.Title} (ends in {daysLeft} days)");
+                }
+                digestMessage.AppendLine();
+            }
+
             digestMessage.AppendLine("🏆 Top 5 Campaigns by Donations:");
 
-            if (topCampaigns.Data != null)
+            if (topCampaigns.Data?.Items != null)
             {
                 var rank = 1;
-                foreach (var campaign in topCampaigns.Data.Take(5))
+                foreach (var campaign in topCampaigns.Data.Items.Take(5))
                 {
                     var percentage = campaign.Target > 0 ? (campaign.Achieved / campaign.Target) * 100 : 0;
                     digestMessage.AppendLine($"  {rank}. {campaign.Title}");

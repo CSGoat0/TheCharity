@@ -17,14 +17,14 @@ namespace TheCharityPL.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUserService _userService;
-       
+
         private readonly ILogger<UserController> _logger;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
         public UserController(
             IUserService userService,
-           
+
             ILogger<UserController> logger,
             IEmailService emailService,
             IConfiguration configuration)
@@ -88,7 +88,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// get user information by user id 
         /// </summary>
-        
+
         // ─── GET api/user/{id} ───────────────────────────────────────────────────────
 
         [HttpGet("{id}")]
@@ -195,7 +195,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// login by enter user name, password and jwt token
         /// </summary>
-        
+
         // ─── POST api/user/login ─────────────────────────────────────────────────────
 
         [HttpPost("login")]
@@ -272,7 +272,7 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while resending the confirmation email." });
             }
         }
-        
+
         // ─── POST api/user/confirm-email ─────────────────────────────────────────────
 
         [HttpGet("confirm-email")]
@@ -300,7 +300,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// change password method
         /// </summary>
-      
+
         // ─── POST api/user/forgot-password ───────────────────────────────────────────
 
         [HttpPost("forgot-password")]
@@ -370,7 +370,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// update user info method by user id
         /// </summary>
-        
+
         // ─── PUT api/user/{id} ───────────────────────────────────────────────────────
 
         [HttpPut("{id}")]
@@ -477,7 +477,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// delete user by user id
         /// </summary>
-       
+
         // ─── DELETE api/user/{id} ────────────────────────────────────────────────────
 
         [HttpDelete("{id}")]
@@ -517,7 +517,7 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// restore user deleted by user id
         /// </summary>
-      
+
         // ─── POST api/user/restore/{id} ──────────────────────────────────────────────
 
         [HttpPost("restore/{id}")]

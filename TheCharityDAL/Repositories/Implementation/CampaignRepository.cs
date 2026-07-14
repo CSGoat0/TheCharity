@@ -2,6 +2,7 @@
 using TheCharityDAL.Database;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Enums;
+using TheCharityDAL.Extensions;
 using TheCharityDAL.Repositories.Abstraction;
 
 namespace TheCharityDAL.Repositories.Implementation
@@ -16,14 +17,13 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== CRUD Operations for Abstract Campaign =====
-        public async Task<IEnumerable<Campaign>> GetAllCampaignsAsync(bool includeDeleted = false)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetAllCampaignsAsync(int pageNumber, int pageSize, bool includeDeleted = false)
         {
-            if (includeDeleted)
-                return await _context.Campaigns.ToListAsync();
+            var query = _context.Campaigns.AsQueryable();
+            if (!includeDeleted)
+                query = query.Where(c => c.IsDeleted == false);
 
-            return await _context.Campaigns
-                .Where(c => c.IsDeleted == false)
-                .ToListAsync();
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<Campaign?> GetCampaignByIdAsync(int id)
@@ -72,12 +72,11 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Type-Specific CRUD Operations =====
-        public async Task<IEnumerable<SoloCampaign>> GetAllSoloCampaignsAsync()
+        public async Task<(IEnumerable<SoloCampaign> Data, int TotalCount)> GetAllSoloCampaignsAsync(int pageNumber, int pageSize)
         {
-            return await _context.SoloCampaigns
-                .Where(c => c.IsDeleted == false)
-                .Include(c => c.Organization)
-                .ToListAsync();
+            var query = _context.SoloCampaigns.Where(c => c.IsDeleted == false).Include(c => c.Organization).AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<SoloCampaign?> GetSoloCampaignByIdAsync(int id)
@@ -102,12 +101,11 @@ namespace TheCharityDAL.Repositories.Implementation
             return campaign;
         }
 
-        public async Task<IEnumerable<SharedCampaign>> GetAllSharedCampaignsAsync()
+        public async Task<(IEnumerable<SharedCampaign> Data, int TotalCount)> GetAllSharedCampaignsAsync(int pageNumber, int pageSize)
         {
-            return await _context.SharedCampaigns
-                .Where(c => c.IsDeleted == false)
-                .Include(c => c.Organizations)
-                .ToListAsync();
+            var query = _context.SharedCampaigns.Where(c => c.IsDeleted == false).Include(c => c.Organizations).AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<SharedCampaign?> GetSharedCampaignByIdAsync(int id)
@@ -133,76 +131,81 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Filtering & Querying =====
-        public async Task<IEnumerable<Campaign>> GetCampaignsByStatusAsync(CampaignStatus status)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByStatusAsync(int pageNumber, int pageSize, CampaignStatus status)
         {
-            return await _context.Campaigns
-                .Where(c => c.Status == status && (c.IsDeleted == false))
-                .ToListAsync();
+            var query = _context.Campaigns.Where(c => c.Status == status && (c.IsDeleted == false)).AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetCampaignsByTypeAsync(CampaignType type)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByTypeAsync(int pageNumber, int pageSize, CampaignType type)
         {
-            return await _context.Campaigns
-                .Where(c => c.Type == type && (c.IsDeleted == false))
-                .ToListAsync();
+            var query = _context.Campaigns.Where(c => c.Type == type && (c.IsDeleted == false)).AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetActiveCampaignsAsync()
-        {
-            return await GetCampaignsByStatusAsync(CampaignStatus.Active);
-        }
-
-        public async Task<IEnumerable<Campaign>> SearchCampaignsAsync(string searchTerm)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> SearchCampaignsAsync(int pageNumber, int pageSize, string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
-                return await GetAllCampaignsAsync();
+                return await GetAllCampaignsAsync(pageNumber, pageSize);
 
-            return await _context.Campaigns
-                .Where(c => (c.IsDeleted == false) &&
+            var query = _context.Campaigns.Where(c => (c.IsDeleted == false) &&
                            (c.Title != null && c.Title.Contains(searchTerm)) ||
-                           (c.Description != null && c.Description.Contains(searchTerm)))
-                .ToListAsync();
+                           (c.Description != null && c.Description.Contains(searchTerm))).AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetDeletedCampaignsAsync()
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetDeletedCampaignsAsync(int pageNumber, int pageSize)
         {
-            return await _context.Campaigns
+            var query = _context.Campaigns
                 .IgnoreQueryFilters()
                 .Where(c => c.IsDeleted == true)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<SoloCampaign>> GetSoloCampaignsByOrganizationIdAsync(int organizationId)
+        public async Task<(IEnumerable<SoloCampaign> Data, int TotalCount)> GetSoloCampaignsByOrganizationIdAsync(int pageNumber, int pageSize, int organizationId)
         {
-            return await _context.SoloCampaigns
+            var query = _context.SoloCampaigns
                 .Where(c => c.OrganizationId == organizationId &&
                            (c.IsDeleted == false))
                 .Include(c => c.Organization)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<SharedCampaign>> GetSharedCampaignsByOrganizationIdAsync(int organizationId)
+        public async Task<(IEnumerable<SharedCampaign> Data, int TotalCount)> GetSharedCampaignsByOrganizationIdAsync(int pageNumber, int pageSize, int organizationId)
         {
-            return await _context.SharedCampaigns
+            var query = _context.SharedCampaigns
                 .Where(c => c.Organizations != null &&
                            c.Organizations.Any(o => o.Id == organizationId) &&
                            (c.IsDeleted == false))
                 .Include(c => c.Organizations)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<SoloCampaign>> GetSoloCampaignsByStatusAsync(CampaignStatus status)
+        public async Task<(IEnumerable<SoloCampaign> Data, int TotalCount)> GetSoloCampaignsByStatusAsync(int pageNumber, int pageSize, CampaignStatus status)
         {
-            return await _context.SoloCampaigns
+            var query = _context.SoloCampaigns
                 .Where(c => c.Status == status && (c.IsDeleted == false))
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<SharedCampaign>> GetSharedCampaignsByStatusAsync(CampaignStatus status)
+        public async Task<(IEnumerable<SharedCampaign> Data, int TotalCount)> GetSharedCampaignsByStatusAsync(int pageNumber, int pageSize, CampaignStatus status)
         {
-            return await _context.SharedCampaigns
+            var query = _context.SharedCampaigns
                 .Where(c => c.Status == status && (c.IsDeleted == false))
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         // ===== SharedCampaign Specific Operations =====
@@ -268,39 +271,42 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Advanced Filtering =====
-        public async Task<IEnumerable<Campaign>> GetCampaignsByTargetRangeAsync(double minTarget, double maxTarget)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByTargetRangeAsync(int pageNumber, int pageSize, double minTarget, double maxTarget)
         {
-            return await _context.Campaigns
+            var query = _context.Campaigns
                 .Where(c => c.Target >= minTarget &&
                            c.Target <= maxTarget &&
                            (c.IsDeleted == false))
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetCampaignsByAchievementPercentageAsync(double minPercentage)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByAchievementPercentageAsync(int pageNumber, int pageSize, double minPercentage)
         {
-            return await _context.Campaigns
-                .Where(c => (c.IsDeleted == false) &&
-                           c.Target.HasValue && c.Target > 0 &&
-                           c.Achieved.HasValue)
-                .ToListAsync()
-                .ContinueWith(task => task.Result
-                    .Where(c => ((c.Achieved.HasValue ? c.Achieved : 1) / (c.Target.HasValue ? c.Target : 1) * 100) >= minPercentage)
-                    .AsEnumerable());
+            var query = _context.Campaigns
+      .Where(c => c.IsDeleted == false &&
+                  c.Target.HasValue &&
+                  c.Target > 0 &&
+                  c.Achieved.HasValue &&
+                  ((c.Achieved.Value / c.Target.Value) * 100) >= minPercentage);
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetCampaignsNearTargetAsync(int percentageThreshold = 90)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsNearTargetAsync(int pageNumber, int pageSize, int percentageThreshold = 90)
         {
-            return await GetCampaignsByAchievementPercentageAsync(percentageThreshold);
+            return await GetCampaignsByAchievementPercentageAsync(pageNumber, pageSize, percentageThreshold);
         }
 
-        public async Task<IEnumerable<Campaign>> GetCampaignsEndingSoonAsync(double remainingValue = 1000)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsEndingSoonAsync(int pageNumber, int pageSize, double remainingValue = 1000)
         {
-            return await _context.Campaigns
+            var query = _context.Campaigns
                 .Where(c => (c.IsDeleted == false) &&
                            c.Status == CampaignStatus.Active)
-                .Where(c => (c.Target - c.Achieved) <= remainingValue)
-                .ToListAsync();
+                .Where(c => (c.Target - c.Achieved) <= remainingValue).AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         // ===== Statistics & Analytics =====
@@ -368,7 +374,7 @@ namespace TheCharityDAL.Repositories.Implementation
                 return 0;
 
             var totalPercentage = campaigns.Average(c =>
-                (c.Achieved ?? 1)/ (c.Target ?? 1) * 100);
+                (c.Achieved ?? 1) / (c.Target ?? 1) * 100);
 
             return totalPercentage;
         }
@@ -429,48 +435,58 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Featured & Trending =====
-        public async Task<IEnumerable<Campaign>> GetTopCampaignsByAchievementAsync(int limit = 10)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetTopCampaignsByAchievementAsync(int pageNumber, int pageSize, int limit = 10)
         {
-            return await _context.Campaigns
+            var query = _context.Campaigns
                 .Where(c => (c.IsDeleted == false) &&
                            c.Target.HasValue && (c.Target ?? 1) > 0 &&
                            c.Achieved.HasValue)
                 .OrderByDescending(c => (c.Achieved ?? 1) / (c.Target ?? 1))
-                .Take(limit)
-                .ToListAsync();
+                .Take(limit).AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetTopCampaignsByDonationsAsync(int limit = 10)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetTopCampaignsByDonationsAsync(int pageNumber, int pageSize, int limit = 10)
         {
-            return await _context.Campaigns
+            var query = _context.Campaigns
                 .Where(c => c.IsDeleted == false)
                 .OrderByDescending(c => c.Achieved ?? 0)
-                .Take(limit)
-                .ToListAsync();
+                .Take(limit).AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetRecentCampaignsAsync(int days = 30)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetRecentCampaignsAsync(int pageNumber, int pageSize, int days = 30)
         {
             var cutoffDate = DateTime.Now.AddDays(-days);
 
-            return await _context.Campaigns
+            var query = _context.Campaigns
                 .Where(c => (c.IsDeleted == false) &&
                            c.RegistrationDate >= cutoffDate)
                 .OrderByDescending(c => c.RegistrationDate)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetUrgentCampaignsAsync(double minPercentage = 75)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetUrgentCampaignsAsync(int pageNumber, int pageSize, double minPercentage = 75)
         {
-            var campaigns = await GetCampaignsByAchievementPercentageAsync(minPercentage);
-            return campaigns
-                .Where(c => c.Status == CampaignStatus.Active)
+            var query = _context.Campaigns
+                .Where(c => c.IsDeleted == false &&
+                            c.Status == CampaignStatus.Active &&
+                            c.Target.HasValue &&
+                            c.Target > 0 &&
+                            c.Achieved.HasValue &&
+                            ((c.Achieved.Value / c.Target.Value) * 100) >= minPercentage)
                 .OrderByDescending(c => ((c.Achieved ?? 1) / (c.Target ?? 1)))
-                .ToList();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         // ===== Deadline Operations =====
-        public async Task<IEnumerable<Campaign>> GetCampaignsByDeadlineAsync(DateTime deadlineDate, bool includeDeleted = false)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByDeadlineAsync(int pageNumber, int pageSize, DateTime deadlineDate, bool includeDeleted = false)
         {
             var query = _context.Campaigns.Where(c => c.Deadline <= deadlineDate);
 
@@ -479,26 +495,30 @@ namespace TheCharityDAL.Repositories.Implementation
                 query = query.Where(c => c.IsDeleted == false);
             }
 
-            return await query.ToListAsync();
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetExpiredCampaignsAsync()
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetExpiredCampaignsAsync(int pageNumber, int pageSize)
         {
-            return await _context.Campaigns
+            var query = _context.Campaigns
                 .Where(c => c.Deadline < DateTime.Now && c.IsDeleted == false)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Campaign>> GetCampaignsExpiringSoonAsync(int daysThreshold = 7)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsExpiringSoonAsync(int pageNumber, int pageSize, int daysThreshold = 7)
         {
             var thresholdDate = DateTime.Now.AddDays(daysThreshold);
 
-            return await _context.Campaigns
+            var query = _context.Campaigns
                 .Where(c => c.Deadline <= thresholdDate
                             && c.Deadline > DateTime.Now
                             && c.IsDeleted == false
                             && c.Status == CampaignStatus.Active)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<Campaign?> ExtendCampaignDeadlineAsync(int campaignId, DateTime newDeadline)
@@ -574,27 +594,6 @@ namespace TheCharityDAL.Repositories.Implementation
         {
             var campaign = await GetCampaignByIdAsync(id);
             return campaign?.Type;
-        }
-
-        // Helper method to get campaign as specific type
-        public async Task<T?> GetCampaignAsAsync<T>(int id) where T : Campaign
-        {
-            if (typeof(T) == typeof(SoloCampaign))
-                return await GetSoloCampaignByIdAsync(id) as T;
-            else if (typeof(T) == typeof(SharedCampaign))
-                return await GetSharedCampaignByIdAsync(id) as T;
-
-            return await GetCampaignByIdAsync(id) as T;
-        }
-
-        public async Task<IEnumerable<T>> GetCampaignsAsAsync<T>() where T : Campaign
-        {
-            if (typeof(T) == typeof(SoloCampaign))
-                return (await GetAllSoloCampaignsAsync()).Cast<T>();
-            else if (typeof(T) == typeof(SharedCampaign))
-                return (await GetAllSharedCampaignsAsync()).Cast<T>();
-
-            return (await GetAllCampaignsAsync()).Cast<T>();
         }
 
         // Campaign Ownership

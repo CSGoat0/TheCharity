@@ -4,7 +4,7 @@ using TheCharityBLL.Authorization.Attributes;
 
 using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
-
+using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Enums;
 
@@ -26,9 +26,9 @@ namespace TheCharityPL.Controllers
         /// Get all organizations
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
+        public async Task<IActionResult> GetAll([FromQuery]PaginationParametersDto filterDto,[FromQuery] bool includeDeleted = false)
         {
-            var result = await _organizationService.GetAllOrganizations(includeDeleted);
+            var result = await _organizationService.GetAllOrganizationsAsync(filterDto,includeDeleted);
             return Ok(result);
         }
 
@@ -38,7 +38,7 @@ namespace TheCharityPL.Controllers
         [HttpGet("{orgId:int}")]
         public async Task<IActionResult> GetById(int orgId)
         {
-            var result = await _organizationService.GetOrganizationById(orgId);
+            var result = await _organizationService.GetOrganizationByIdAsync(orgId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -48,7 +48,7 @@ namespace TheCharityPL.Controllers
         [HttpGet("{orgId:int}/details")]
         public async Task<IActionResult> GetDetails(int orgId)
         {
-            var result = await _organizationService.GetOrganizationDetails(orgId);
+            var result = await _organizationService.GetOrganizationDetailsAsync(orgId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -58,7 +58,7 @@ namespace TheCharityPL.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateOrganizationDto dto)
         {
-            var result = await _organizationService.CreateOrganization(dto);
+            var result = await _organizationService.CreateOrganizationAsync(dto);
             if (!result.Success)
                 return BadRequest(result);
 
@@ -71,7 +71,7 @@ namespace TheCharityPL.Controllers
         [HttpPut("{orgId:int}")]
         public async Task<IActionResult> Update(int orgId, [FromBody] UpdateOrganizationDto dto)
         {
-            var result = await _organizationService.UpdateOrganization(orgId, dto);
+            var result = await _organizationService.UpdateOrganizationAsync(orgId, dto);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -81,7 +81,7 @@ namespace TheCharityPL.Controllers
         [HttpDelete("{orgId:int}")]
         public async Task<IActionResult> Delete(int orgId)
         {
-            var result = await _organizationService.DeleteOrganization(orgId);
+            var result = await _organizationService.DeleteOrganizationAsync(orgId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -91,7 +91,7 @@ namespace TheCharityPL.Controllers
         [HttpPatch("{orgId:int}/restore")]
         public async Task<IActionResult> Restore(int orgId)
         {
-            var result = await _organizationService.RestoreOrganization(orgId);
+            var result = await _organizationService.RestoreOrganizationAsync(orgId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -99,9 +99,9 @@ namespace TheCharityPL.Controllers
         /// Get all deleted organizations
         /// </summary>
         [HttpGet("deleted")]
-        public async Task<IActionResult> GetDeleted()
+        public async Task<IActionResult> GetDeleted([FromQuery] PaginationParametersDto filterDto)
         {
-            var result = await _organizationService.GetDeletedOrganizations();
+            var result = await _organizationService.GetDeletedOrganizationsAsync(filterDto);
             return Ok(result);
         }
 
@@ -109,9 +109,19 @@ namespace TheCharityPL.Controllers
         /// Get organizations for dropdown list
         /// </summary>
         [HttpGet("dropdown")]
-        public async Task<IActionResult> GetDropdown()
+        public async Task<IActionResult> GetDropdown([FromQuery] PaginationParametersDto filterDto)
         {
-            var result = await _organizationService.GetOrganizationsDropDown();
+            var result = await _organizationService.GetOrganizationsDropDownAsync(filterDto);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Organization name exists
+        /// </summary>
+        [HttpGet("name-exists")]
+        public async Task<IActionResult> OrganizationNameExists([FromQuery]string name)
+        {
+            var result = await _organizationService.OrganizationNameExistsAsync(name);
             return Ok(result);
         }
 
@@ -119,9 +129,9 @@ namespace TheCharityPL.Controllers
         /// Search organizations by keyword
         /// </summary>
         [HttpGet("search")]
-        public async Task<IActionResult> Search([FromQuery] string term)
+        public async Task<IActionResult> Search([FromQuery] PaginationParametersDto filterDto, [FromQuery] string term)
         {
-            var result = await _organizationService.SearchOrganizations(term);
+            var result = await _organizationService.SearchOrganizationsAsync(filterDto,term);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -131,7 +141,7 @@ namespace TheCharityPL.Controllers
         [HttpGet("filter/by-name")]
         public async Task<IActionResult> GetByName([FromQuery] string name)
         {
-            var result = await _organizationService.GetOrganizationByName(name);
+            var result = await _organizationService.GetOrganizationByNameAsync(name);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -139,9 +149,9 @@ namespace TheCharityPL.Controllers
         /// Get organizations by address
         /// </summary>
         [HttpGet("filter/by-address")]
-        public async Task<IActionResult> GetByAddress([FromQuery] string address)
+        public async Task<IActionResult> GetByAddress([FromQuery] PaginationParametersDto filterDto,[FromQuery] string address)
         {
-            var result = await _organizationService.GetOrganizationsByAddress(address);
+            var result = await _organizationService.GetOrganizationsByAddressAsync(filterDto,address);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -149,9 +159,9 @@ namespace TheCharityPL.Controllers
         /// Get recently registered organizations
         /// </summary>
         [HttpGet("recent")]
-        public async Task<IActionResult> GetRecent([FromQuery] int days)
+        public async Task<IActionResult> GetRecent([FromQuery] PaginationParametersDto filterDto,[FromQuery] int days)
         {
-            var result = await _organizationService.GetRecentlyRegisteredOrganizations(days);
+            var result = await _organizationService.GetRecentlyRegisteredOrganizationsAsync(filterDto,days);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -161,7 +171,7 @@ namespace TheCharityPL.Controllers
         [HttpGet("count/total")]
         public async Task<IActionResult> GetTotalCount()
         {
-            var result = await _organizationService.GetTotalOrganizationsCount();
+            var result = await _organizationService.GetTotalOrganizationsCountAsync();
             return Ok(result);
         }
 
@@ -171,7 +181,7 @@ namespace TheCharityPL.Controllers
         [HttpGet("count/active")]
         public async Task<IActionResult> GetActiveCount()
         {
-            var result = await _organizationService.GetActiveOrganizationsCount();
+            var result = await _organizationService.GetActiveOrganizationsCountAsync();
             return Ok(result);
         }
 
@@ -181,9 +191,9 @@ namespace TheCharityPL.Controllers
         /// Get contact methods for an organization
         /// </summary>
         [HttpGet("{orgId}/contact-methods")]
-        public async Task<IActionResult> GetOrganizationContactMethods(int orgId)
+        public async Task<IActionResult> GetOrganizationContactMethods([FromQuery] PaginationParametersDto filterDto,int orgId)
         {
-            var result = await _organizationService.GetOrganizationContactMethods(orgId);
+            var result = await _organizationService.GetOrganizationContactMethodsAsync(filterDto,orgId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -193,7 +203,7 @@ namespace TheCharityPL.Controllers
         [HttpGet("contact-methods/{contactId}")]
         public async Task<IActionResult> GetContactMethodById(int contactId)
         {
-            var result = await _organizationService.GetContactMethodById(contactId);
+            var result = await _organizationService.GetContactMethodByIdAsync(contactId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -203,7 +213,7 @@ namespace TheCharityPL.Controllers
         [HttpPost("contact-methods")]
         public async Task<IActionResult> CreateContactMethod(CreateOrgContactMethodDto dto)
         {
-            var result = await _organizationService.CreateContactMethod(dto);
+            var result = await _organizationService.CreateContactMethodAsync(dto);
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -213,7 +223,8 @@ namespace TheCharityPL.Controllers
         [HttpPut("contact-methods/{contactId:int}")]
         public async Task<IActionResult> UpdateContactMethod(int contactId, UpdateOrgContactMethodDto dto)
         {
-            var result = await _organizationService.UpdateContactMethod(contactId, dto);
+            var result = await _organizationService.UpdateContactMethodAsync(contactId, dto);
+
             return result.Success ? Ok(result) : BadRequest(result);
         }
 
@@ -223,7 +234,7 @@ namespace TheCharityPL.Controllers
         [HttpDelete("contact-methods/{contactId}")]
         public async Task<IActionResult> DeleteContactMethod(int contactId)
         {
-            var result = await _organizationService.DeleteContactMethod(contactId);
+            var result = await _organizationService.DeleteContactMethodAsync(contactId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -233,7 +244,7 @@ namespace TheCharityPL.Controllers
         [HttpPost("contact-methods/restore/{contactId}")]
         public async Task<IActionResult> RestoreContactMethod(int contactId)
         {
-            var result = await _organizationService.RestoreContactMethod(contactId);
+            var result = await _organizationService.RestoreContactMethodAsync(contactId);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -241,9 +252,9 @@ namespace TheCharityPL.Controllers
         /// Get contact methods by type
         /// </summary>
         [HttpGet("{orgId:int}/contact-type")]
-        public async Task<IActionResult> GetContactMethodsByType(int orgId, ContactType type)
+        public async Task<IActionResult> GetContactMethodsByType([FromQuery] PaginationParametersDto filterDto,int orgId, ContactType type)
         {
-            var result = await _organizationService.GetContactMethodsByType(orgId, type);
+            var result = await _organizationService.GetContactMethodsByTypeAsync(filterDto,orgId, type);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -253,7 +264,7 @@ namespace TheCharityPL.Controllers
         [HttpGet("{orgId:int}/contact-type/count")]
         public async Task<IActionResult> GetContactMethodCountByType(int orgId, ContactType type)
         {
-            var result = await _organizationService.GetContactMethodCountByType(orgId, type);
+            var result = await _organizationService.GetContactMethodCountByTypeAsync(orgId, type);
             return result.Success ? Ok(result) : NotFound(result);
         }
 
@@ -261,63 +272,19 @@ namespace TheCharityPL.Controllers
         /// Get organizations by contact type
         /// </summary>
         [HttpGet("contact-type/{type}")]
-        public async Task<IActionResult> GetOrganizationsByContactType(ContactType type)
+        public async Task<IActionResult> GetOrganizationsByContactType([FromQuery] PaginationParametersDto filterDto,ContactType type)
         {
-            var result = await _organizationService.GetOrganizationsByContactType(type);
+            var result = await _organizationService.GetOrganizationsByContactTypeAsync(filterDto,type);
             return result.Success ? Ok(result) : BadRequest(result);
         }
-
-        //payment
-
-        //[HttpGet("{orgId}/payment")]
-        //public async Task<IActionResult> GetPaymentByOrganization(int orgId)
-        //{
-        //    var result = await _organizationService.GetPaymentInfoByOrganizationId(orgId);
-        //    return result.Success ? Ok(result) : NotFound(result);
-        //}
-
-        //[HttpGet("payment/{paymentId}")]
-        //public async Task<IActionResult> GetPaymentById(int paymentId)
-        //{
-        //    var result = await _organizationService.GetPaymentInfoById(paymentId);
-        //    return result.Success ? Ok(result) : NotFound(result);
-        //}
-
-        //[HttpPost("payment")]
-        //public async Task<IActionResult> CreatePayment(CreatePaymentInfoDto dto)
-        //{
-        //    var result = await _organizationService.CreatePaymentInfo(dto);
-        //    return result.Success ? Ok(result) : BadRequest(result);
-        //}
-
-        //[HttpPut("{paymentId:int}/payment")]
-        //public async Task<IActionResult> UpdatePayment(int paymentId, UpdatePaymentInfoDto dto)
-        //{
-        //    var result = await _organizationService.UpdatePaymentInfo(paymentId,dto);
-        //    return result.Success ? Ok(result) : BadRequest(result);
-        //}
-
-        //[HttpDelete("payment/{paymentId}")]
-        //public async Task<IActionResult> DeletePayment(int paymentId)
-        //{
-        //    var result = await _organizationService.DeletePaymentInfo(paymentId);
-        //    return result.Success ? Ok(result) : NotFound(result);
-        //}
-
-        //[HttpPost("payment/restore/{paymentId}")]
-        //public async Task<IActionResult> RestorePayment(int paymentId)
-        //{
-        //    var result = await _organizationService.RestorePaymentInfo(paymentId);
-        //    return result.Success ? Ok(result) : NotFound(result);
-        //}
 
         /// <summary>
         /// Get organizations without payment information
         /// </summary>
         [HttpGet("payment/none")]
-        public async Task<IActionResult> GetOrganizationsWithoutPaymentInfo()
+        public async Task<IActionResult> GetOrganizationsWithoutPaymentInfo([FromQuery] PaginationParametersDto filterDto)
         {
-            var result = await _organizationService.GetOrganizationsWithoutPaymentInfo();
+            var result = await _organizationService.GetOrganizationsWithoutPaymentInfoAsync(filterDto);
             return Ok(result);
         }
 
@@ -325,9 +292,9 @@ namespace TheCharityPL.Controllers
         /// Get organizations with valid payment information
         /// </summary>
         [HttpGet("payment/valid")]
-        public async Task<IActionResult> GetOrganizationsWithValidPaymentInfo()
+        public async Task<IActionResult> GetOrganizationsWithValidPaymentInfo([FromQuery] PaginationParametersDto filterDto)
         {
-            var result = await _organizationService.GetOrganizationsWithValidPaymentInfo();
+            var result = await _organizationService.GetOrganizationsWithValidPaymentInfoAsync(filterDto);
             return Ok(result);
         }
 
@@ -337,7 +304,7 @@ namespace TheCharityPL.Controllers
         [HttpGet("payment/last-update")]
         public async Task<IActionResult> GetLastPaymentUpdates()
         {
-            var result = await _organizationService.GetOrganizationLastPaymentUpdate();
+            var result = await _organizationService.GetOrganizationLastPaymentUpdateAsync();
             return Ok(result);
         }
 
@@ -347,9 +314,9 @@ namespace TheCharityPL.Controllers
         /// Get organizations with at least the specified number of campaigns
         /// </summary>
         [HttpGet("campaigns/min-count")]
-        public async Task<IActionResult> GetOrganizationsByCampaignCount(int minCampaigns)
+        public async Task<IActionResult> GetOrganizationsByCampaignCount([FromQuery] PaginationParametersDto filterDto, int minCampaigns)
         {
-            var result = await _organizationService.GetOrganizationsByCampaignCount(minCampaigns);
+            var result = await _organizationService.GetOrganizationsByCampaignCountAsync(filterDto,minCampaigns);
             return result.Success ? Ok(result) : BadRequest(result);
         }
         
@@ -357,9 +324,9 @@ namespace TheCharityPL.Controllers
         /// Get organizations with active campaigns
         /// </summary>  
         [HttpGet("campaigns/active")]
-        public async Task<IActionResult> GetOrganizationsWithActiveCampaigns()
+        public async Task<IActionResult> GetOrganizationsWithActiveCampaigns([FromQuery] PaginationParametersDto filterDto)
         {
-            var result = await _organizationService.GetOrganizationsWithActiveCampaigns();
+            var result = await _organizationService.GetOrganizationsWithActiveCampaignsAsync(filterDto);
             return Ok(result);
         }
 
@@ -367,9 +334,9 @@ namespace TheCharityPL.Controllers
         /// Get organizations with completed campaigns
         /// </summary>
         [HttpGet("campaigns/completed")]
-        public async Task<IActionResult> GetOrganizationsWithCompletedCampaigns()
+        public async Task<IActionResult> GetOrganizationsWithCompletedCampaigns([FromQuery] PaginationParametersDto filterDto)
         {
-            var result = await _organizationService.GetOrganizationsWithCompletedCampaigns();
+            var result = await _organizationService.GetOrganizationsWithCompletedCampaignsAsync(filterDto);
             return Ok(result);
         }
 
@@ -377,9 +344,9 @@ namespace TheCharityPL.Controllers
         /// Get organizations without campaigns
         /// </summary>
         [HttpGet("campaigns/none")]
-        public async Task<IActionResult> GetOrganizationsWithoutCampaigns()
+        public async Task<IActionResult> GetOrganizationsWithoutCampaigns([FromQuery] PaginationParametersDto filterDto)
         {
-            var result = await _organizationService.GetOrganizationsWithoutCampaigns();
+            var result = await _organizationService.GetOrganizationsWithoutCampaignsAsync(filterDto);
             return Ok(result);
         }
 

@@ -72,7 +72,7 @@ namespace TheCharityBLL.Services.Repository
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            
+
             var roles = await _userRepository.GetUserRolesAsync(user.Id);
 
             foreach (var role in roles)
@@ -189,7 +189,7 @@ namespace TheCharityBLL.Services.Repository
                 throw;
             }
         }
-        public async Task<bool> IsExternalLoginLinkedAsync(string providerKey,string loginProvider,UserResponseDTO userDto)
+        public async Task<bool> IsExternalLoginLinkedAsync(string providerKey, string loginProvider, UserResponseDTO userDto)
         {
             var user = _mapper.Map<User>(userDto);
             var userLogins = await _userRepository.GetLoginsAsync(user);
@@ -197,7 +197,7 @@ namespace TheCharityBLL.Services.Repository
                 l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
             if (existingLogin == null)
             {
-               return false;
+                return false;
             }
             return true;
         }
@@ -370,7 +370,7 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-      
+
 
         public async Task<ServiceResponse< bool>> IsUserDeletedAsync(string userId)
         {
@@ -436,7 +436,7 @@ namespace TheCharityBLL.Services.Repository
         {
             return _userRepository.ConfirmEmailAsync(email, token);
         }
-       
+
 
         public async Task AddLoginAsync(UserResponseDTO UserDTO, UserLoginInfo loginInfo)
         {

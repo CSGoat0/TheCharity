@@ -26,8 +26,12 @@ namespace TheCharityBLL.Jobs.Emails
 
         public override async Task<IJobResult> ExecuteAsync(JobContext context)
         {
-            // Use repository directly to get entities
-            var expiredCampaigns = await _campaignRepository.GetExpiredCampaignsAsync();
+            // Use a large page size to get ALL expired campaigns in one query
+            const int pageSize = int.MaxValue; // or 10000 if you want a safety limit
+            const int pageNumber = 1;
+
+            var (expiredCampaigns, totalCount) = await _campaignRepository
+                .GetExpiredCampaignsAsync(pageNumber, pageSize);
 
             if (expiredCampaigns == null || !expiredCampaigns.Any())
                 return JobResult.Success("No expired campaigns found");
@@ -39,8 +43,8 @@ namespace TheCharityBLL.Jobs.Emails
                 // Only expire active campaigns
                 if (campaign.Status == CampaignStatus.Active)
                 {
-                    // Update status using repository
-                    await _campaignRepository.UpdateCampaignStatusAsync(campaign.Id, CampaignStatus.Expired);
+                    await _campaignRepository.UpdateCampaignStatusAsync(
+                        campaign.Id, CampaignStatus.Expired);
 
                     // Fire event with the actual Campaign entity
                     await _eventDispatcher.DispatchAsync(new CampaignExpiredEvent
