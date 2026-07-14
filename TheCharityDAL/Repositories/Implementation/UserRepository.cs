@@ -87,19 +87,6 @@ namespace TheCharityDAL.Repositories.Implementation
                 .ToListAsync();
         }
 
-        //pagination
-        public async Task<(IEnumerable<User>? Data,int TotalCount)> GetAllUsersAsync(int pageNumber, int pageSize)
-        {
-            var users = await _userManager.Users
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            var totalCount = await _userManager.Users.CountAsync();
-
-            return (users, totalCount);
-        }
-
         public async Task<User?> GetUserByIdAsync(string id)
         {
             return await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
@@ -205,7 +192,7 @@ namespace TheCharityDAL.Repositories.Implementation
             }
             return await _userManager.ConfirmEmailAsync(user, token);
         }
-       
+
         ////////////new addations
         public async Task AccessFailedAsync(User user)
            => await _userManager.AccessFailedAsync(user);
