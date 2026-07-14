@@ -104,11 +104,9 @@ namespace TheCharityPL
             app.MapHealthChecks("/health");// check if the db connected or not
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
-            {
-                app.UseSwagger();
-                app.UseSwaggerUI();
-            }
+            app.UseSwagger();
+            app.UseSwaggerUI();
+            app.UseDeveloperExceptionPage();
 
             //global exception handling middleware
             app.UseMiddleware<ExceptionMiddleware>();
@@ -119,6 +117,8 @@ namespace TheCharityPL
             app.UseAuthentication();
             app.UseAuthorization();
 
+            // map to swagger view as start view
+            app.MapGet("/", () => Results.Redirect("/swagger"));
 
             app.MapControllers();
 

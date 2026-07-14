@@ -1,11 +1,11 @@
-﻿using TheCharityBLL.DTOs.CampaignDTOs;
+﻿using TheCharityBLL.DTOs;
+using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Extensions;
 using TheCharityBLL.Events.Abstraction;
-using TheCharityBLL.Events.CampaignEvents;
+using TheCharityBLL.Events.Events.CampaignEvents;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
-using TheCharityBLL.ViewModels;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Enums;
 using TheCharityDAL.Repositories.Abstraction;

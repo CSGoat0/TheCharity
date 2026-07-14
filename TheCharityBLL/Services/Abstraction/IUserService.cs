@@ -16,7 +16,7 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<bool>> UserExistsAsync(string userId);
         Task<ServiceResponse<bool>> IsUserDeletedAsync(string userId);
         Task<ServiceResponse<string?>> LoginAsync(string usernameOrEmail, string password);
-        public Task<bool> IsExternalLoginLinkedAsync(string providerKey, string loginProvider, UserResponseDTO userDto);
+        public  Task<bool> IsExternalLoginLinkedAsync(string providerKey, string loginProvider, UserResponseDTO userDto);
         public Task<string> GenerateJwtTokenAsync(UserResponseDTO UserDTO);
         // CRUD
         Task<ServiceResponse<IdentityResult>> CreateUserAsync(CreateUserDTO createUserDTO);

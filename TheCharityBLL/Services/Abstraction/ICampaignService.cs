@@ -1,6 +1,6 @@
-﻿using TheCharityBLL.DTOs.CampaignDTOs;
+﻿using TheCharityBLL.DTOs;
+using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
-using TheCharityBLL.ViewModels;
 using TheCharityDAL.Enums;
 
 namespace TheCharityBLL.Services.Abstraction

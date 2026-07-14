@@ -9,11 +9,8 @@ namespace TheCharityDAL.Database
         public TheCharityDbContext(DbContextOptions<TheCharityDbContext> options) : base(options)
         { }
         public TheCharityDbContext() { }
-        public DbSet<Attachment> Attachments { get; set; }
         public DbSet<Campaign> Campaigns { get; set; }
-        public DbSet<DonatedItem> DonatedItems { get; set; }
         public DbSet<Donation> Donations { get; set; }
-        public DbSet<ItemImage> ItemImages { get; set; }
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<OrganizationContactMethod> OrganizationContactMethods { get; set; }
         public DbSet<PaymentInfo> PaymentsInfo { get; set; }
@@ -45,41 +42,28 @@ namespace TheCharityDAL.Database
                 .WithMany(o => o.SharedCampaigns)
                 .UsingEntity(j => j.ToTable("SharedCampaignOrganizations"));
 
-            // 4. DonatedItem - Attachment relationships
-            builder.Entity<DonatedItem>()
-                .HasMany(di => di.ItemAttachments)
-                .WithOne(a => a.DonatedItem)
-                .HasForeignKey(a => a.DonatedItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            builder.Entity<DonatedItem>()
-                .HasMany(di => di.RecipientAttachments)
-                .WithOne() // No inverse navigation for RecipientAttachments
-                .HasForeignKey(a => a.DonatedItemId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // 5. Organization - AdminUser relationship
+            // 4. Organization - AdminUser relationship
             builder.Entity<Organization>()
                 .HasOne(o => o.AdminUser)
                 .WithMany()  // No inverse navigation property
                 .HasForeignKey(o => o.AdminUserId)
                 .OnDelete(DeleteBehavior.Restrict); // Prevent accidental admin deletion
 
-            // 6. OrganizationRole - User relationship
+            // 5. OrganizationRole - User relationship
             builder.Entity<OrganizationRole>()
                 .HasOne(r => r.User)
                 .WithMany()
                 .HasForeignKey(r => r.UserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 7. SharedCampaign - CreatorOrganization relationship
+            // 6. SharedCampaign - CreatorOrganization relationship
             builder.Entity<SharedCampaign>()
                 .HasOne(sc => sc.CreatorOrganization)
                 .WithMany()
                 .HasForeignKey(sc => sc.CreatorOrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 8. SharedCampaignInvite relationships
+            // 7. SharedCampaignInvite relationships
             builder.Entity<SharedCampaignInvite>()
                 .HasOne(i => i.SharedCampaign)
                 .WithMany()
@@ -98,7 +82,7 @@ namespace TheCharityDAL.Database
                 .HasForeignKey(i => i.InvitedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // 9. Soft delete query filters
+            // 8. Soft delete query filters
             builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
             builder.Entity<Campaign>().HasQueryFilter(c => !c.IsDeleted);
             builder.Entity<Organization>().HasQueryFilter(o => !o.IsDeleted);

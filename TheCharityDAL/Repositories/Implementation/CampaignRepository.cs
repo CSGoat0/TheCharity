@@ -725,5 +725,16 @@ namespace TheCharityDAL.Repositories.Implementation
             await _context.SaveChangesAsync();
             return invites.Count;
         }
+
+        public async Task<IEnumerable<SharedCampaignInvite>> GetExpiredInvitesAsync(DateTime cutoffDate)
+        {
+            return await _context.SharedCampaignInvites
+                .Where(i => i.Status == InviteStatus.Pending &&
+                           i.ExpiresAt < cutoffDate &&
+                           !i.IsDeleted)
+                .Include(i => i.SharedCampaign)
+                .Include(i => i.Organization)
+                .ToListAsync();
+        }
     }
 }

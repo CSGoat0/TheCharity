@@ -1,5 +1,5 @@
 ﻿using TheCharityBLL.Events.Abstraction;
-using TheCharityBLL.Events.CampaignEvents;
+using TheCharityBLL.Events.Events.CampaignEvents;
 using TheCharityBLL.Jobs.Base;
 using TheCharityBLL.Jobs.Context;
 using TheCharityBLL.Jobs.Result.Abstraction;

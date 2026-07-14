@@ -1,15 +1,16 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
+
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
+using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.DonationDTOs;
 using TheCharityBLL.DTOs.PaymentDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.Services.Abstraction.MoneyDonation;
 using TheCharityBLL.Services.Abstraction.Payment;
-using TheCharityBLL.Services.Repository;
+
 
 namespace TheCharityPL.Controllers
 {
@@ -79,7 +80,7 @@ namespace TheCharityPL.Controllers
                 "Payment session created. UserId: {UserId}, CampaignId: {CampaignId}",
                 userId, request.CampaignId);
 
-            return Ok(new { iframeUrl });
+            return Ok(new ServiceResponse<string>{Data= iframeUrl,Success=true,Message = $"Payment session created. UserId: {userId}, CampaignId: {request.CampaignId}" });
         }
 
         // =====================================================================
@@ -157,7 +158,7 @@ namespace TheCharityPL.Controllers
                     "Donation created. DonationId: {DonationId}, OrderId: {OrderId}, " +
                     "TransactionId: {TransactionId}, Amount: {Amount} {Currency}, " +
                     "UserId: {UserId}, CampaignId: {CampaignId}.",
-                    donation.Id, transaction.OrderId, transaction.Id,
+                    donation.Data.Id, transaction.OrderId, transaction.Id,
                     donationDto.Amount, transaction.Currency ?? "EGP",
                     userId, campaignId);
 
@@ -167,7 +168,7 @@ namespace TheCharityPL.Controllers
                     message = "Callback processed successfully.",
                     transaction_id = transaction.Id,
                     order_id = transaction.OrderId,
-                    donation_id = donation.Id,
+                    donation_id = donation.Data.Id,
                     status = "success"
                 });
             }

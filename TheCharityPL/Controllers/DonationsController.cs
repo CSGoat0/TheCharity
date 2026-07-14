@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿
 using Microsoft.AspNetCore.Mvc;
+using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.DonationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Services.Abstraction.MoneyDonation;
@@ -62,7 +63,7 @@ namespace TheCharityPL.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var created = await _service.CreateDonationAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            return CreatedAtAction(nameof(GetById), new { id = created.Data.Id }, created);
         }
         /// <summary>
         /// update specific donation 
@@ -74,7 +75,7 @@ namespace TheCharityPL.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var updated = await _service.UpdateDonationAsync(id, dto);
-            return updated is null ? NotFound() : Ok(updated);
+            return updated is null ? NotFound(new ServiceResponse<object?>{Success=false,Message="invalid user id." }) : Ok(updated);
         }
         /// <summary>
         /// delete specific donation  
@@ -84,7 +85,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteDonationAsync(id);
-            return success ? NoContent() : NotFound();
+            return success ? Ok(new ServiceResponse<object?> { Success=true,Message="Deleted Successfully."}) : NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." });
         }
         /// <summary>
         /// restore specific donation  after delete it  
@@ -94,7 +95,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> Restore(int id)
         {
             var success = await _service.RestoreDonationAsync(id);
-            return success ? NoContent() : NotFound();
+            return success ? Ok(new ServiceResponse<object?> { Success = true, Message = "Restored Successfully." }) : NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." });
         }
 
         // =====================================================================
@@ -447,7 +448,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> GetUserLastDonationDate(string userId)
         {
             var date = await _service.GetUserLastDonationDateAsync(userId);
-            return date is null ? NotFound() : Ok(date);
+            return date is null ?  NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." }) : Ok(date);
         }
         /// <summary>
         /// get list of campaigns that a specific user has donated to, where userId parm: The unique identifier of the user for whom to retrieve the list of donated campaigns.
@@ -473,7 +474,7 @@ namespace TheCharityPL.Controllers
             [FromQuery] int from, [FromQuery] int to)
         {
             var count = await _service.TransferDonationsToCampaignAsync(from, to);
-            return Ok(new { TransferredCount = count });
+            return Ok( count );
         }
         /// <summary>
         /// get the total number of donations deleted that are older than a specified number of days, where daysOld parm: The age threshold in days. Donations older than this number of days will be deleted. Defaults to 365 days.
@@ -484,7 +485,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> DeleteOldDonations([FromQuery] int daysOld = 365)
         {
             var count = await _service.DeleteOldDonationsAsync(daysOld);
-            return Ok(new { DeletedCount = count });
+            return Ok( count );
         }
 
         // =====================================================================

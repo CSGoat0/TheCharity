@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.PaymentInfoDTOs;
 using TheCharityBLL.Services.Abstraction.Payment;
 using TheCharityDAL.Entities;
@@ -31,7 +32,7 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
 
         // ===== Core CRUD =====
 
-        public async Task<PaymentInfoResponseDto?> GetPaymentInfoByOrganizationIdAsync(int organizationId)
+        public async Task<ServiceResponse<PaymentInfoResponseDto?>> GetPaymentInfoByOrganizationIdAsync(int organizationId)
         {
             _logger.LogInformation("Fetching payment info for organization ID {OrganizationId}.", organizationId);
 
@@ -50,10 +51,11 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
             }
             var paymentInfoResponseDto = _mapper.Map<PaymentInfoResponseDto>(paymentInfo);
             paymentInfoResponseDto.OrganizationId = organizationId;
-            return paymentInfoResponseDto;
+            return new ServiceResponse<PaymentInfoResponseDto?> { Message = "Payment info retrieved successfully.", Success = true, Data = paymentInfoResponseDto };
+            
         }
 
-        public async Task<PaymentInfoResponseDto?> GetPaymentInfoByIdAsync(int paymentInfoId)
+        public async Task<ServiceResponse<PaymentInfoResponseDto?>> GetPaymentInfoByIdAsync(int paymentInfoId)
         {
             _logger.LogInformation("Fetching payment info with ID {PaymentInfoId}.", paymentInfoId);
 
@@ -70,11 +72,12 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
                 paymentInfoResponseDto.OrganizationId = or.Id;
             else
                 paymentInfoResponseDto.OrganizationId = null;
+            return new ServiceResponse<PaymentInfoResponseDto?> { Message = "Payment info retrieved successfully.", Success = true, Data = paymentInfoResponseDto };
 
-            return paymentInfoResponseDto;
+            
         }
 
-        public async Task<PaymentInfoResponseDto?> CreatePaymentInfoAsync(CreatePaymentInfoDto dto)
+        public async Task<ServiceResponse<PaymentInfoResponseDto?>> CreatePaymentInfoAsync(CreatePaymentInfoDto dto)
         {
             var organization = await _organizationRepository.GetOrganizationByIdAsync(dto.OrganizationId);
 
@@ -92,10 +95,10 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
                 created.Id);
             var responseDto = _mapper.Map<PaymentInfoResponseDto>(created);
             responseDto.OrganizationId = dto.OrganizationId;
-            return responseDto;
+            return new ServiceResponse<PaymentInfoResponseDto?> { Message = "Payment info created successfully.", Success = true, Data = responseDto };
         }
 
-        public async Task<PaymentInfoResponseDto?> UpdatePaymentInfoAsync(int paymentInfoId, UpdatePaymentInfoDto dto)
+        public async Task<ServiceResponse<PaymentInfoResponseDto?>> UpdatePaymentInfoAsync(int paymentInfoId, UpdatePaymentInfoDto dto)
         {
             _logger.LogInformation("Updating payment info with ID {PaymentInfoId}.", paymentInfoId);
 
@@ -158,8 +161,8 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
             var responsedto = _mapper.Map<PaymentInfoResponseDto>(updated);
             responsedto.OrganizationId = dto.OrganizationId;
             _logger.LogInformation("Payment info with ID {PaymentInfoId} updated successfully.", paymentInfoId);
-
-            return responsedto;
+            return new ServiceResponse<PaymentInfoResponseDto?> { Message = "Payment info updated successfully.", Success = true, Data = responsedto };
+            
         }
         private async Task<Organization?> UpdatePaymentInfoIdOfOrganization(int paymentInfoId, int organizationId)
         {
@@ -195,7 +198,7 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
         }
 
         // PaymentInfoService.cs
-        public async Task<bool> RestorePaymentInfoAsync(int paymentInfoId)
+        public async Task<ServiceResponse<bool>> RestorePaymentInfoAsync(int paymentInfoId)
         {
             _logger.LogInformation("Restoring payment info with ID {PaymentInfoId}.", paymentInfoId);
 
@@ -204,18 +207,18 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
             {
                 _logger.LogInformation("payment info with ID {PaymentInfoId} doesn`t exists.", paymentInfoId);
 
-                return false;
+                return new ServiceResponse<bool> { Data=false,Success=false,Message= $"payment info with ID {paymentInfoId} doesn`t exists." };
             }
 
             await _organizationRepository.RestorePaymentInfoAsync(paymentInfoId);
 
             _logger.LogInformation("Payment info with ID {PaymentInfoId} restored successfully.", paymentInfoId);
-            return true;
+            return new ServiceResponse<bool> { Data=true,Success=true,Message= $"Payment info with ID {paymentInfoId} restored successfully." };
         }
 
         // ===== Utilities =====
 
-        public async Task<bool> HasPaymentInfoAsync(int organizationId)
+        public async Task<ServiceResponse<bool>> HasPaymentInfoAsync(int organizationId)
         {
             _logger.LogInformation("Checking if organization ID {OrganizationId} has payment info.", organizationId);
 
@@ -226,10 +229,11 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
                 throw new KeyNotFoundException($"Organization with ID {organizationId} was not found.");
             }
 
-            return await _organizationRepository.HasPaymentInfoAsync(organizationId);
+            bool IsHas= await _organizationRepository.HasPaymentInfoAsync(organizationId);
+            return new ServiceResponse<bool> { Message = "Payment info existence check completed successfully.", Success = true, Data = IsHas };
         }
 
-        public async Task<bool> ValidatePaymentInfoAsync(int organizationId)
+        public async Task<ServiceResponse<bool>> ValidatePaymentInfoAsync(int organizationId)
         {
             _logger.LogInformation("Validating payment info for organization ID {OrganizationId}.", organizationId);
 
@@ -245,7 +249,9 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
             _logger.LogInformation("Payment info validation result for organization ID {OrganizationId}: {IsValid}.",
                 organizationId, isValid);
 
-            return isValid;
+            return new ServiceResponse<bool> { Data=isValid,Success=true,Message= $"Payment info validation result for organization ID {organizationId}: {isValid}." };
         }
+
+       
     }
 }

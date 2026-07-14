@@ -1,4 +1,5 @@
-﻿using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
+﻿using TheCharityBLL.DTOs;
+using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.PaymentInfoDTOs;
@@ -6,7 +7,7 @@ using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.Extensions;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
-using TheCharityBLL.ViewModels;
+
 using TheCharityDAL.Enums;
 using TheCharityDAL.Repositories.Abstraction;
 
