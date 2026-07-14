@@ -109,9 +109,9 @@ namespace TheCharityPL.Controllers
         /// Get organizations for dropdown list
         /// </summary>
         [HttpGet("dropdown")]
-        public async Task<IActionResult> GetDropdown()
+        public async Task<IActionResult> GetDropdown([FromQuery] PaginationParametersDto filterDto)
         {
-            var result = await _organizationService.GetOrganizationsDropDownAsync();
+            var result = await _organizationService.GetOrganizationsDropDownAsync(filterDto);
             return Ok(result);
         }
 

@@ -401,14 +401,18 @@ namespace TheCharityBLL.Services.Implementation
             };
         }
 
-        public async Task<ServiceResponse<IEnumerable<OrganizationDropDownListDto>>> GetOrganizationsDropDownAsync()
+        public async Task<ServiceResponse<PagedResultDto<OrganizationDropDownListDto>>> GetOrganizationsDropDownAsync(PaginationParametersDto filterDto)
         {
-            var organizations = await _repository.GetOrganizationsDropDownAsync();
-            var organizationDtos = _mapper.MapToOrganizationDropDownListDtos(organizations);
-            return new ServiceResponse<IEnumerable<OrganizationDropDownListDto>>
+            var organizations = await _repository.GetOrganizationsDropDownAsync(filterDto.PageNumber, filterDto.PageSize);
+
+            var organizationDtos = _mapper.MapToOrganizationDropDownListDtos(organizations.Data);
+
+            var result = organizations.ToPagedResult(organizationDtos, filterDto);
+
+            return new ServiceResponse<PagedResultDto<OrganizationDropDownListDto>>
             {
                 Success = true,
-                Data = organizationDtos,
+                Data = result,
                 Message = "Organizations for dropdown list retrieved successfully."
             };
         }

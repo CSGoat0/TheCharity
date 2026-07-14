@@ -19,9 +19,8 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<OrganizationResponseDto>> GetOrganizationByNameAsync(string name);
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> SearchOrganizationsAsync(PaginationParametersDto filterDto, string searchTerm);
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetDeletedOrganizationsAsync(PaginationParametersDto filterDto);
-        Task<ServiceResponse<IEnumerable<OrganizationDropDownListDto>>> GetOrganizationsDropDownAsync();
+        Task<ServiceResponse<PagedResultDto<OrganizationDropDownListDto>>> GetOrganizationsDropDownAsync(PaginationParametersDto filterDto);
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsByAddressAsync(PaginationParametersDto filterDto, string address);
-
         Task<ServiceResponse<int>> GetTotalOrganizationsCountAsync();
         Task<ServiceResponse<int>> GetActiveOrganizationsCountAsync();
 

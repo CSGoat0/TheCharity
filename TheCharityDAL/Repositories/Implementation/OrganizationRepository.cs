@@ -17,20 +17,6 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Organization CRUD Operations =====
-        public async Task<IEnumerable<Organization>> GetAllOrganizationsAsync(bool includeDeleted = false)
-        {
-            var query = _context.Organizations.AsQueryable();
-
-            if (!includeDeleted)
-                query = query.Where(o => o.IsDeleted == false);
-
-            return await query
-                 .Include(o => o.ContactMethods.Where(cm => cm.IsDeleted == false))
-                 .Include(o => o.PaymentInfo)
-                 .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetAllOrganizationsAsync(int pageNumber, int pageSize, bool includeDeleted = false)
         {
             var query = _context.Organizations.Include(o => o.ContactMethods
@@ -103,19 +89,7 @@ namespace TheCharityDAL.Repositories.Implementation
                .Where(o => o.PaymentId == PaymentInfoId && (o.IsDeleted == false))
                .FirstOrDefaultAsync();
         }
-        public async Task<IEnumerable<Organization>> SearchOrganizationsAsync(string searchTerm)
-        {
-            if (string.IsNullOrWhiteSpace(searchTerm))
-                return await GetAllOrganizationsAsync();
 
-            return await _context.Organizations
-                .Where(o => (o.IsDeleted == false) &&
-                           (o.Name != null && o.Name.Contains(searchTerm)) ||
-                           (o.Address != null && o.Address.Contains(searchTerm)))
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> SearchOrganizationsAsync(int pageNumber, int pageSize, string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
@@ -129,14 +103,6 @@ namespace TheCharityDAL.Repositories.Implementation
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Organization>> GetDeletedOrganizationsAsync()
-        {
-            return await _context.Organizations
-                .Where(o => o.IsDeleted == true)
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetDeletedOrganizationsAsync(int pageNumber, int pageSize)
         {
             var query = _context.Organizations
@@ -145,22 +111,16 @@ namespace TheCharityDAL.Repositories.Implementation
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsDropDownAsync()
+        public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsDropDownAsync(int pageNumber, int pageSize)
         {
-            return await _context.Organizations
+            var query = _context.Organizations
                 .Where(o => o.IsDeleted == false)
-                .ToListAsync();
+                .OrderBy(o => o.Name)
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsByAddressAsync(string address)
-        {
-            return await _context.Organizations
-                .Where(o => o.Address != null && o.Address.Contains(address) &&
-                           (o.IsDeleted == false))
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsByAddressAsync(int pageNumber, int pageSize, string address)
         {
             var query = _context.Organizations
@@ -187,15 +147,6 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Organization Contact Methods =====
-        public async Task<IEnumerable<OrganizationContactMethod>> GetOrganizationContactMethodsAsync(int organizationId)
-        {
-            return await _context.OrganizationContactMethods
-                .Where(cm => cm.CompanyId == organizationId &&
-                           (cm.IsDeleted == false))
-                .ToListAsync();
-        }
-
-        //paginatiion
         public async Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId)
         {
             var query = _context.OrganizationContactMethods
@@ -250,16 +201,6 @@ namespace TheCharityDAL.Repositories.Implementation
             }
         }
 
-        public async Task<IEnumerable<OrganizationContactMethod>> GetContactMethodsByTypeAsync(int organizationId, ContactType type)
-        {
-            return await _context.OrganizationContactMethods
-                .Where(cm => cm.CompanyId == organizationId &&
-                           cm.Type == type &&
-                           (cm.IsDeleted == false))
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetContactMethodsByTypeAsync(int pageNumber, int pageSize, int organizationId, ContactType type)
         {
             var query = _context.OrganizationContactMethods
@@ -336,24 +277,6 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Organization Performance =====
-
-        public async Task<IEnumerable<Organization>> GetOrganizationsByCampaignCountAsync(int minCampaigns = 1)
-        {
-            return await _context.Organizations
-        .Where(o => !o.IsDeleted)
-        .Select(o => new
-        {
-            Organization = o,
-            CampaignCount = o.SoloCampaigns.Count() + o.SharedCampaigns.Count()
-        })
-        .Where(x => x.CampaignCount >= minCampaigns)
-        .Select(x => x.Organization)
-        .Include(o => o.SoloCampaigns.Where(c => !c.IsDeleted))
-        .Include(o => o.SharedCampaigns.Where(c => !c.IsDeleted))
-        .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsByCampaignCountAsync(int pageNumber, int pageSize, int minCampaigns = 1)
         {
             var query = _context.Organizations
@@ -396,18 +319,6 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Dashboard & Reporting =====
-        public async Task<IEnumerable<Organization>> GetRecentlyRegisteredOrganizationsAsync(int days = 30)
-        {
-            var cutoffDate = DateTime.Now.AddDays(-days);
-
-            return await _context.Organizations
-                .Where(o => (o.IsDeleted == false) &&
-                           o.RegistrationDate >= cutoffDate)
-                .OrderByDescending(o => o.RegistrationDate)
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetRecentlyRegisteredOrganizationsAsync(int pageNumber, int pageSize, int days = 30)
         {
             var cutoffDate = DateTime.Now.AddDays(-days);
@@ -421,33 +332,15 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Advanced Queries =====
-        public async Task<IEnumerable<Organization>> GetOrganizationsWithoutCampaignsAsync()
-        {
-            return await _context.Organizations
-                .Where(o => (o.IsDeleted == false) &&
-                           (o.Campaigns == null || !o.Campaigns.Any()))
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithoutCampaignsAsync(int pageNumber, int pageSize)
         {
             var query = _context.Organizations
-      .Where(o => !o.IsDeleted &&
-                  (o.Campaigns == null || !o.Campaigns.Any())).AsQueryable();
+                .Where(o => !o.IsDeleted &&
+                    (o.Campaigns == null || !o.Campaigns.Any())).AsQueryable();
 
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsWithoutPaymentInfoAsync()
-        {
-            return await _context.Organizations
-                .Where(o => (o.IsDeleted == false) &&
-                           o.PaymentId == null)
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithoutPaymentInfoAsync(int pageNumber, int pageSize)
         {
             var query = _context.Organizations
@@ -457,16 +350,6 @@ namespace TheCharityDAL.Repositories.Implementation
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsWithActiveCampaignsAsync()
-        {
-            return await _context.Organizations
-                .Where(o => (o.IsDeleted == false) &&
-                           o.Campaigns != null &&
-                           o.Campaigns.Any(c => c.Status == CampaignStatus.Active))
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithActiveCampaignsAsync(int pageNumber, int pageSize)
         {
             var query = _context.Organizations
@@ -477,16 +360,6 @@ namespace TheCharityDAL.Repositories.Implementation
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsWithCompletedCampaignsAsync()
-        {
-            return await _context.Organizations
-                .Where(o => (o.IsDeleted == false) &&
-                           o.Campaigns != null &&
-                           o.Campaigns.Any(c => c.Status == CampaignStatus.Completed))
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithCompletedCampaignsAsync(int pageNumber, int pageSize)
         {
             var query = _context.Organizations
@@ -516,16 +389,6 @@ namespace TheCharityDAL.Repositories.Implementation
                 .CountAsync();
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsByContactTypeAsync(ContactType type)
-        {
-            return await _context.Organizations
-                .Where(o => (o.IsDeleted == false) &&
-                           o.ContactMethods != null &&
-                           o.ContactMethods.Any(cm => cm.Type == type))
-                .ToListAsync();
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsByContactTypeAsync(int pageNumber, int pageSize, ContactType type)
         {
             var query = _context.Organizations
@@ -549,57 +412,56 @@ namespace TheCharityDAL.Repositories.Implementation
                    !string.IsNullOrEmpty(paymentInfo.IframeId);
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsWithValidPaymentInfoAsync()
-        {
-            var organizations = await GetAllOrganizationsAsync();
-            var result = new List<Organization>();
-
-            foreach (var org in organizations)
-            {
-                if (await ValidatePaymentInfoAsync(org.Id))
-                    result.Add(org);
-            }
-
-            return result;
-        }
-
-        //pagination
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithValidPaymentInfoAsync(int pageNumber, int pageSize)
         {
-            var organizations = await GetAllOrganizationsAsync();
-            var validPayment = new List<Organization>();
+            // First get IDs of organizations with valid payment info
+            var validOrgIds = await _context.Organizations
+                .Where(o => !o.IsDeleted &&
+                            o.PaymentId != null &&
+                            _context.PaymentsInfo.Any(p => p.Id == o.PaymentId &&
+                                                           !p.IsDeleted &&
+                                                           !string.IsNullOrEmpty(p.ApiKey) &&
+                                                           !string.IsNullOrEmpty(p.HmacKey) &&
+                                                           !string.IsNullOrEmpty(p.IntegrationId) &&
+                                                           !string.IsNullOrEmpty(p.IframeId)))
+                .Select(o => o.Id)
+                .ToListAsync();
 
-            int totalCount = 0;
-            foreach (var org in organizations)
-            {
-                if (await ValidatePaymentInfoAsync(org.Id))
-                {
-                    validPayment.Add(org);
-                    totalCount++;
-                }
-            }
+            var totalCount = validOrgIds.Count;
 
-            var result = validPayment
+            // Then get the paginated organizations
+            var items = await _context.Organizations
+                .Where(o => validOrgIds.Contains(o.Id))
+                .OrderBy(o => o.Name)
                 .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize).ToList();
+                .Take(pageSize)
+                .Include(o => o.ContactMethods.Where(cm => !cm.IsDeleted))
+                .Include(o => o.PaymentInfo)
+                .ToListAsync();
 
-            return (result, totalCount);
+            return (items, totalCount);
         }
 
         public async Task<Dictionary<int, DateTime>> GetOrganizationLastPaymentUpdateAsync()
         {
-            var organizations = await GetAllOrganizationsAsync();
-            var result = new Dictionary<int, DateTime>();
+            // Use a single query with JOIN instead of N+1 queries
+            var result = await _context.Organizations
+                .Where(o => !o.IsDeleted &&
+                            o.PaymentId != null)
+                .Join(_context.PaymentsInfo,
+                      org => org.PaymentId,
+                      payment => payment.Id,
+                      (org, payment) => new
+                      {
+                          OrganizationId = org.Id,
+                          PaymentUpdatedOn = payment.UpdatedOn
+                      })
+                .Where(x => x.PaymentUpdatedOn.HasValue)
+                .ToDictionaryAsync(
+                    x => x.OrganizationId,
+                    x => x.PaymentUpdatedOn.Value
+                );
 
-            foreach (var org in organizations)
-            {
-                if (org.PaymentId != null)
-                {
-                    var paymentInfo = await GetPaymentInfoByIdAsync(org.PaymentId.Value);
-                    if (paymentInfo != null && paymentInfo.UpdatedOn.HasValue)
-                        result[org.Id] = paymentInfo.UpdatedOn.Value;
-                }
-            }
             return result;
         }
 
