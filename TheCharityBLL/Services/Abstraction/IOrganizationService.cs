@@ -1,4 +1,5 @@
-﻿using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
+﻿using TheCharityBLL.DTOs;
+using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;

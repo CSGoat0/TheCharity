@@ -9,7 +9,7 @@ namespace TheCharityBLL.Services.Abstraction
     {
         // ===== Base CRUD Operations =====
         Task<ServiceResponse<CampaignResponseDto>> GetCampaignByIdAsync(int id);
-        Task<ServiceResponse<CampaignDetailsResponseDto>> GetCampaignDetailsByIdAsync(int id);
+        //Task<ServiceResponse<CampaignDetailsResponseDto>> GetCampaignDetailsByIdAsync(int id);
         Task<ServiceResponse<bool>> UpdateCampaignAsync(UpdateCampaignDto updateDto);
         Task<ServiceResponse<bool>> DeleteCampaignAsync(int id);
         Task<ServiceResponse<bool>> RestoreCampaignAsync(int id);

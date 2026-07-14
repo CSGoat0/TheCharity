@@ -10,7 +10,6 @@ using System.Text;
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.Services.Abstraction;
-using TheCharityBLL.ViewModels;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Repositories.Abstraction;
 

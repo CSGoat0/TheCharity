@@ -1,7 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TheCharityDAL.Database;
 using TheCharityDAL.Entities;
-using TheCharityDAL.Extensions;
 using TheCharityDAL.Repositories.Abstraction;
 
 namespace TheCharityDAL.Repositories.Implementation
@@ -16,19 +15,19 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Donation CRUD Operations =====
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetAllDonationsAsync(int pageNumber, int pageSize, bool includeDeleted = false)
+        public async Task<IEnumerable<Donation>> GetAllDonationsAsync(bool includeDeleted = false)
         {
-            var query = _context.Donations
+            var donations = await _context.Donations
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
-                .AsQueryable();
+                .ToListAsync();
 
             if (!includeDeleted)
             {
-                query = query.Where(d => !d.IsDeleted);
+                donations = donations.Where(d => !d.IsDeleted).ToList();
             }
 
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+            return donations;
         }
 
         public async Task<Donation?> GetDonationByIdAsync(int id)
@@ -78,82 +77,70 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Donation Filtering & Search =====
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetDonationsByUserAsync(int pageNumber, int pageSize, string userId)
+        public async Task<IEnumerable<Donation>> GetDonationsByUserAsync(string userId)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.UserId == userId &&
                            (d.IsDeleted == false))
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.RegistrationDate)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetDonationsByCampaignAsync(int pageNumber, int pageSize, int campaignId)
+        public async Task<IEnumerable<Donation>> GetDonationsByCampaignAsync(int campaignId)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.CampaignId == campaignId &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .OrderByDescending(d => d.RegistrationDate)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetDonationsByAmountRangeAsync(int pageNumber, int pageSize, double minAmount, double maxAmount)
+        public async Task<IEnumerable<Donation>> GetDonationsByAmountRangeAsync(double minAmount, double maxAmount)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.Amount >= minAmount &&
                            d.Amount <= maxAmount &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.Amount)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetDonationsByDateRangeAsync(int pageNumber, int pageSize, DateTime startDate, DateTime endDate)
+        public async Task<IEnumerable<Donation>> GetDonationsByDateRangeAsync(DateTime startDate, DateTime endDate)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.RegistrationDate >= startDate &&
                            d.RegistrationDate <= endDate &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderBy(d => d.RegistrationDate)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetRecentDonationsAsync(int pageNumber, int pageSize, int days = 30)
+        public async Task<IEnumerable<Donation>> GetRecentDonationsAsync(int days = 30)
         {
             var cutoffDate = DateTime.Now.AddDays(-days);
 
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.RegistrationDate >= cutoffDate &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.RegistrationDate)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetDeletedDonationsAsync(int pageNumber, int pageSize)
+        public async Task<IEnumerable<Donation>> GetDeletedDonationsAsync()
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.IsDeleted == true)
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
         // ===== Donation Statistics =====
@@ -306,21 +293,20 @@ namespace TheCharityDAL.Repositories.Implementation
             return (totalRaised / campaign.Target.Value) * 100;
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetUsersDonationsOfACampaignAsync(int pageNumber, int pageSize, int campaignId)
+        public async Task<IEnumerable<Donation>> GetUsersDonationsOfACampaignAsync(int campaignId)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.CampaignId == campaignId &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
-                .AsQueryable();
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .OrderByDescending(d => d.Amount)
+                .ToListAsync();
         }
 
         // ===== User-Specific Operations =====
-
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetUserDonationHistoryAsync(int pageNumber, int pageSize, string userId)
+        public async Task<IEnumerable<Donation>> GetUserDonationHistoryAsync(string userId)
         {
-            return await GetDonationsByUserAsync(pageNumber,pageSize,userId);
+            return await GetDonationsByUserAsync(userId);
         }
 
         public async Task<DateTime?> GetUserLastDonationDateAsync(string userId)
@@ -333,16 +319,14 @@ namespace TheCharityDAL.Repositories.Implementation
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<(IEnumerable<int> Data, int TotalCount)> GetCampaignsDonatedByUserAsync(int pageNumber, int pageSize, string userId)
+        public async Task<IEnumerable<int>> GetCampaignsDonatedByUserAsync(string userId)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.UserId == userId &&
                            (d.IsDeleted == false))
                 .Select(d => d.CampaignId)
                 .Distinct()
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
         // ===== Bulk Operations =====
@@ -423,30 +407,26 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Dashboard & Reporting =====
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetLatestDonationsAsync(int pageNumber, int pageSize, int limit = 10)
+        public async Task<IEnumerable<Donation>> GetLatestDonationsAsync(int limit = 10)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.IsDeleted == false)
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.RegistrationDate)
                 .Take(limit)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetLargestDonationsAsync(int pageNumber, int pageSize, int limit = 10)
+        public async Task<IEnumerable<Donation>> GetLargestDonationsAsync(int limit = 10)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.IsDeleted == false)
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.Amount)
                 .Take(limit)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
         public async Task<Dictionary<int, int>> GetDonationsPerCampaignCountAsync()
@@ -641,10 +621,7 @@ namespace TheCharityDAL.Repositories.Implementation
         // ===== Campaign Performance =====
         public async Task<Dictionary<DateTime, double>> GetCampaignDonationTimelineAsync(int campaignId)
         {
-            const int pageNumber = 1;
-            const int pageSize = int.MaxValue;
-
-            var (donations, totalCount) = await GetDonationsByCampaignAsync(pageNumber, pageSize, campaignId);
+            var donations = await GetDonationsByCampaignAsync(campaignId);
 
             return donations
                 .GroupBy(d => d.RegistrationDate.Date)
@@ -653,9 +630,8 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== User Engagement =====
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetRecurringDonorsAsync(int pageNumber, int pageSize, int minDonations = 3)
+        public async Task<IEnumerable<Donation>> GetRecurringDonorsAsync(int minDonations = 3)
         {
-            // Get recurring user IDs
             var recurringUserIds = await _context.Donations
                 .Where(d => d.IsDeleted == false)
                 .GroupBy(d => d.UserId)
@@ -663,29 +639,21 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Select(g => g.Key)
                 .ToListAsync();
 
-            if (!recurringUserIds.Any())
-                return (Enumerable.Empty<Donation>(), 0);
+            var result = new List<Donation>();
 
-            // Single query to get all donations from recurring users
-            var query = _context.Donations
-                .Where(d => recurringUserIds.Contains(d.UserId) && !d.IsDeleted)
-                .Include(d => d.User)
-                .Include(d => d.Campaign)
-                .OrderByDescending(d => d.RegistrationDate);
+            foreach (var userId in recurringUserIds)
+            {
+                var userDonations = await GetDonationsByUserAsync(userId);
+                result.AddRange(userDonations);
+            }
 
-            var totalCount = await query.CountAsync();
-            var pagedResult = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
-
-            return (pagedResult, totalCount);
+            return result;
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetFirstTimeDonorsAsync(int pageNumber, int pageSize, DateTime startDate, DateTime endDate)
+        public async Task<IEnumerable<Donation>> GetFirstTimeDonorsAsync(DateTime startDate, DateTime endDate)
         {
-            // Get all donations in date range using the paged method with int.MaxValue
-            var (donationsInRange, _) = await GetDonationsByDateRangeAsync(1, int.MaxValue, startDate, endDate);
+            // Get all donations in date range
+            var donationsInRange = await GetDonationsByDateRangeAsync(startDate, endDate);
 
             // Get users who donated before the start date
             var existingDonors = await _context.Donations
@@ -696,16 +664,9 @@ namespace TheCharityDAL.Repositories.Implementation
                 .ToListAsync();
 
             // Filter donations to only include first-time donors
-            var result = donationsInRange
+            return donationsInRange
                 .Where(d => !existingDonors.Contains(d.UserId))
                 .ToList();
-
-            var totalCount = result.Count;
-            result = result.Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            return (result, totalCount);
         }
 
         public async Task<Dictionary<string, double>> GetUserLifetimeValueAsync()
@@ -722,9 +683,9 @@ namespace TheCharityDAL.Repositories.Implementation
                 .ToDictionary(x => x.UserId, x => x.LifetimeValue);
         }
 
-        public async Task<(IEnumerable<string> Data, int TotalCount)> GetLoyalDonorsAsync( int pageNumber, int pageSize, double minTotalAmount = 1000, int minDonations = 5)
+        public async Task<IEnumerable<string>> GetLoyalDonorsAsync(double minTotalAmount = 1000, int minDonations = 5)
         {
-            var query = _context.Donations
+            var loyalDonors = await _context.Donations
                 .Where(d => d.IsDeleted == false)
                 .GroupBy(d => d.UserId)
                 .Select(g => new
@@ -733,87 +694,71 @@ namespace TheCharityDAL.Repositories.Implementation
                     TotalAmount = g.Sum(d => d.Amount ?? 0),
                     DonationCount = g.Count()
                 })
-                .Where(x => x.TotalAmount >= minTotalAmount &&
-                           x.DonationCount >= minDonations)
+                .Where(x => x.TotalAmount >= minTotalAmount && x.DonationCount >= minDonations)
                 .Select(x => x.UserId)
-                .Where(id => !string.IsNullOrEmpty(id))
-                .AsQueryable();
-
-            var totalCount = await query.CountAsync();
-            var items = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
                 .ToListAsync();
 
-            return (items, totalCount);
+            return loyalDonors.Where(id => !string.IsNullOrEmpty(id));
         }
 
         // ===== Search & Filter Combinations =====
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> SearchDonationsByUserAndCampaignAsync(int pageNumber, int pageSize, string userId, int campaignId)
+        public async Task<IEnumerable<Donation>> SearchDonationsByUserAndCampaignAsync(string userId, int campaignId)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.UserId == userId &&
                            d.CampaignId == campaignId &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.RegistrationDate)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetDonationsByMultipleUsersAsync(int pageNumber, int pageSize, IEnumerable<string> userIds)
+        public async Task<IEnumerable<Donation>> GetDonationsByMultipleUsersAsync(IEnumerable<string> userIds)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => userIds.Contains(d.UserId) &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.RegistrationDate)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetDonationsByMultipleCampaignsAsync(int pageNumber, int pageSize, IEnumerable<int> campaignIds)
+
+        public async Task<IEnumerable<Donation>> GetDonationsByMultipleCampaignsAsync(IEnumerable<int> campaignIds)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => campaignIds.Contains(d.CampaignId) &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.RegistrationDate)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetDonationsByAmountAndDateAsync(int pageNumber, int pageSize, double minAmount, DateTime startDate)
+        public async Task<IEnumerable<Donation>> GetDonationsByAmountAndDateAsync(double minAmount, DateTime startDate)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.Amount >= minAmount &&
                            d.RegistrationDate >= startDate &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.Amount)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
         // ===== Audit & Reconciliation =====
-        public async Task<(IEnumerable<Donation> Data, int TotalCount)> GetSuspiciousDonationsAsync(int pageNumber, int pageSize, double amountThreshold = 10000)
+
+        public async Task<IEnumerable<Donation>> GetSuspiciousDonationsAsync(double amountThreshold = 10000)
         {
-            var query = _context.Donations
+            return await _context.Donations
                 .Where(d => d.Amount >= amountThreshold &&
                            (d.IsDeleted == false))
                 .Include(d => d.User)
                 .Include(d => d.Campaign)
                 .OrderByDescending(d => d.Amount)
-                .AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
+                .ToListAsync();
         }
 
         // ===== Export & Data Management =====

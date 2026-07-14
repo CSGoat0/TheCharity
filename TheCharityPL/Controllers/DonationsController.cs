@@ -2,7 +2,6 @@
 using Microsoft.AspNetCore.Mvc;
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.DonationDTOs;
-using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Services.Abstraction.MoneyDonation;
 
 namespace TheCharityPL.Controllers
@@ -27,9 +26,9 @@ namespace TheCharityPL.Controllers
         /// get all donations
         /// </summary>
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] PaginationParametersDto parametersDto, [FromQuery] bool includeDeleted = false)
+        public async Task<IActionResult> GetAll([FromQuery] bool includeDeleted = false)
         {
-            var result = await _service.GetAllDonationsAsync(parametersDto, includeDeleted);
+            var result = await _service.GetAllDonationsAsync(includeDeleted);
             return Ok(result);
         }
 
@@ -75,7 +74,7 @@ namespace TheCharityPL.Controllers
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
             var updated = await _service.UpdateDonationAsync(id, dto);
-            return updated is null ? NotFound(new ServiceResponse<object?>{Success=false,Message="invalid user id." }) : Ok(updated);
+            return updated is null ? NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." }) : Ok(updated);
         }
         /// <summary>
         /// delete specific donation  
@@ -85,7 +84,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             var success = await _service.DeleteDonationAsync(id);
-            return success ? Ok(new ServiceResponse<object?> { Success=true,Message="Deleted Successfully."}) : NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." });
+            return success ? Ok(new ServiceResponse<object?> { Success = true, Message = "Deleted Successfully." }) : NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." });
         }
         /// <summary>
         /// restore specific donation  after delete it  
@@ -107,79 +106,74 @@ namespace TheCharityPL.Controllers
         /// display all deleted donations  
         /// </summary>
         [HttpGet("deleted")]
-        public async Task<IActionResult> GetDeleted([FromQuery] PaginationParametersDto parametersDto)
-            => Ok(await _service.GetDeletedDonationsAsync(parametersDto));
+        public async Task<IActionResult> GetDeleted()
+            => Ok(await _service.GetDeletedDonationsAsync());
 
         // GET api/donations/recent?days=30
         /// <summary>
         /// get recent donations  based on num days , where if days=2,get recent transaction for last two days  (default 30 days)
         /// </summary>
         [HttpGet("recent")]
-        public async Task<IActionResult> GetRecent([FromQuery] PaginationParametersDto parametersDto, [FromQuery] int days = 30)
-            => Ok(await _service.GetRecentDonationsAsync(parametersDto, days));
-
+        public async Task<IActionResult> GetRecent([FromQuery] int days = 30)
+            => Ok(await _service.GetRecentDonationsAsync(days));
         /// <summary>
         /// get donation related to user id 
         /// </summary>
         // GET api/donations/by-user/userId123
         [HttpGet("by-user/{userId}")]
-        public async Task<IActionResult> GetByUser([FromQuery] PaginationParametersDto parametersDto, string userId)
-            => Ok(await _service.GetDonationsByUserAsync(parametersDto, userId));
+        public async Task<IActionResult> GetByUser(string userId)
+            => Ok(await _service.GetDonationsByUserAsync(userId));
         /// <summary>
         /// get donation related to campaign id by the admin
         /// </summary>
         // GET api/donations/by-campaign/3
         [HttpGet("by-campaign/{campaignId:int}")]
-        public async Task<IActionResult> GetByCampaign([FromQuery] PaginationParametersDto parametersDto, int campaignId)
-            => Ok(await _service.GetDonationsByCampaignAsync(parametersDto, campaignId));
+        public async Task<IActionResult> GetByCampaign(int campaignId)
+            => Ok(await _service.GetDonationsByCampaignAsync(campaignId));
         /// <summary>
         /// get donations , where their amount in range ( min , max ) 
         /// </summary>
         // GET api/donations/by-amount-range?min=100&max=5000
         [HttpGet("by-amount-range")]
-        public async Task<IActionResult> GetByAmountRange([FromQuery] PaginationParametersDto parametersDto,
+        public async Task<IActionResult> GetByAmountRange(
             [FromQuery] double min, [FromQuery] double max)
-            => Ok(await _service.GetDonationsByAmountRangeAsync(parametersDto, min, max));
+            => Ok(await _service.GetDonationsByAmountRangeAsync(min, max));
 
         // GET api/donations/by-date-range?startDate=2024-01-01&endDate=2024-12-31
         [HttpGet("by-date-range")]
-        public async Task<IActionResult> GetByDateRange([FromQuery] PaginationParametersDto parametersDto,
+        public async Task<IActionResult> GetByDateRange(
             [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
-            => Ok(await _service.GetDonationsByDateRangeAsync(parametersDto, startDate, endDate));
-
+            => Ok(await _service.GetDonationsByDateRangeAsync(startDate, endDate));
         /// <summary>
         /// get list of donations related to both user id and campaign id 
         /// </summary>
         // GET api/donations/search?userId=xxx&campaignId=3
         [HttpGet("search")]
-        public async Task<IActionResult> SearchByUserAndCampaign([FromQuery] PaginationParametersDto parametersDto,
+        public async Task<IActionResult> SearchByUserAndCampaign(
             [FromQuery] string userId, [FromQuery] int campaignId)
-            => Ok(await _service.SearchDonationsByUserAndCampaignAsync(parametersDto, userId, campaignId));
-
+            => Ok(await _service.SearchDonationsByUserAndCampaignAsync(userId, campaignId));
         /// <summary>
         /// get list of donations related to both min amount ( condition for minimum amount ) and start date   
         /// </summary>
         // GET api/donations/by-amount-and-date?minAmount=100&startDate=2024-01-01
         [HttpGet("by-amount-and-date")]
-        public async Task<IActionResult> GetByAmountAndDate([FromQuery] PaginationParametersDto parametersDto,
+        public async Task<IActionResult> GetByAmountAndDate(
             [FromQuery] double minAmount, [FromQuery] DateTime startDate)
-            => Ok(await _service.GetDonationsByAmountAndDateAsync(parametersDto, minAmount, startDate));
-
+            => Ok(await _service.GetDonationsByAmountAndDateAsync(minAmount, startDate));
         /// <summary>
         /// get list of donations related to list of user ids   
         /// </summary>
         // POST api/donations/by-users
         [HttpPost("by-users")]
-        public async Task<IActionResult> GetByMultipleUsers([FromQuery] PaginationParametersDto parametersDto, [FromBody] IEnumerable<string> userIds)
-            => Ok(await _service.GetDonationsByMultipleUsersAsync(parametersDto,userIds));
-
+        public async Task<IActionResult> GetByMultipleUsers([FromBody] IEnumerable<string> userIds)
+            => Ok(await _service.GetDonationsByMultipleUsersAsync(userIds));
         /// <summary>
         /// get list of donations related to list of campaign ids   
         /// </summary>
         // POST api/donations/by-campaigns
         [HttpPost("by-campaigns")]
-        public async Task<IActionResult> GetByMultipleCampaigns([FromQuery] PaginationParametersDto parametersDto, [FromBody] IEnumerable<int> campaignIds)
-            => Ok(await _service.GetDonationsByMultipleCampaignsAsync(parametersDto, campaignIds));
+        public async Task<IActionResult> GetByMultipleCampaigns([FromBody] IEnumerable<int> campaignIds)
+            => Ok(await _service.GetDonationsByMultipleCampaignsAsync(campaignIds));
 
         // =====================================================================
         // Statistics
@@ -295,16 +289,15 @@ namespace TheCharityPL.Controllers
         /// </summary>
 
         [HttpGet("dashboard/latest")]
-        public async Task<IActionResult> GetLatest([FromQuery] PaginationParametersDto parametersDto, [FromQuery] int limit = 10)
-            => Ok(await _service.GetLatestDonationsAsync(parametersDto, limit));
-
+        public async Task<IActionResult> GetLatest([FromQuery] int limit = 10)
+            => Ok(await _service.GetLatestDonationsAsync(limit));
         /// <summary>
         /// get list of largest donations,limit parm:The maximum number of largest donation to return. Defaults to 10
         /// </summary>
         // GET api/donations/dashboard/largest?limit=10
         [HttpGet("dashboard/largest")]
-        public async Task<IActionResult> GetLargest([FromQuery] PaginationParametersDto parametersDto, [FromQuery] int limit = 10)
-            => Ok(await _service.GetLargestDonationsAsync(parametersDto, limit));
+        public async Task<IActionResult> GetLargest([FromQuery] int limit = 10)
+            => Ok(await _service.GetLargestDonationsAsync(limit));
 
         // GET api/donations/dashboard/per-campaign-count
         /// <summary>
@@ -417,9 +410,8 @@ namespace TheCharityPL.Controllers
         /// </summary>
         // GET api/donations/campaigns/3/donors
         [HttpGet("campaigns/{campaignId:int}/donors")]
-        public async Task<IActionResult> GetCampaignDonors([FromQuery] PaginationParametersDto parametersDto, int campaignId)
-            => Ok(await _service.GetUsersDonationsOfACampaignAsync(parametersDto, campaignId));
-
+        public async Task<IActionResult> GetCampaignDonors(int campaignId)
+            => Ok(await _service.GetUsersDonationsOfACampaignAsync(campaignId));
         /// <summary>
         ///get A dictionary mapping each specific date to the total sum of donations for that date, for a specific campaign.
         /// </summary>
@@ -437,18 +429,18 @@ namespace TheCharityPL.Controllers
 
         // GET api/donations/users/userId123/history
         [HttpGet("users/{userId}/history")]
-        public async Task<IActionResult> GetUserHistory([FromQuery] PaginationParametersDto parametersDto, string userId)
-            => Ok(await _service.GetUserDonationHistoryAsync(parametersDto, userId));
-
+        public async Task<IActionResult> GetUserHistory(string userId)
+            => Ok(await _service.GetUserDonationHistoryAsync(userId));
         /// <summary>
         /// get the date of the last donation made by a specific user, where userId parm: The unique identifier of the user for whom to retrieve the last donation date.
         /// </summary>
-              // GET api/donations/users/userId123/last-donation-date
+
+        // GET api/donations/users/userId123/last-donation-date
         [HttpGet("users/{userId}/last-donation-date")]
         public async Task<IActionResult> GetUserLastDonationDate(string userId)
         {
             var date = await _service.GetUserLastDonationDateAsync(userId);
-            return date is null ?  NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." }) : Ok(date);
+            return date is null ? NotFound(new ServiceResponse<object?> { Success = false, Message = "invalid user id." }) : Ok(date);
         }
         /// <summary>
         /// get list of campaigns that a specific user has donated to, where userId parm: The unique identifier of the user for whom to retrieve the list of donated campaigns.
@@ -456,10 +448,8 @@ namespace TheCharityPL.Controllers
 
         // GET api/donations/users/userId123/campaigns
         [HttpGet("users/{userId}/campaigns")]
-        public async Task<IActionResult> GetCampaignsDonatedByUser(
-            [FromQuery] PaginationParametersDto parametersDto,
-            string userId)
-            => Ok(await _service.GetCampaignsDonatedByUserAsync(parametersDto, userId));
+        public async Task<IActionResult> GetCampaignsDonatedByUser(string userId)
+            => Ok(await _service.GetCampaignsDonatedByUserAsync(userId));
 
         // =====================================================================
         // Bulk Operations
@@ -474,7 +464,7 @@ namespace TheCharityPL.Controllers
             [FromQuery] int from, [FromQuery] int to)
         {
             var count = await _service.TransferDonationsToCampaignAsync(from, to);
-            return Ok( count );
+            return Ok(count);
         }
         /// <summary>
         /// get the total number of donations deleted that are older than a specified number of days, where daysOld parm: The age threshold in days. Donations older than this number of days will be deleted. Defaults to 365 days.
@@ -485,7 +475,7 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> DeleteOldDonations([FromQuery] int daysOld = 365)
         {
             var count = await _service.DeleteOldDonationsAsync(daysOld);
-            return Ok( count );
+            return Ok(count);
         }
 
         // =====================================================================
@@ -512,18 +502,17 @@ namespace TheCharityPL.Controllers
 
         // GET api/donations/engagement/recurring?minDonations=3
         [HttpGet("engagement/recurring")]
-        public async Task<IActionResult> GetRecurringDonors([FromQuery] PaginationParametersDto parametersDto, [FromQuery] int minDonations = 3)
-            => Ok(await _service.GetRecurringDonorsAsync(parametersDto, minDonations));
-
+        public async Task<IActionResult> GetRecurringDonors([FromQuery] int minDonations = 3)
+            => Ok(await _service.GetRecurringDonorsAsync(minDonations));
         /// <summary>
         /// get list of users who made their first donation within a specified date range, where startDate parm: The start date of the range. endDate parm: The end date of the range.
-        /// </summary>        
+        /// </summary>
+
         // GET api/donations/engagement/first-time?startDate=2024-01-01&endDate=2024-12-31
         [HttpGet("engagement/first-time")]
-        public async Task<IActionResult> GetFirstTimeDonors([FromQuery] PaginationParametersDto parametersDto,
+        public async Task<IActionResult> GetFirstTimeDonors(
             [FromQuery] DateTime startDate, [FromQuery] DateTime endDate)
-            => Ok(await _service.GetFirstTimeDonorsAsync(parametersDto, startDate, endDate));
-
+            => Ok(await _service.GetFirstTimeDonorsAsync(startDate, endDate));
         /// <summary>
         /// get A dictionary mapping each unique user identifier to their total lifetime donation amount, 
         /// ordered from the highest lifetime value to the lowest.
@@ -539,10 +528,8 @@ namespace TheCharityPL.Controllers
         // GET api/donations/engagement/loyal?minAmount=1000&minDonations=5
         [HttpGet("engagement/loyal")]
         public async Task<IActionResult> GetLoyalDonors(
-            [FromQuery] PaginationParametersDto parametersDto,
-            [FromQuery] double minTotalAmount = 1000,
-            [FromQuery] int minDonations = 5)
-            => Ok(await _service.GetLoyalDonorsAsync(parametersDto, minTotalAmount, minDonations));
+            [FromQuery] double minTotalAmount = 1000, [FromQuery] int minDonations = 5)
+            => Ok(await _service.GetLoyalDonorsAsync(minTotalAmount, minDonations));
 
         // =====================================================================
         // Audit
@@ -553,7 +540,7 @@ namespace TheCharityPL.Controllers
 
         // GET api/donations/audit/suspicious?threshold=10000
         [HttpGet("audit/suspicious")]
-        public async Task<IActionResult> GetSuspicious([FromQuery] PaginationParametersDto parametersDto, [FromQuery] double threshold = 10000)
-            => Ok(await _service.GetSuspiciousDonationsAsync(parametersDto, threshold));
+        public async Task<IActionResult> GetSuspicious([FromQuery] double threshold = 10000)
+            => Ok(await _service.GetSuspiciousDonationsAsync(threshold));
     }
 }

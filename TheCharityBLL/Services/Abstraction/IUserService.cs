@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.UserDTOs;
-using TheCharityBLL.ViewModels;
 using TheCharityDAL.Entities;
 
 

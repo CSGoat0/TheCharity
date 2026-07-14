@@ -57,61 +57,61 @@ namespace TheCharityBLL.Services.Repository
             };
         }
 
-        public async Task<ServiceResponse<CampaignDetailsResponseDto>> GetCampaignDetailsByIdAsync(int id)
-        {
-            var campaign = await _campaignRepository.GetCampaignByIdAsync(id);
-            if (campaign == null)
-            {
-                return new ServiceResponse<CampaignDetailsResponseDto>
-                {
-                    Success = false,
-                    Message = $"Campaign with ID {id} not found."
-                };
-            }
+        //public async Task<ServiceResponse<CampaignDetailsResponseDto>> GetCampaignDetailsByIdAsync(int id)
+        //{
+        //    var campaign = await _campaignRepository.GetCampaignByIdAsync(id);
+        //    if (campaign == null)
+        //    {
+        //        return new ServiceResponse<CampaignDetailsResponseDto>
+        //        {
+        //            Success = false,
+        //            Message = $"Campaign with ID {id} not found."
+        //        };
+        //    }
 
-            // Get only the 10 most recent donations (paginated)
-            const int pageNumber = 1;
-            const int pageSize = 10;
+        //    // Get only the 10 most recent donations (paginated)
+        //    const int pageNumber = 1;
+        //    const int pageSize = 10;
 
-            var (donations, totalDonationsCount) = await _donationRepository
-                .GetDonationsByCampaignAsync(pageNumber, pageSize, id);
+        //    var (donations, totalDonationsCount) = await _donationRepository
+        //        .GetDonationsByCampaignAsync(pageNumber, pageSize, id);
 
-            var recentDonations = donations
-                .OrderByDescending(d => d.RegistrationDate)
-                .Select(d => new DonationBasicDto
-                {
-                    Id = d.Id,
-                    Amount = d.Amount,
-                    RegistrationDate = d.RegistrationDate,
-                    UserName = d.User?.UserName ?? "Anonymous"
-                }).ToList();
+        //    var recentDonations = donations
+        //        .OrderByDescending(d => d.RegistrationDate)
+        //        .Select(d => new DonationBasicDto
+        //        {
+        //            Id = d.Id,
+        //            Amount = d.Amount,
+        //            RegistrationDate = d.RegistrationDate,
+        //            UserName = d.User?.UserName ?? "Anonymous"
+        //        }).ToList();
 
-            var response = new CampaignDetailsResponseDto
-            {
-                Id = campaign.Id,
-                Title = campaign.Title,
-                Description = campaign.Description,
-                ImgPath = campaign.ImgPath,
-                Target = campaign.Target,
-                Achieved = campaign.Achieved,
-                Status = campaign.Status,
-                Type = campaign.Type,
-                IsDeleted = campaign.IsDeleted,
-                RegistrationDate = campaign.RegistrationDate,
-                UpdatedOn = campaign.UpdatedOn,
-                AchievementPercentage = CalculatePercentage(campaign.Achieved, campaign.Target),
-                RemainingAmount = (campaign.Target ?? 0) - (campaign.Achieved ?? 0),
-                TotalDonationsCount = totalDonationsCount,  // Use the total count from the paged result
-                RecentDonations = recentDonations
-            };
+        //    var response = new CampaignDetailsResponseDto
+        //    {
+        //        Id = campaign.Id,
+        //        Title = campaign.Title,
+        //        Description = campaign.Description,
+        //        ImgPath = campaign.ImgPath,
+        //        Target = campaign.Target,
+        //        Achieved = campaign.Achieved,
+        //        Status = campaign.Status,
+        //        Type = campaign.Type,
+        //        IsDeleted = campaign.IsDeleted,
+        //        RegistrationDate = campaign.RegistrationDate,
+        //        UpdatedOn = campaign.UpdatedOn,
+        //        AchievementPercentage = CalculatePercentage(campaign.Achieved, campaign.Target),
+        //        RemainingAmount = (campaign.Target ?? 0) - (campaign.Achieved ?? 0),
+        //        TotalDonationsCount = totalDonationsCount,  // Use the total count from the paged result
+        //        RecentDonations = recentDonations
+        //    };
 
-            return new ServiceResponse<CampaignDetailsResponseDto>
-            {
-                Success = true,
-                Data = response,
-                Message = "Campaign details retrieved successfully."
-            };
-        }
+        //    return new ServiceResponse<CampaignDetailsResponseDto>
+        //    {
+        //        Success = true,
+        //        Data = response,
+        //        Message = "Campaign details retrieved successfully."
+        //    };
+        //}
 
         public async Task<ServiceResponse<bool>> UpdateCampaignAsync(UpdateCampaignDto updateDto)
         {

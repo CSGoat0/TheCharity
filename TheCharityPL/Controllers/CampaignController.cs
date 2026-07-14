@@ -56,11 +56,11 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpGet("{id:int}/details")]
         [AllowAnonymous]
-        public async Task<IActionResult> GetDetails(int id)
-        {
-            var result = await _campaignService.GetCampaignDetailsByIdAsync(id);
-            return HandleResponse(result, notFoundOnFailure: true);
-        }
+        //public async Task<IActionResult> GetDetails(int id)
+        //{
+        //    var result = await _campaignService.GetCampaignDetailsByIdAsync(id);
+        //    return HandleResponse(result, notFoundOnFailure: true);
+        //}
 
         /// <summary>
         /// Update campaign
