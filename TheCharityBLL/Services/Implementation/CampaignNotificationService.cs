@@ -83,19 +83,10 @@ namespace TheCharityBLL.Services.Implementation
         /// </summary>
         private async Task<IEnumerable<User>> GetSuperAdminsAsync()
         {
-            var allUsers = await _userRepository.GetAllUsersAsync();
-            var superAdmins = new List<User>();
+            const int pageNumber = 1;
+            const int pageSize = int.MaxValue;
 
-            if (allUsers == null) return superAdmins;
-
-            foreach (var user in allUsers)
-            {
-                var isSuperAdmin = await _userRepository.IsSuperAdminAsync(user.Id);
-                if (isSuperAdmin)
-                {
-                    superAdmins.Add(user);
-                }
-            }
+            var (superAdmins, _) = await _userRepository.GetUsersInRoleAsync(pageNumber, pageSize, "SuperAdmin");
 
             return superAdmins;
         }

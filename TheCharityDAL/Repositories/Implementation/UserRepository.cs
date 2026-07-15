@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using TheCharityDAL.Database;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Enums;
+using TheCharityDAL.Extensions;
 using TheCharityDAL.Repositories.Abstraction;
 
 namespace TheCharityDAL.Repositories.Implementation
@@ -11,17 +12,19 @@ namespace TheCharityDAL.Repositories.Implementation
     {
         private readonly UserManager<User> _userManager;
         private readonly TheCharityDbContext _context;
-
         private readonly RoleManager<IdentityRole> _roleManager;
+
         public UserRepository(
-             UserManager<User> userManager,
-             RoleManager<IdentityRole> roleManager,
-             TheCharityDbContext context)
+            UserManager<User> userManager,
+            RoleManager<IdentityRole> roleManager,
+            TheCharityDbContext context)
         {
             _userManager = userManager ?? throw new ArgumentNullException(nameof(userManager));
             _roleManager = roleManager ?? throw new ArgumentNullException(nameof(roleManager));
             _context = context;
         }
+
+        // ===== CRUD =====
 
         public async Task<IdentityResult> CreateExternalUserAsync(string email)
         {
@@ -29,11 +32,12 @@ namespace TheCharityDAL.Repositories.Implementation
             {
                 Email = email,
                 UserName = email,
-                EmailConfirmed = true // Google/Facebook already verified it
+                EmailConfirmed = true
             };
 
-            return await _userManager.CreateAsync(user); // ✅ no password
+            return await _userManager.CreateAsync(user);
         }
+
         public async Task<IdentityResult> AddToRoleAsync(string userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -42,7 +46,6 @@ namespace TheCharityDAL.Repositories.Implementation
                 return IdentityResult.Failed(new IdentityError { Description = "User not found" });
             }
 
-            // Create role if it doesn't exist
             if (!await _roleManager.RoleExistsAsync(role))
             {
                 await _roleManager.CreateAsync(new IdentityRole(role));
@@ -81,10 +84,16 @@ namespace TheCharityDAL.Repositories.Implementation
             return await _userManager.UpdateAsync(user);
         }
 
-        public async Task<IEnumerable<User>?> GetAllUsersAsync()
+        public async Task<(IEnumerable<User> Data, int TotalCount)> GetAllUsersAsync(int pageNumber, int pageSize, bool includeDeleted = false)
         {
-            return await _userManager.Users
-                .ToListAsync();
+            var query = _userManager.Users.AsQueryable();
+
+            if (!includeDeleted)
+            {
+                query = query.Where(u => !u.IsDeleted);
+            }
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<User?> GetUserByIdAsync(string id)
@@ -121,11 +130,6 @@ namespace TheCharityDAL.Repositories.Implementation
             return user?.IsDeleted ?? true;
         }
 
-
-
-
-
-
         public async Task<IdentityResult> RemoveFromRoleAsync(string userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -157,22 +161,26 @@ namespace TheCharityDAL.Repositories.Implementation
 
         public async Task<bool> UserExistsAsync(string userId)
         {
-            return await _userManager.Users.AnyAsync(u => u.Id == userId && u.IsDeleted == false);
+            return await _userManager.Users.AnyAsync(u => u.Id == userId && !u.IsDeleted);
         }
 
+        // ===== Email =====
 
         public async Task<string> GenerateEmailConfirmationTokenAsync(User user)
         {
             return await _userManager.GenerateEmailConfirmationTokenAsync(user);
         }
+
         public async Task<string> GeneratePasswordResetTokenAsync(User user)
         {
             return await _userManager.GeneratePasswordResetTokenAsync(user);
         }
+
         public async Task<User?> GetUserByEmailAsync(string email)
         {
-            return await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email && u.IsDeleted == false);
+            return await _userManager.Users.FirstOrDefaultAsync(u => u.Email == email && !u.IsDeleted);
         }
+
         public async Task<IdentityResult> ResetPasswordAsync(string userId, string token, string newPassword)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -193,24 +201,25 @@ namespace TheCharityDAL.Repositories.Implementation
             return await _userManager.ConfirmEmailAsync(user, token);
         }
 
-        ////////////new addations
+        // ===== Lockout =====
+
         public async Task AccessFailedAsync(User user)
-           => await _userManager.AccessFailedAsync(user);
+            => await _userManager.AccessFailedAsync(user);
+
         public async Task<IList<UserLoginInfo>> GetLoginsAsync(User user)
         {
             return await _userManager.GetLoginsAsync(user);
         }
+
         public async Task AddLoginAsync(User user, UserLoginInfo loginInfo)
         {
-            // Re-fetch as TRACKED instance fresh from UserManager
-            // to avoid conflict with any previously tracked instance
             var trackedUser = await _userManager.FindByIdAsync(user.Id);
-
             if (trackedUser == null)
                 throw new Exception("User not found");
 
             await _userManager.AddLoginAsync(trackedUser, loginInfo);
         }
+
         public async Task ResetAccessFailedCountAsync(User user)
             => await _userManager.ResetAccessFailedCountAsync(user);
 
@@ -220,7 +229,8 @@ namespace TheCharityDAL.Repositories.Implementation
                    ?? await _userManager.FindByEmailAsync(usernameOrEmail);
         }
 
-        // SuperAdmin Check (Identity Role)
+        // ===== SuperAdmin Queries =====
+
         public async Task<bool> IsSuperAdminAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -229,7 +239,41 @@ namespace TheCharityDAL.Repositories.Implementation
             return await _userManager.IsInRoleAsync(user, "SuperAdmin");
         }
 
-        // Organization Role Checks (OrganizationRole Entity)
+        public async Task<(IEnumerable<User> Data, int TotalCount)> GetUsersInRoleAsync(
+            int pageNumber,
+            int pageSize,
+            string role)
+        {
+            // Get the role ID first
+            var roleId = await _context.Roles
+                .Where(r => r.Name == role)
+                .Select(r => r.Id)
+                .FirstOrDefaultAsync();
+
+            if (string.IsNullOrEmpty(roleId))
+                return (Enumerable.Empty<User>(), 0);
+
+            // Single query using Join
+            var query = _context.UserRoles
+                .Where(ur => ur.RoleId == roleId)
+                .Join(_context.Users,
+                      ur => ur.UserId,
+                      u => u.Id,
+                      (ur, u) => u)
+                .Where(u => !u.IsDeleted)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
+        }
+
+        // ===== Organization Role Checks =====
+
         public async Task<bool> IsOrganizationAdminAsync(string userId, int organizationId)
         {
             return await _context.OrganizationRoles
@@ -265,15 +309,14 @@ namespace TheCharityDAL.Repositories.Implementation
             return role?.Role;
         }
 
-        // Organization Management Queries
+        // ===== Organization Management Queries =====
+
         public async Task<IEnumerable<Organization>> GetOrganizationsUserManagesAsync(string userId)
         {
-            // User is admin of organizations
             var adminOrgs = await _context.Organizations
                 .Where(o => o.AdminUserId == userId && !o.IsDeleted)
                 .ToListAsync();
 
-            // User is sub-admin of organizations
             var subAdminOrgIds = await _context.OrganizationRoles
                 .Where(r => r.UserId == userId &&
                            r.Role == OrganizationRoleType.SubAdmin &&
@@ -319,7 +362,6 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Where(o => subAdminOrgIds.Contains(o.Id) && !o.IsDeleted)
                 .ToListAsync();
 
-            // Add organizations user has donated to (as member)
             var donatedOrgIds = await _context.Donations
                 .Where(d => d.UserId == userId &&
                            d.Campaign != null &&
@@ -338,15 +380,12 @@ namespace TheCharityDAL.Repositories.Implementation
 
         public async Task<bool> UserHasAnyManagementRoleAsync(string userId)
         {
-            // Check if user is SuperAdmin (Identity Role)
             if (await IsSuperAdminAsync(userId))
                 return true;
 
-            // Check if user is OrganizationAdmin (OrganizationRole Entity)
             var isAdmin = await _context.Organizations
                 .AnyAsync(o => o.AdminUserId == userId && !o.IsDeleted);
 
-            // Check if user is SubAdmin (OrganizationRole Entity)
             var isSubAdmin = await _context.OrganizationRoles
                 .AnyAsync(r => r.UserId == userId &&
                               r.Role == OrganizationRoleType.SubAdmin &&

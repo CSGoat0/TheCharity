@@ -11,16 +11,17 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<IdentityResult> UpdateUserAsync(User user);
         Task<IdentityResult> DeleteUserAsync(User user);
         Task<IdentityResult> RestoreUserAsync(string id);
-        public Task AddLoginAsync(User user, UserLoginInfo loginInfo);
+        Task AddLoginAsync(User user, UserLoginInfo loginInfo);
         Task<IdentityResult> CreateExternalUserAsync(string email);
+
         // ===== Lookup =====
         Task<User?> GetUserByIdAsync(string id);
         Task<User?> GetUserByEmailAsync(string email);
         Task<User?> FindByNameOrEmailAsync(string usernameOrEmail);
-        Task<IEnumerable<User>?> GetAllUsersAsync();
+        Task<(IEnumerable<User> Data, int TotalCount)> GetAllUsersAsync(int pageNumber, int pageSize, bool includeDeleted = false);
         Task<bool> UserExistsAsync(string userId);
         Task<bool> IsUserDeletedAsync(string userId);
-        public Task<IList<UserLoginInfo>> GetLoginsAsync(User user);
+        Task<IList<UserLoginInfo>> GetLoginsAsync(User user);
 
         // ===== Password =====
         Task<bool> CheckPasswordAsync(User user, string password);
@@ -43,8 +44,9 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task AccessFailedAsync(User user);
         Task ResetAccessFailedCountAsync(User user);
 
-        // ===== SuperAdmin Check (Identity Role) =====
+        // ===== SuperAdmin Queries (Identity Role) =====
         Task<bool> IsSuperAdminAsync(string userId);
+        Task<(IEnumerable<User> Data, int TotalCount)> GetUsersInRoleAsync(int pageNumber, int pageSize, string role);
 
         // ===== Organization Role Queries (OrganizationRole Entity) =====
         Task<bool> IsOrganizationAdminAsync(string userId, int organizationId);
