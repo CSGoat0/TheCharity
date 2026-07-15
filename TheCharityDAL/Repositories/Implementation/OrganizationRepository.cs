@@ -593,14 +593,6 @@ namespace TheCharityDAL.Repositories.Implementation
                               !r.IsDeleted);
         }
 
-        public async Task<IEnumerable<OrganizationRole>> GetOrganizationRolesAsync(int organizationId)
-        {
-            return await _context.OrganizationRoles
-                .Where(r => r.OrganizationId == organizationId && !r.IsDeleted)
-                .Include(r => r.User)
-                .ToListAsync();
-        }
-
         public async Task<OrganizationRole> AddOrganizationRoleAsync(int organizationId, string userId, OrganizationRoleType role)
         {
             // Check if user already has a role in this organization
