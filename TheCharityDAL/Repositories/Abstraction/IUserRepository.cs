@@ -55,10 +55,10 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<OrganizationRoleType?> GetUserRoleInOrganizationAsync(string userId, int organizationId);
 
         // ===== Organization Management Queries =====
-        Task<IEnumerable<Organization>> GetOrganizationsUserManagesAsync(string userId);
-        Task<IEnumerable<Organization>> GetOrganizationsUserIsSubAdminOfAsync(string userId);
-        Task<IEnumerable<Organization>> GetAllOrganizationsUserHasAccessToAsync(string userId);
+        Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsUserManagesAsync(int pageNumber, int pageSize, string userId);
+        Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsUserIsSubAdminOfAsync(int pageNumber, int pageSize, string userId);
+        Task<(IEnumerable<Organization> Data, int TotalCount)> GetAllOrganizationsUserHasAccessToAsync(int pageNumber, int pageSize, string userId);
         Task<bool> UserHasAnyManagementRoleAsync(string userId);
-        Task<IEnumerable<OrganizationRole>> GetUserOrganizationRolesAsync(string userId);
+        Task<(IEnumerable<OrganizationRole> Data, int TotalCount)> GetUserOrganizationRolesAsync(int pageNumber, int pageSize, string userId);
     }
 }
