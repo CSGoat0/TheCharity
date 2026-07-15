@@ -819,9 +819,9 @@ namespace TheCharityBLL.Services.Implementation
                     OrganizationId = role.OrganizationId,
                     UserId = role.UserId,
                     Role = role.Role,
-                    UserName = user.UserName,
-                    UserEmail = user.Email,
-                    UserFullName = user.FullName
+                    UserName = user.Data?.UserName,
+                    UserEmail = user.Data?.Email,
+                    UserFullName = user.Data?.FullName
                 };
 
                 return new ServiceResponse<OrganizationRoleResponseDto>
