@@ -964,20 +964,51 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsUserManagesAsync(string userId)
+        public async Task<ServiceResponse<PagedResultDto<Organization>>> GetOrganizationsUserManagesAsync(
+     PaginationParametersDto parametersDto,
+     string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
-                throw new ArgumentException("User ID cannot be null or empty", nameof(userId));
+            {
+                return new ServiceResponse<PagedResultDto<Organization>>
+                {
+                    Success = false,
+                    Message = "User ID cannot be null or empty."
+                };
+            }
 
             try
             {
                 _logger.LogInformation("Getting organizations managed by user: {UserId}", userId);
-                return await _userRepository.GetOrganizationsUserManagesAsync(userId);
+
+                var (organizations, totalCount) = await _userRepository.GetOrganizationsUserManagesAsync(
+                    parametersDto.PageNumber,
+                    parametersDto.PageSize,
+                    userId);
+
+                var response = new PagedResultDto<Organization>
+                {
+                    Items = organizations,
+                    TotalCount = totalCount,
+                    PageNumber = parametersDto.PageNumber,
+                    PageSize = parametersDto.PageSize
+                };
+
+                return new ServiceResponse<PagedResultDto<Organization>>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Organizations managed by user retrieved successfully."
+                };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting organizations managed by user: {UserId}", userId);
-                throw;
+                return new ServiceResponse<PagedResultDto<Organization>>
+                {
+                    Success = false,
+                    Message = $"An error occurred while retrieving organizations: {ex.Message}"
+                };
             }
         }
     }

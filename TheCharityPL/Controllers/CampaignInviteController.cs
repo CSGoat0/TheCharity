@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TheCharityBLL.Authorization.Attributes;
 using TheCharityBLL.DTOs.CampaignDTOs;
+using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Services.Abstraction;
 
 namespace TheCharityPL.Controllers
@@ -111,9 +112,18 @@ namespace TheCharityPL.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var organizations = await _userService.GetOrganizationsUserManagesAsync(userId);
-            if (!organizations.Any())
+            // Use paginated method with int.MaxValue to get ALL organizations
+            var allParams = new PaginationParametersDto
+            {
+                PageNumber = 1,
+                PageSize = int.MaxValue
+            };
+
+            var organizationsResult = await _userService.GetOrganizationsUserManagesAsync(allParams, userId);
+            if (!organizationsResult.Success || organizationsResult.Data?.Items == null)
                 return Ok(new List<InviteResponseDto>());
+
+            var organizations = organizationsResult.Data.Items;
 
             // Get pending invites for all organizations the user manages
             var allInvites = new List<InviteResponseDto>();

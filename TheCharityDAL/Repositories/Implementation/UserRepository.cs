@@ -311,12 +311,18 @@ namespace TheCharityDAL.Repositories.Implementation
 
         // ===== Organization Management Queries =====
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsUserManagesAsync(string userId)
+        public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsUserManagesAsync(
+            int pageNumber,
+            int pageSize,
+            string userId)
         {
-            var adminOrgs = await _context.Organizations
+            // Get organization IDs where user is Admin
+            var adminOrgIds = await _context.Organizations
                 .Where(o => o.AdminUserId == userId && !o.IsDeleted)
+                .Select(o => o.Id)
                 .ToListAsync();
 
+            // Get organization IDs where user is SubAdmin
             var subAdminOrgIds = await _context.OrganizationRoles
                 .Where(r => r.UserId == userId &&
                            r.Role == OrganizationRoleType.SubAdmin &&
@@ -324,14 +330,32 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Select(r => r.OrganizationId)
                 .ToListAsync();
 
-            var subAdminOrgs = await _context.Organizations
-                .Where(o => subAdminOrgIds.Contains(o.Id) && !o.IsDeleted)
+            // Combine all organization IDs
+            var allOrgIds = adminOrgIds.Concat(subAdminOrgIds).Distinct().ToList();
+
+            if (!allOrgIds.Any())
+                return (Enumerable.Empty<Organization>(), 0);
+
+            // Query organizations with pagination
+            var query = _context.Organizations
+                .Where(o => allOrgIds.Contains(o.Id) && !o.IsDeleted)
+                .Include(o => o.ContactMethods.Where(cm => !cm.IsDeleted))
+                .Include(o => o.PaymentInfo)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return adminOrgs.Concat(subAdminOrgs).Distinct().ToList();
+            return (items, totalCount);
         }
 
-        public async Task<IEnumerable<Organization>> GetOrganizationsUserIsSubAdminOfAsync(string userId)
+        public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsUserIsSubAdminOfAsync(
+            int pageNumber,
+            int pageSize,
+            string userId)
         {
             var subAdminOrgIds = await _context.OrganizationRoles
                 .Where(r => r.UserId == userId &&
@@ -340,17 +364,36 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Select(r => r.OrganizationId)
                 .ToListAsync();
 
-            return await _context.Organizations
+            if (!subAdminOrgIds.Any())
+                return (Enumerable.Empty<Organization>(), 0);
+
+            var query = _context.Organizations
                 .Where(o => subAdminOrgIds.Contains(o.Id) && !o.IsDeleted)
+                .Include(o => o.ContactMethods.Where(cm => !cm.IsDeleted))
+                .Include(o => o.PaymentInfo)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return (items, totalCount);
         }
 
-        public async Task<IEnumerable<Organization>> GetAllOrganizationsUserHasAccessToAsync(string userId)
+        public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetAllOrganizationsUserHasAccessToAsync(
+            int pageNumber,
+            int pageSize,
+            string userId)
         {
-            var adminOrgs = await _context.Organizations
+            // Get organization IDs where user is Admin
+            var adminOrgIds = await _context.Organizations
                 .Where(o => o.AdminUserId == userId && !o.IsDeleted)
+                .Select(o => o.Id)
                 .ToListAsync();
 
+            // Get organization IDs where user is SubAdmin
             var subAdminOrgIds = await _context.OrganizationRoles
                 .Where(r => r.UserId == userId &&
                            r.Role == OrganizationRoleType.SubAdmin &&
@@ -358,10 +401,7 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Select(r => r.OrganizationId)
                 .ToListAsync();
 
-            var subAdminOrgs = await _context.Organizations
-                .Where(o => subAdminOrgIds.Contains(o.Id) && !o.IsDeleted)
-                .ToListAsync();
-
+            // Get organization IDs where user has donated
             var donatedOrgIds = await _context.Donations
                 .Where(d => d.UserId == userId &&
                            d.Campaign != null &&
@@ -371,11 +411,44 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Distinct()
                 .ToListAsync();
 
-            var donatedOrgs = await _context.Organizations
-                .Where(o => donatedOrgIds.Contains(o.Id) && !o.IsDeleted)
+            // Combine all organization IDs
+            var allOrgIds = adminOrgIds.Concat(subAdminOrgIds).Concat(donatedOrgIds).Distinct().ToList();
+
+            if (!allOrgIds.Any())
+                return (Enumerable.Empty<Organization>(), 0);
+
+            var query = _context.Organizations
+                .Where(o => allOrgIds.Contains(o.Id) && !o.IsDeleted)
+                .Include(o => o.ContactMethods.Where(cm => !cm.IsDeleted))
+                .Include(o => o.PaymentInfo)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
 
-            return adminOrgs.Concat(subAdminOrgs).Concat(donatedOrgs).Distinct().ToList();
+            return (items, totalCount);
+        }
+
+        public async Task<(IEnumerable<OrganizationRole> Data, int TotalCount)> GetUserOrganizationRolesAsync(
+            int pageNumber,
+            int pageSize,
+            string userId)
+        {
+            var query = _context.OrganizationRoles
+                .Where(r => r.UserId == userId && !r.IsDeleted)
+                .Include(r => r.Organization)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+
+            return (items, totalCount);
         }
 
         public async Task<bool> UserHasAnyManagementRoleAsync(string userId)
@@ -392,14 +465,6 @@ namespace TheCharityDAL.Repositories.Implementation
                               !r.IsDeleted);
 
             return isAdmin || isSubAdmin;
-        }
-
-        public async Task<IEnumerable<OrganizationRole>> GetUserOrganizationRolesAsync(string userId)
-        {
-            return await _context.OrganizationRoles
-                .Where(r => r.UserId == userId && !r.IsDeleted)
-                .Include(r => r.Organization)
-                .ToListAsync();
         }
     }
 }

@@ -46,6 +46,6 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<IdentityResult>> RemoveFromRoleAsync(string userId, string role);
 
         // ===== Organization Management Queries =====
-        Task<IEnumerable<Organization>> GetOrganizationsUserManagesAsync(string userId);
+        Task<ServiceResponse<PagedResultDto<Organization>>> GetOrganizationsUserManagesAsync(PaginationParametersDto parametersDto, string userId);
     }
 }
