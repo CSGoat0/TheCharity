@@ -136,7 +136,6 @@ namespace TheCharityPL.Controllers
                     PageSize = parametersDto.PageSize
                 });
 
-            // Get ALL organizations (if we're using parametersDto with limited page size)
             // For this endpoint, we need all organizations to get all invites
             var allOrgsParams = new PaginationParametersDto
             {
