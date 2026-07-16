@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using TheCharityBLL.DTOs;
+using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.DTOs.UserResponseDTOs;
@@ -46,6 +47,6 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<IdentityResult>> RemoveFromRoleAsync(string userId, string role);
 
         // ===== Organization Management Queries =====
-        Task<ServiceResponse<PagedResultDto<Organization>>> GetOrganizationsUserManagesAsync(PaginationParametersDto parametersDto, string userId);
+        Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsUserManagesAsync(PaginationParametersDto parametersDto, string userId);
     }
 }

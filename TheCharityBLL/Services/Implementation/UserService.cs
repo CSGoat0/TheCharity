@@ -7,6 +7,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using TheCharityBLL.DTOs;
+using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.DTOs.UserResponseDTOs;
@@ -964,13 +965,13 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<ServiceResponse<PagedResultDto<Organization>>> GetOrganizationsUserManagesAsync(
-     PaginationParametersDto parametersDto,
-     string userId)
+        public async Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsUserManagesAsync(
+            PaginationParametersDto parametersDto,
+            string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
-                return new ServiceResponse<PagedResultDto<Organization>>
+                return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
                 {
                     Success = false,
                     Message = "User ID cannot be null or empty."
@@ -986,15 +987,18 @@ namespace TheCharityBLL.Services.Repository
                     parametersDto.PageSize,
                     userId);
 
-                var response = new PagedResultDto<Organization>
+                // Map to DTO
+                var organizationDtos = _mapper.Map<IEnumerable<OrganizationResponseDto>>(organizations);
+
+                var response = new PagedResultDto<OrganizationResponseDto>
                 {
-                    Items = organizations,
+                    Items = organizationDtos,
                     TotalCount = totalCount,
                     PageNumber = parametersDto.PageNumber,
                     PageSize = parametersDto.PageSize
                 };
 
-                return new ServiceResponse<PagedResultDto<Organization>>
+                return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
                 {
                     Success = true,
                     Data = response,
@@ -1004,7 +1008,7 @@ namespace TheCharityBLL.Services.Repository
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting organizations managed by user: {UserId}", userId);
-                return new ServiceResponse<PagedResultDto<Organization>>
+                return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
                 {
                     Success = false,
                     Message = $"An error occurred while retrieving organizations: {ex.Message}"
