@@ -95,11 +95,11 @@ namespace TheCharityDAL.Repositories.Abstraction
 
         // Shared Campaign Invites
         Task<SharedCampaignInvite> CreateInviteAsync(SharedCampaignInvite invite);
-        Task<IEnumerable<SharedCampaignInvite>> GetExpiredInvitesAsync(DateTime cutoffDate);
+        Task<(IEnumerable<SharedCampaignInvite> Data, int TotalCount)> GetExpiredInvitesAsync(int pageNumber, int pageSize, DateTime cutoffDate);
         Task<SharedCampaignInvite?> GetInviteByIdAsync(int inviteId);
-        Task<IEnumerable<SharedCampaignInvite>> GetInvitesForSharedCampaignAsync(int sharedCampaignId);
-        Task<IEnumerable<SharedCampaignInvite>> GetPendingInvitesForOrganizationAsync(int organizationId);
-        Task<IEnumerable<SharedCampaignInvite>> GetInvitesSentByUserAsync(string userId);
+        Task<(IEnumerable<SharedCampaignInvite> Data, int TotalCount)> GetInvitesForSharedCampaignAsync(int pageNumber, int pageSize, int sharedCampaignId);
+        Task<(IEnumerable<SharedCampaignInvite> Data, int TotalCount)> GetPendingInvitesForOrganizationAsync(int pageNumber, int pageSize, int organizationId);
+        Task<(IEnumerable<SharedCampaignInvite> Data, int TotalCount)> GetInvitesSentByUserAsync(int pageNumber, int pageSize, string userId);
         Task<SharedCampaignInvite> UpdateInviteStatusAsync(int inviteId, InviteStatus status);
         Task<bool> HasPendingInviteAsync(int sharedCampaignId, int organizationId);
         Task<int> ExpireOldInvitesAsync(DateTime cutoffDate);

@@ -32,7 +32,8 @@ namespace TheCharityBLL.Jobs.Emails
             var expiredCount = 0;
 
             // Get all expired invites
-            var expiredInvites = await _campaignRepository.GetExpiredInvitesAsync(cutoffDate);
+            var query = await _campaignRepository.GetExpiredInvitesAsync(1, int.MaxValue, cutoffDate);
+            var expiredInvites = query.Data;
 
             if (expiredInvites == null || !expiredInvites.Any())
                 return JobResult.Success("No expired invites found");

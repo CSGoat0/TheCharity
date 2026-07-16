@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using TheCharityBLL.Authorization.Attributes;
+using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Services.Abstraction;
@@ -27,6 +28,10 @@ namespace TheCharityPL.Controllers
             _userService = userService;
         }
 
+        // ==============================
+        // Send Invite
+        // ==============================
+
         /// <summary>
         /// Send an invite to an organization to join a shared campaign
         /// </summary>
@@ -46,11 +51,12 @@ namespace TheCharityPL.Controllers
                 userId,
                 request.ExpiresInDays);
 
-            if (!result.Success)
-                return BadRequest(result);
-
-            return Ok(result);
+            return HandleResponse(result);
         }
+
+        // ==============================
+        // Accept Invite
+        // ==============================
 
         /// <summary>
         /// Accept an invite to join a shared campaign
@@ -64,12 +70,12 @@ namespace TheCharityPL.Controllers
                 return Unauthorized();
 
             var result = await _inviteService.AcceptInviteAsync(inviteId, userId);
-
-            if (!result.Success)
-                return BadRequest(result);
-
-            return Ok(result);
+            return HandleResponse(result);
         }
+
+        // ==============================
+        // Reject Invite
+        // ==============================
 
         /// <summary>
         /// Reject an invite to join a shared campaign
@@ -83,76 +89,135 @@ namespace TheCharityPL.Controllers
                 return Unauthorized();
 
             var result = await _inviteService.RejectInviteAsync(inviteId, userId);
-
-            if (!result.Success)
-                return BadRequest(result);
-
-            return Ok(result);
+            return HandleResponse(result);
         }
 
+        // ==============================
+        // Get Invites For Campaign
+        // ==============================
+
         /// <summary>
-        /// Get all invites for a shared campaign
+        /// Get all invites for a shared campaign with pagination
         /// </summary>
         [HttpGet("{campaignId}/invites")]
         [IsSharedCampaignCreator] // Only creator org Admin/SubAdmin + SuperAdmin
-        public async Task<IActionResult> GetInvitesForCampaign(int campaignId)
+        public async Task<IActionResult> GetInvitesForCampaign(
+            [FromQuery] PaginationParametersDto parametersDto,
+            int campaignId)
         {
-            var result = await _inviteService.GetInvitesForCampaignAsync(campaignId);
-            return Ok(result);
+            var result = await _inviteService.GetInvitesForCampaignAsync(parametersDto, campaignId);
+            return HandleResponse(result);
         }
 
+        // ==============================
+        // Get Pending Invites For Organization
+        // ==============================
+
         /// <summary>
-        /// Get all pending invites for the current user's organization
+        /// Get all pending invites for the current user's organization with pagination
         /// </summary>
         [HttpGet("invites/pending")]
         [Authorize]
-        public async Task<IActionResult> GetPendingInvitesForOrganization()
+        public async Task<IActionResult> GetPendingInvitesForOrganization(
+            [FromQuery] PaginationParametersDto parametersDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            // Use paginated method with int.MaxValue to get ALL organizations
-            var allParams = new PaginationParametersDto
+            // Use paginated method to get organizations the user manages
+            var organizationsResult = await _userService.GetOrganizationsUserManagesAsync(parametersDto, userId);
+            if (!organizationsResult.Success || organizationsResult.Data?.Items == null)
+                return Ok(new PagedResultDto<InviteResponseDto>
+                {
+                    Items = Enumerable.Empty<InviteResponseDto>(),
+                    TotalCount = 0,
+                    PageNumber = parametersDto.PageNumber,
+                    PageSize = parametersDto.PageSize
+                });
+
+            // Get ALL organizations (if we're using parametersDto with limited page size)
+            // For this endpoint, we need all organizations to get all invites
+            var allOrgsParams = new PaginationParametersDto
             {
                 PageNumber = 1,
                 PageSize = int.MaxValue
             };
 
-            var organizationsResult = await _userService.GetOrganizationsUserManagesAsync(allParams, userId);
-            if (!organizationsResult.Success || organizationsResult.Data?.Items == null)
-                return Ok(new List<InviteResponseDto>());
+            var allOrgsResult = await _userService.GetOrganizationsUserManagesAsync(allOrgsParams, userId);
+            if (!allOrgsResult.Success || allOrgsResult.Data?.Items == null)
+                return Ok(new PagedResultDto<InviteResponseDto>
+                {
+                    Items = Enumerable.Empty<InviteResponseDto>(),
+                    TotalCount = 0,
+                    PageNumber = parametersDto.PageNumber,
+                    PageSize = parametersDto.PageSize
+                });
 
-            var organizations = organizationsResult.Data.Items;
+            var organizations = allOrgsResult.Data.Items;
 
-            // Get pending invites for all organizations the user manages
+            // Get ALL invites from all organizations
             var allInvites = new List<InviteResponseDto>();
             foreach (var org in organizations)
             {
-                var result = await _inviteService.GetPendingInvitesForOrganizationAsync(org.Id);
-                if (result.Success && result.Data != null)
+                var orgInvitesParams = new PaginationParametersDto
                 {
-                    allInvites.AddRange(result.Data);
+                    PageNumber = 1,
+                    PageSize = int.MaxValue
+                };
+
+                var result = await _inviteService.GetPendingInvitesForOrganizationAsync(orgInvitesParams, org.Id);
+                if (result.Success && result.Data?.Items != null)
+                {
+                    allInvites.AddRange(result.Data.Items);
                 }
             }
 
-            return Ok(allInvites);
+            // Apply pagination to the combined list
+            var totalCount = allInvites.Count;
+            var pagedResult = allInvites
+                .Skip((parametersDto.PageNumber - 1) * parametersDto.PageSize)
+                .Take(parametersDto.PageSize)
+                .ToList();
+
+            var response = new PagedResultDto<InviteResponseDto>
+            {
+                Items = pagedResult,
+                TotalCount = totalCount,
+                PageNumber = parametersDto.PageNumber,
+                PageSize = parametersDto.PageSize
+            };
+
+            return Ok(new ServiceResponse<PagedResultDto<InviteResponseDto>>
+            {
+                Success = true,
+                Data = response,
+                Message = "Pending invites retrieved successfully."
+            });
         }
 
+        // ==============================
+        // Get Invites Sent By User
+        // ==============================
+
         /// <summary>
-        /// Get all invites sent by the current user
+        /// Get all invites sent by the current user with pagination
         /// </summary>
         [HttpGet("invites/sent")]
         [Authorize]
-        public async Task<IActionResult> GetInvitesSentByUser()
+        public async Task<IActionResult> GetInvitesSentByUser([FromQuery] PaginationParametersDto parametersDto)
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized();
 
-            var result = await _inviteService.GetInvitesSentByUserAsync(userId);
-            return Ok(result);
+            var result = await _inviteService.GetInvitesSentByUserAsync(parametersDto, userId);
+            return HandleResponse(result);
         }
+
+        // ==============================
+        // Has Pending Invite
+        // ==============================
 
         /// <summary>
         /// Check if an organization has a pending invite for a campaign
@@ -162,7 +227,42 @@ namespace TheCharityPL.Controllers
         public async Task<IActionResult> HasPendingInvite(int campaignId, int organizationId)
         {
             var result = await _inviteService.HasPendingInviteAsync(campaignId, organizationId);
-            return Ok(result);
+            return HandleResponse(result);
+        }
+
+        // ==============================
+        // Get Expired Invites
+        // ==============================
+
+        /// <summary>
+        /// Get all expired invites with pagination
+        /// </summary>
+        [HttpGet("invites/expired")]
+        [IsSuperAdmin] // Only SuperAdmin can view expired invites
+        public async Task<IActionResult> GetExpiredInvites(
+            [FromQuery] PaginationParametersDto parametersDto,
+            [FromQuery] DateTime cutoffDate)
+        {
+            var result = await _inviteService.GetExpiredInvitesAsync(parametersDto, cutoffDate);
+            return HandleResponse(result);
+        }
+
+        // ==============================
+        // Helper Methods
+        // ==============================
+
+        private IActionResult HandleResponse<T>(
+            ServiceResponse<T> response,
+            bool notFoundOnFailure = false)
+        {
+            if (!response.Success)
+            {
+                if (notFoundOnFailure)
+                    return NotFound(response);
+
+                return BadRequest(response);
+            }
+            return Ok(response);
         }
     }
 }
