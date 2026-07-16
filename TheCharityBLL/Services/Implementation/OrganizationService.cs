@@ -902,9 +902,9 @@ namespace TheCharityBLL.Services.Implementation
                     };
                 }
 
-                var users = await _repository.GetOrganizationSubAdminsAsync(organizationId);
+                var users = await _repository.GetOrganizationSubAdminsAsync(1, int.MaxValue, organizationId);
 
-                var response = users.Select(u => new UserResponseDTO
+                var response = users.Data.Select(u => new UserResponseDTO
                 {
                     Id = u.Id,
                     UserName = u.UserName,
