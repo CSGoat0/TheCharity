@@ -55,8 +55,8 @@ namespace TheCharityBLL.Services.Implementation
             }
 
             // 3. Get Organization Sub-Admins
-            var subAdmins = await _organizationRepository.GetOrganizationSubAdminsAsync(organizationId.Value);
-            foreach (var subAdmin in subAdmins)
+            var subAdmins = await _organizationRepository.GetOrganizationSubAdminsAsync(1, int.MaxValue, organizationId.Value);
+            foreach (var subAdmin in subAdmins.Data)
             {
                 if (!string.IsNullOrEmpty(subAdmin.Email))
                 {
@@ -191,8 +191,8 @@ namespace TheCharityBLL.Services.Implementation
                 // 2. Get Organization Sub-Admins (if requested)
                 if (includeSubAdmins)
                 {
-                    var subAdmins = await _organizationRepository.GetOrganizationSubAdminsAsync(organizationId);
-                    foreach (var subAdmin in subAdmins)
+                    var subAdmins = await _organizationRepository.GetOrganizationSubAdminsAsync(1, int.MaxValue, organizationId);
+                    foreach (var subAdmin in subAdmins.Data)
                     {
                         if (!string.IsNullOrEmpty(subAdmin.Email))
                         {

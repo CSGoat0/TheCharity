@@ -1,8 +1,10 @@
 ﻿using Microsoft.Extensions.Logging;
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.CampaignDTOs;
+using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.Events.Abstraction;
 using TheCharityBLL.Events.Events.InvitationEvents;
+using TheCharityBLL.Extensions;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Enums;
@@ -34,6 +36,8 @@ namespace TheCharityBLL.Services.Implementation
             _eventDispatcher = eventDispatcher;
             _logger = logger;
         }
+
+        // ===== Send Invite =====
 
         public async Task<ServiceResponse<InviteResponseDto>> SendInviteAsync(
             int sharedCampaignId,
@@ -75,7 +79,7 @@ namespace TheCharityBLL.Services.Implementation
                     };
                 }
 
-                // 4. Check if user has permission to send invites (Creator org Admin/SubAdmin or SuperAdmin)
+                // 4. Check if user has permission to send invites
                 var canSend = await _authorizationService.CanSendInviteAsync(invitedByUserId, sharedCampaignId);
                 if (!canSend)
                 {
@@ -117,19 +121,7 @@ namespace TheCharityBLL.Services.Implementation
                     InvitedByUser = invitedByUser!
                 });
 
-                var response = new InviteResponseDto
-                {
-                    Id = created.Id,
-                    SharedCampaignId = created.SharedCampaignId,
-                    CampaignTitle = campaign.Title,
-                    OrganizationId = created.OrganizationId,
-                    OrganizationName = organization.Name,
-                    InvitedByUserName = inviterName,
-                    Status = created.Status,
-                    RespondedAt = created.RespondedAt,
-                    ExpiresAt = created.ExpiresAt,
-                    RegistrationDate = created.RegistrationDate
-                };
+                var response = MapToInviteResponseDto(created);
 
                 _logger.LogInformation("Invite sent: Campaign {CampaignId} → Organization {OrganizationId} by {UserId}",
                     sharedCampaignId, organizationId, invitedByUserId);
@@ -152,6 +144,8 @@ namespace TheCharityBLL.Services.Implementation
                 };
             }
         }
+
+        // ===== Accept Invite =====
 
         public async Task<ServiceResponse<bool>> AcceptInviteAsync(int inviteId, string userId)
         {
@@ -181,7 +175,6 @@ namespace TheCharityBLL.Services.Implementation
                 // 3. Check if invite has expired
                 if (invite.ExpiresAt < DateTime.UtcNow)
                 {
-                    // Auto-expire the invite
                     await _campaignRepository.UpdateInviteStatusAsync(inviteId, InviteStatus.Expired);
                     return new ServiceResponse<bool>
                     {
@@ -190,7 +183,7 @@ namespace TheCharityBLL.Services.Implementation
                     };
                 }
 
-                // 4. Check if user has permission to accept (Admin/SubAdmin of the invited organization)
+                // 4. Check if user has permission to accept
                 var canAccept = await _authorizationService.CanAcceptInviteAsync(userId, inviteId);
                 if (!canAccept)
                 {
@@ -251,7 +244,7 @@ namespace TheCharityBLL.Services.Implementation
                 {
                     Success = true,
                     Data = true,
-                    Message = $"Invite accepted. Organization added to campaign successfully."
+                    Message = "Invite accepted. Organization added to campaign successfully."
                 };
             }
             catch (Exception ex)
@@ -264,6 +257,8 @@ namespace TheCharityBLL.Services.Implementation
                 };
             }
         }
+
+        // ===== Reject Invite =====
 
         public async Task<ServiceResponse<bool>> RejectInviteAsync(int inviteId, string userId)
         {
@@ -290,7 +285,7 @@ namespace TheCharityBLL.Services.Implementation
                     };
                 }
 
-                // 3. Check if user has permission to reject (Admin/SubAdmin of the invited organization)
+                // 3. Check if user has permission to reject
                 var canReject = await _authorizationService.CanRejectInviteAsync(userId, inviteId);
                 if (!canReject)
                 {
@@ -339,14 +334,30 @@ namespace TheCharityBLL.Services.Implementation
             }
         }
 
-        public async Task<ServiceResponse<IEnumerable<InviteResponseDto>>> GetInvitesForCampaignAsync(int sharedCampaignId)
+        // ===== Get Invites For Campaign (with Pagination) =====
+
+        public async Task<ServiceResponse<PagedResultDto<InviteResponseDto>>> GetInvitesForCampaignAsync(
+            PaginationParametersDto parametersDto,
+            int sharedCampaignId)
         {
             try
             {
-                var invites = await _campaignRepository.GetInvitesForSharedCampaignAsync(sharedCampaignId);
-                var response = invites.Select(MapToInviteResponseDto);
+                var (invites, totalCount) = await _campaignRepository.GetInvitesForSharedCampaignAsync(
+                    parametersDto.PageNumber,
+                    parametersDto.PageSize,
+                    sharedCampaignId);
 
-                return new ServiceResponse<IEnumerable<InviteResponseDto>>
+                var inviteDtos = invites.Select(MapToInviteResponseDto);
+
+                var response = new PagedResultDto<InviteResponseDto>
+                {
+                    Items = inviteDtos,
+                    TotalCount = totalCount,
+                    PageNumber = parametersDto.PageNumber,
+                    PageSize = parametersDto.PageSize
+                };
+
+                return new ServiceResponse<PagedResultDto<InviteResponseDto>>
                 {
                     Success = true,
                     Data = response,
@@ -356,7 +367,7 @@ namespace TheCharityBLL.Services.Implementation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get invites for campaign {CampaignId}", sharedCampaignId);
-                return new ServiceResponse<IEnumerable<InviteResponseDto>>
+                return new ServiceResponse<PagedResultDto<InviteResponseDto>>
                 {
                     Success = false,
                     Message = $"Failed to get invites: {ex.Message}"
@@ -364,14 +375,30 @@ namespace TheCharityBLL.Services.Implementation
             }
         }
 
-        public async Task<ServiceResponse<IEnumerable<InviteResponseDto>>> GetPendingInvitesForOrganizationAsync(int organizationId)
+        // ===== Get Pending Invites For Organization (with Pagination) =====
+
+        public async Task<ServiceResponse<PagedResultDto<InviteResponseDto>>> GetPendingInvitesForOrganizationAsync(
+            PaginationParametersDto parametersDto,
+            int organizationId)
         {
             try
             {
-                var invites = await _campaignRepository.GetPendingInvitesForOrganizationAsync(organizationId);
-                var response = invites.Select(MapToInviteResponseDto);
+                var (invites, totalCount) = await _campaignRepository.GetPendingInvitesForOrganizationAsync(
+                    parametersDto.PageNumber,
+                    parametersDto.PageSize,
+                    organizationId);
 
-                return new ServiceResponse<IEnumerable<InviteResponseDto>>
+                var inviteDtos = invites.Select(MapToInviteResponseDto);
+
+                var response = new PagedResultDto<InviteResponseDto>
+                {
+                    Items = inviteDtos,
+                    TotalCount = totalCount,
+                    PageNumber = parametersDto.PageNumber,
+                    PageSize = parametersDto.PageSize
+                };
+
+                return new ServiceResponse<PagedResultDto<InviteResponseDto>>
                 {
                     Success = true,
                     Data = response,
@@ -381,7 +408,7 @@ namespace TheCharityBLL.Services.Implementation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get pending invites for organization {OrganizationId}", organizationId);
-                return new ServiceResponse<IEnumerable<InviteResponseDto>>
+                return new ServiceResponse<PagedResultDto<InviteResponseDto>>
                 {
                     Success = false,
                     Message = $"Failed to get pending invites: {ex.Message}"
@@ -389,14 +416,30 @@ namespace TheCharityBLL.Services.Implementation
             }
         }
 
-        public async Task<ServiceResponse<IEnumerable<InviteResponseDto>>> GetInvitesSentByUserAsync(string userId)
+        // ===== Get Invites Sent By User (with Pagination) =====
+
+        public async Task<ServiceResponse<PagedResultDto<InviteResponseDto>>> GetInvitesSentByUserAsync(
+            PaginationParametersDto parametersDto,
+            string userId)
         {
             try
             {
-                var invites = await _campaignRepository.GetInvitesSentByUserAsync(userId);
-                var response = invites.Select(MapToInviteResponseDto);
+                var (invites, totalCount) = await _campaignRepository.GetInvitesSentByUserAsync(
+                    parametersDto.PageNumber,
+                    parametersDto.PageSize,
+                    userId);
 
-                return new ServiceResponse<IEnumerable<InviteResponseDto>>
+                var inviteDtos = invites.Select(MapToInviteResponseDto);
+
+                var response = new PagedResultDto<InviteResponseDto>
+                {
+                    Items = inviteDtos,
+                    TotalCount = totalCount,
+                    PageNumber = parametersDto.PageNumber,
+                    PageSize = parametersDto.PageSize
+                };
+
+                return new ServiceResponse<PagedResultDto<InviteResponseDto>>
                 {
                     Success = true,
                     Data = response,
@@ -406,13 +449,15 @@ namespace TheCharityBLL.Services.Implementation
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to get invites sent by user {UserId}", userId);
-                return new ServiceResponse<IEnumerable<InviteResponseDto>>
+                return new ServiceResponse<PagedResultDto<InviteResponseDto>>
                 {
                     Success = false,
                     Message = $"Failed to get sent invites: {ex.Message}"
                 };
             }
         }
+
+        // ===== Has Pending Invite =====
 
         public async Task<ServiceResponse<bool>> HasPendingInviteAsync(int sharedCampaignId, int organizationId)
         {
@@ -435,6 +480,47 @@ namespace TheCharityBLL.Services.Implementation
                 {
                     Success = false,
                     Message = $"Failed to check pending invite: {ex.Message}"
+                };
+            }
+        }
+
+        // ===== Get Expired Invites (with Pagination) =====
+
+        public async Task<ServiceResponse<PagedResultDto<InviteResponseDto>>> GetExpiredInvitesAsync(
+            PaginationParametersDto parametersDto,
+            DateTime cutoffDate)
+        {
+            try
+            {
+                var (invites, totalCount) = await _campaignRepository.GetExpiredInvitesAsync(
+                    parametersDto.PageNumber,
+                    parametersDto.PageSize,
+                    cutoffDate);
+
+                var inviteDtos = invites.Select(MapToInviteResponseDto);
+
+                var response = new PagedResultDto<InviteResponseDto>
+                {
+                    Items = inviteDtos,
+                    TotalCount = totalCount,
+                    PageNumber = parametersDto.PageNumber,
+                    PageSize = parametersDto.PageSize
+                };
+
+                return new ServiceResponse<PagedResultDto<InviteResponseDto>>
+                {
+                    Success = true,
+                    Data = response,
+                    Message = "Expired invites retrieved successfully."
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to get expired invites before {CutoffDate}", cutoffDate);
+                return new ServiceResponse<PagedResultDto<InviteResponseDto>>
+                {
+                    Success = false,
+                    Message = $"Failed to get expired invites: {ex.Message}"
                 };
             }
         }

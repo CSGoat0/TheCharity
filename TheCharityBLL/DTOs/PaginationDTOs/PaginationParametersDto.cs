@@ -1,5 +1,4 @@
-﻿
-namespace TheCharityBLL.DTOs.PaginationDTOs
+﻿namespace TheCharityBLL.DTOs.PaginationDTOs
 {
     public class PaginationParametersDto
     {

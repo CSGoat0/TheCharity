@@ -596,7 +596,7 @@ namespace TheCharityDAL.Repositories.Implementation
             return campaign?.Type;
         }
 
-        // Campaign Ownership
+        // ===== Campaign Ownership =====
         public async Task<bool> IsCampaignOwnedByOrganizationAsync(int campaignId, int organizationId)
         {
             var campaign = await GetCampaignByIdAsync(campaignId);
@@ -623,12 +623,29 @@ namespace TheCharityDAL.Repositories.Implementation
             return null;
         }
 
-        // Shared Campaign Invites
+        // ===== Shared Campaign Invites =====
         public async Task<SharedCampaignInvite> CreateInviteAsync(SharedCampaignInvite invite)
         {
             _context.SharedCampaignInvites.Add(invite);
             await _context.SaveChangesAsync();
             return invite;
+        }
+
+        public async Task<(IEnumerable<SharedCampaignInvite> Data, int TotalCount)> GetExpiredInvitesAsync(
+            int pageNumber,
+            int pageSize,
+            DateTime cutoffDate)
+        {
+            var query = _context.SharedCampaignInvites
+                .Where(i => i.Status == InviteStatus.Pending &&
+                           i.ExpiresAt < cutoffDate &&
+                           !i.IsDeleted)
+                .Include(i => i.SharedCampaign)
+                .Include(i => i.Organization)
+                .OrderByDescending(i => i.ExpiresAt)
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<SharedCampaignInvite?> GetInviteByIdAsync(int inviteId)
@@ -641,19 +658,27 @@ namespace TheCharityDAL.Repositories.Implementation
                 .FirstOrDefaultAsync();
         }
 
-        public async Task<IEnumerable<SharedCampaignInvite>> GetInvitesForSharedCampaignAsync(int sharedCampaignId)
+        public async Task<(IEnumerable<SharedCampaignInvite> Data, int TotalCount)> GetInvitesForSharedCampaignAsync(
+            int pageNumber,
+            int pageSize,
+            int sharedCampaignId)
         {
-            return await _context.SharedCampaignInvites
+            var query = _context.SharedCampaignInvites
                 .Where(i => i.SharedCampaignId == sharedCampaignId && !i.IsDeleted)
                 .Include(i => i.Organization)
                 .Include(i => i.InvitedByUser)
                 .OrderByDescending(i => i.RegistrationDate)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<SharedCampaignInvite>> GetPendingInvitesForOrganizationAsync(int organizationId)
+        public async Task<(IEnumerable<SharedCampaignInvite> Data, int TotalCount)> GetPendingInvitesForOrganizationAsync(
+            int pageNumber,
+            int pageSize,
+            int organizationId)
         {
-            return await _context.SharedCampaignInvites
+            var query = _context.SharedCampaignInvites
                 .Where(i => i.OrganizationId == organizationId &&
                            i.Status == InviteStatus.Pending &&
                            i.ExpiresAt > DateTime.UtcNow &&
@@ -661,17 +686,24 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Include(i => i.SharedCampaign)
                 .Include(i => i.InvitedByUser)
                 .OrderByDescending(i => i.RegistrationDate)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<IEnumerable<SharedCampaignInvite>> GetInvitesSentByUserAsync(string userId)
+        public async Task<(IEnumerable<SharedCampaignInvite> Data, int TotalCount)> GetInvitesSentByUserAsync(
+            int pageNumber,
+            int pageSize,
+            string userId)
         {
-            return await _context.SharedCampaignInvites
+            var query = _context.SharedCampaignInvites
                 .Where(i => i.InvitedByUserId == userId && !i.IsDeleted)
                 .Include(i => i.SharedCampaign)
                 .Include(i => i.Organization)
                 .OrderByDescending(i => i.RegistrationDate)
-                .ToListAsync();
+                .AsQueryable();
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
         public async Task<SharedCampaignInvite> UpdateInviteStatusAsync(int inviteId, InviteStatus status)
@@ -724,17 +756,6 @@ namespace TheCharityDAL.Repositories.Implementation
 
             await _context.SaveChangesAsync();
             return invites.Count;
-        }
-
-        public async Task<IEnumerable<SharedCampaignInvite>> GetExpiredInvitesAsync(DateTime cutoffDate)
-        {
-            return await _context.SharedCampaignInvites
-                .Where(i => i.Status == InviteStatus.Pending &&
-                           i.ExpiresAt < cutoffDate &&
-                           !i.IsDeleted)
-                .Include(i => i.SharedCampaign)
-                .Include(i => i.Organization)
-                .ToListAsync();
         }
     }
 }

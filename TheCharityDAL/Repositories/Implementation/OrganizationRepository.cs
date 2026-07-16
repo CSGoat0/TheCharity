@@ -520,19 +520,36 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // SubAdmin Management
-        public async Task<IEnumerable<User>> GetOrganizationSubAdminsAsync(int organizationId)
+        public async Task<(IEnumerable<User> Data, int TotalCount)> GetOrganizationSubAdminsAsync(
+           int pageNumber,
+           int pageSize,
+           int organizationId)
         {
-            var roleIds = await _context.OrganizationRoles
+            // Get the user IDs of sub-admins for this organization
+            var subAdminUserIds = await _context.OrganizationRoles
                 .Where(r => r.OrganizationId == organizationId &&
                            r.Role == OrganizationRoleType.SubAdmin &&
                            !r.IsDeleted)
                 .Select(r => r.UserId)
                 .ToListAsync();
 
-            return await _context.Users
-                .Where(u => roleIds.Contains(u.Id) && !u.IsDeleted)
+            if (!subAdminUserIds.Any())
+                return (Enumerable.Empty<User>(), 0);
+
+            // Query users with pagination
+            var query = _context.Users
+                .Where(u => subAdminUserIds.Contains(u.Id) && !u.IsDeleted)
+                .AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
                 .ToListAsync();
+
+            return (items, totalCount);
         }
+
 
         public async Task<OrganizationRole> AddSubAdminAsync(int organizationId, string userId)
         {
@@ -591,14 +608,6 @@ namespace TheCharityDAL.Repositories.Implementation
                               r.UserId == userId &&
                               r.Role == OrganizationRoleType.SubAdmin &&
                               !r.IsDeleted);
-        }
-
-        public async Task<IEnumerable<OrganizationRole>> GetOrganizationRolesAsync(int organizationId)
-        {
-            return await _context.OrganizationRoles
-                .Where(r => r.OrganizationId == organizationId && !r.IsDeleted)
-                .Include(r => r.User)
-                .ToListAsync();
         }
 
         public async Task<OrganizationRole> AddOrganizationRoleAsync(int organizationId, string userId, OrganizationRoleType role)

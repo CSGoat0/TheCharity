@@ -3,7 +3,6 @@ using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
-using TheCharityDAL.Entities;
 using TheCharityDAL.Enums;
 
 namespace TheCharityBLL.Services.Abstraction
