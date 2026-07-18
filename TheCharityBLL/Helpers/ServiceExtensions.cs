@@ -21,6 +21,7 @@ using TheCharityBLL.Events.Implementation;
 using TheCharityBLL.Jobs.Emails;
 using TheCharityBLL.Jobs.Registry.Abstraction;
 using TheCharityBLL.Jobs.Registry.Implementation;
+using TheCharityBLL.Jobs.Scheduled;
 using TheCharityBLL.Jobs.Services;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
@@ -98,7 +99,7 @@ namespace TheCharityBLL.Helpers
             services.AddScoped<AutoExpireCampaignsJob>();
             services.AddScoped<CampaignDeadlineReminderJob>();
             services.AddScoped<DeadlineExtensionConfirmationJob>();
-            services.AddScoped<ExpireOldInvitesJob>();
+            services.AddScoped<AutoExpireOldInvitesJob>();
             services.AddScoped<NewCampaignNotificationJob>();
             services.AddScoped<SendMilestoneEmailJob>();
             services.AddScoped<WeeklyCampaignDigestJob>();
