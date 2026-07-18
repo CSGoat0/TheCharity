@@ -1,4 +1,4 @@
-﻿namespace TheCharityBLL.DTOs.UserResponseDTOs
+﻿namespace TheCharityBLL.DTOs.UserDTOs
 {
     public class ResetPasswordResponseDto
     {

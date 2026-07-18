@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace TheCharityBLL.DTOs.UserResponseDTOs
+namespace TheCharityBLL.DTOs.UserDTOs
 {
     public class LoginResponseDto
     {
