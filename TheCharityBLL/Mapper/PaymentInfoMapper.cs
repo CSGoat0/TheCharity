@@ -23,7 +23,6 @@ namespace TheCharityBLL.Mapper
                 RegistrationDate = paymentInfo.RegistrationDate,
                 UpdatedOn = paymentInfo.UpdatedOn,
                 IsDeleted = paymentInfo.IsDeleted,
-                OrganizationId = paymentInfo.OrganizationId
             };
         }
 
@@ -49,10 +48,7 @@ namespace TheCharityBLL.Mapper
                 dto.ApiKey,
                 dto.IntegrationId,
                 dto.IframeId,
-                dto.HmacKey)
-            {
-                OrganizationId = dto.OrganizationId
-            };
+                dto.HmacKey);
         }
 
         // ===== Update Mappings =====
@@ -63,19 +59,16 @@ namespace TheCharityBLL.Mapper
             if (existingPaymentInfo == null) return null!;
 
             if (!string.IsNullOrWhiteSpace(dto.ApiKey))
-                existingPaymentInfo.ApiKey = dto.ApiKey;
+                existingPaymentInfo.EditApiKey(dto.ApiKey);
 
             if (!string.IsNullOrWhiteSpace(dto.IntegrationId))
-                existingPaymentInfo.IntegrationId = dto.IntegrationId;
+                existingPaymentInfo.EditApiKey(dto.IntegrationId);
 
             if (!string.IsNullOrWhiteSpace(dto.IframeId))
-                existingPaymentInfo.IframeId = dto.IframeId;
+                existingPaymentInfo.EditApiKey(dto.IframeId);
 
             if (!string.IsNullOrWhiteSpace(dto.HmacKey))
-                existingPaymentInfo.HmacKey = dto.HmacKey;
-
-            if (dto.OrganizationId > 0)
-                existingPaymentInfo.OrganizationId = dto.OrganizationId;
+                existingPaymentInfo.EditApiKey(dto.HmacKey);
 
             return existingPaymentInfo;
         }

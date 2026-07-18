@@ -14,7 +14,7 @@ namespace TheCharityBLL.Services.Abstraction.Payment
         Task<ServiceResponse<PaymentInfoResponseDto?>> GetPaymentInfoByIdAsync(int paymentInfoId);
         Task<ServiceResponse<PaymentInfoResponseDto?>> CreatePaymentInfoAsync(CreatePaymentInfoDto dto);
         Task<ServiceResponse<PaymentInfoResponseDto>> UpdatePaymentInfoAsync(int paymentInfoId, UpdatePaymentInfoDto dto);
-        Task DeletePaymentInfoAsync(int paymentInfoId);
+        Task<ServiceResponse<bool>> DeletePaymentInfoAsync(int paymentInfoId);
         Task<ServiceResponse<bool>> RestorePaymentInfoAsync(int paymentInfoId);
 
         Task<ServiceResponse<bool>> HasPaymentInfoAsync(int organizationId);

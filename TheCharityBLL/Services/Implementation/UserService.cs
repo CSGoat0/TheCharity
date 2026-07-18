@@ -25,14 +25,13 @@ namespace TheCharityBLL.Services.Repository
 
         public UserService(
             IUserRepository userRepository,
-            UserMapper userMapper,
             IConfiguration configuration,
             ILogger<UserService> logger)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _userMapper = userMapper ?? throw new ArgumentNullException(nameof(userMapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
+            _userMapper = new UserMapper();
         }
 
         // ===== Queries =====

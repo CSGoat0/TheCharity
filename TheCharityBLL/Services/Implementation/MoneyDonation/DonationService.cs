@@ -16,10 +16,10 @@ namespace TheCharityBLL.Services.Implementation.MoneyDonation
         private readonly IEventDispatcher _eventDispatcher;
         private readonly DonationMapper _mapper;
 
-        public DonationService(IDonationRepository repo, DonationMapper mapper, IEventDispatcher eventDispatcher)
+        public DonationService(IDonationRepository repo, IEventDispatcher eventDispatcher)
         {
             _repo = repo;
-            _mapper = mapper;
+            _mapper = new DonationMapper();
             _eventDispatcher = eventDispatcher;
         }
 
