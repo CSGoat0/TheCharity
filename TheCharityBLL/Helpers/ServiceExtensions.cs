@@ -23,7 +23,6 @@ using TheCharityBLL.Jobs.Registry.Abstraction;
 using TheCharityBLL.Jobs.Registry.Implementation;
 using TheCharityBLL.Jobs.Scheduled;
 using TheCharityBLL.Jobs.Services;
-using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.Services.Abstraction.MoneyDonation;
 using TheCharityBLL.Services.Abstraction.Payment;
@@ -154,13 +153,6 @@ namespace TheCharityBLL.Helpers
                 options.AddPolicy("IsSuperAdmin", policy =>
                     policy.Requirements.Add(new IsSuperAdminRequirement()));
             });
-            // mapper Injection
-            services.AddAutoMapper(cfg => {
-                cfg.AddProfile<UserMapperProfile>();
-                cfg.AddProfile<PaymentInfoMappingProfile>();
-            });
-            services.AddScoped<DonationMapper>();
-
         }
         public static void ThirdPartyAuthentication(this IServiceCollection services, IConfiguration Configuration)
         {

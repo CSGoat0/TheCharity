@@ -1,5 +1,4 @@
-﻿using AutoMapper;
-using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.IdentityModel.Tokens;
@@ -10,6 +9,7 @@ using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
+using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Repositories.Abstraction;
@@ -19,18 +19,18 @@ namespace TheCharityBLL.Services.Repository
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IMapper _mapper;
+        private readonly UserMapper _userMapper;
         private readonly ILogger<UserService> _logger;
         private readonly IConfiguration _configuration;
 
         public UserService(
             IUserRepository userRepository,
-            IMapper mapper,
+            UserMapper userMapper,
             IConfiguration configuration,
             ILogger<UserService> logger)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
-            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _userMapper = userMapper ?? throw new ArgumentNullException(nameof(userMapper));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
@@ -48,7 +48,7 @@ namespace TheCharityBLL.Services.Repository
                     parametersDto.PageSize,
                     includeDeleted);
 
-                var userDtos = _mapper.Map<IEnumerable<UserResponseDTO>>(users);
+                var userDtos = _userMapper.MapToUserResponseDtos(users);
 
                 var response = new PagedResultDto<UserResponseDTO>
                 {
@@ -101,7 +101,7 @@ namespace TheCharityBLL.Services.Repository
                     };
                 }
 
-                var response = _mapper.Map<UserResponseDTO>(user);
+                var response = _userMapper.MapToUserResponseDto(user);
 
                 return new ServiceResponse<UserResponseDTO>
                 {
@@ -130,7 +130,7 @@ namespace TheCharityBLL.Services.Repository
                     parametersDto.PageSize,
                     role);
 
-                var userDtos = _mapper.Map<IEnumerable<UserResponseDTO>>(users);
+                var userDtos = _userMapper.MapToUserResponseDtos(users);
 
                 var response = new PagedResultDto<UserResponseDTO>
                 {
@@ -183,7 +183,7 @@ namespace TheCharityBLL.Services.Repository
                     };
                 }
 
-                var response = _mapper.Map<UserResponseDTO>(user);
+                var response = _userMapper.MapToUserResponseDto(user);
 
                 return new ServiceResponse<UserResponseDTO>
                 {
@@ -240,7 +240,8 @@ namespace TheCharityBLL.Services.Repository
 
                 await _userRepository.ResetAccessFailedCountAsync(user);
 
-                var token = await GenerateJwtTokenAsync(_mapper.Map<UserResponseDTO>(user));
+                var userDto = _userMapper.MapToUserResponseDto(user);
+                var token = await GenerateJwtTokenAsync(userDto);
 
                 return new ServiceResponse<string?>
                 {
@@ -260,9 +261,9 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<string> GenerateJwtTokenAsync(UserResponseDTO UserDTO)
+        public async Task<string> GenerateJwtTokenAsync(UserResponseDTO userDto)
         {
-            var user = _mapper.Map<User>(UserDTO);
+            var user = _userMapper.MapToUser(userDto);
             return await GenerateJwtTokenInternalAsync(user);
         }
 
@@ -297,7 +298,7 @@ namespace TheCharityBLL.Services.Repository
 
         public async Task<bool> IsExternalLoginLinkedAsync(string providerKey, string loginProvider, UserResponseDTO userDto)
         {
-            var user = _mapper.Map<User>(userDto);
+            var user = _userMapper.MapToUser(userDto);
             var userLogins = await _userRepository.GetLoginsAsync(user);
             var existingLogin = userLogins.FirstOrDefault(l =>
                 l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
@@ -321,7 +322,7 @@ namespace TheCharityBLL.Services.Repository
             {
                 _logger.LogInformation("Creating new user with email: {Email}", createUserDTO.Email);
 
-                var user = _mapper.Map<User>(createUserDTO);
+                var user = _userMapper.MapToUser(createUserDTO);
                 var result = await _userRepository.CreateUserAsync(user, createUserDTO.Password);
 
                 if (result.Succeeded)
@@ -379,17 +380,8 @@ namespace TheCharityBLL.Services.Repository
                     };
                 }
 
-                if (!string.IsNullOrWhiteSpace(updateUserDTO.UserName))
-                    user.EditUsername(updateUserDTO.UserName);
-
-                if (!string.IsNullOrWhiteSpace(updateUserDTO.Address))
-                    user.EditAddress(updateUserDTO.Address);
-
-                if (!string.IsNullOrWhiteSpace(updateUserDTO.Email))
-                    user.Email = updateUserDTO.Email;
-
-                if (!string.IsNullOrWhiteSpace(updateUserDTO.PhoneNumber))
-                    user.PhoneNumber = updateUserDTO.PhoneNumber;
+                // Use mapper to update user
+                user = _userMapper.MapToUser(updateUserDTO, user);
 
                 var result = await _userRepository.UpdateUserAsync(user);
 
@@ -548,9 +540,9 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task AddLoginAsync(UserResponseDTO UserDTO, UserLoginInfo loginInfo)
+        public async Task AddLoginAsync(UserResponseDTO userDto, UserLoginInfo loginInfo)
         {
-            var user = _mapper.Map<User>(UserDTO);
+            var user = _userMapper.MapToUser(userDto);
             await _userRepository.AddLoginAsync(user, loginInfo);
         }
 
@@ -986,8 +978,18 @@ namespace TheCharityBLL.Services.Repository
                     parametersDto.PageSize,
                     userId);
 
-                // Map to DTO
-                var organizationDtos = _mapper.Map<IEnumerable<OrganizationResponseDto>>(organizations);
+                // Map to DTO using the user mapper (or create a separate organization mapper)
+                var organizationDtos = organizations.Select(o => new OrganizationResponseDto
+                {
+                    Id = o.Id,
+                    Name = o.Name,
+                    Address = o.Address,
+                    IsDeleted = o.IsDeleted,
+                    RegistrationDate = o.RegistrationDate,
+                    UpdatedOn = o.UpdatedOn,
+                    PaymentId = o.PaymentId,
+                    AdminUserId = o.AdminUserId
+                }).ToList();
 
                 var response = new PagedResultDto<OrganizationResponseDto>
                 {

@@ -3,7 +3,6 @@ using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
-using TheCharityBLL.DTOs.UserResponseDTOs;
 
 namespace TheCharityBLL.Services.Abstraction
 {

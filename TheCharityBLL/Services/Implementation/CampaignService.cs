@@ -15,20 +15,17 @@ namespace TheCharityBLL.Services.Repository
     public class CampaignService : ICampaignService
     {
         private readonly ICampaignRepository _campaignRepository;
-        private readonly IDonationRepository _donationRepository;
         private readonly IOrganizationRepository _organizationRepository;
         private readonly IEventDispatcher _eventDispatcher;
         private readonly CampaignMapper _mapper;
 
         public CampaignService(
             ICampaignRepository campaignRepository,
-            IDonationRepository donationRepository,
             IOrganizationRepository organizationRepository,
             IEventDispatcher eventDispatcher
             )
         {
             _campaignRepository = campaignRepository;
-            _donationRepository = donationRepository;
             _organizationRepository = organizationRepository;
             _eventDispatcher = eventDispatcher;
             _mapper = new CampaignMapper();

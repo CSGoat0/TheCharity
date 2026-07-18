@@ -22,7 +22,7 @@ namespace TheCharityBLL.DTOs.OrganizationDTOs
         public bool IsDeleted { get; set; }
 
         /// <example>2025-01-10T09:30:00</example>
-        public DateTime RegistrationDate { get; set; }
+        public DateTime? RegistrationDate { get; set; } = DateTime.Now;
 
         /// <example>2025-06-20T14:15:00</example>
         public DateTime? UpdatedOn { get; set; }
