@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using TheCharityBLL.Jobs.Emails;
 using TheCharityBLL.Jobs.Registry.Abstraction;
+using TheCharityBLL.Jobs.Scheduled;
 using TheCharityBLL.Services.Abstraction;
 
 namespace TheCharityBLL.Jobs.Registry.Implementation
@@ -40,8 +41,8 @@ namespace TheCharityBLL.Jobs.Registry.Implementation
             );
 
             // Daily at 2 AM - expire old invites (NEW)
-            _jobScheduler.AddOrUpdateRecurringJob<ExpireOldInvitesJob>(
-                "expire-old-invites",
+            _jobScheduler.AddOrUpdateRecurringJob<AutoExpireOldInvitesJob>(
+                "auto-expire-old-invites",
                 Cron.Daily(2)
             );
 

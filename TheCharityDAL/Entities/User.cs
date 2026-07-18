@@ -48,6 +48,13 @@ namespace TheCharityDAL.Entities
                 this.UpdatedOn = DateTime.Now;
             }
         }
+        public void EditFullName(string? fullName) {
+            if (!fullName.IsNullOrEmpty())
+            {
+                this.FullName = fullName;
+                this.UpdatedOn = DateTime.Now;
+            }
+        }
         public void Delete()
         {
             this.IsDeleted = true;

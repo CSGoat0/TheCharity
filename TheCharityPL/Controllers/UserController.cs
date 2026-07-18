@@ -6,7 +6,6 @@ using TheCharityBLL.Authorization.Attributes;
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
-using TheCharityBLL.DTOs.UserResponseDTOs;
 using TheCharityBLL.Services.Abstraction;
 
 namespace TheCharityPL.Controllers
@@ -99,7 +98,7 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] CreateUserResponseDto responseDto)
+        public async Task<IActionResult> Register([FromBody] CreateUserDTO responseDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ServiceResponse<ModelStateDictionary>
@@ -109,15 +108,7 @@ namespace TheCharityPL.Controllers
                     Message = "Invalid credentials."
                 });
 
-            var result = await _userService.CreateUserAsync(new CreateUserDTO
-            {
-                Email = responseDto.Email,
-                UserName = responseDto.UserName,
-                FullName = responseDto.FullName,
-                PhoneNumber = responseDto.PhoneNumber,
-                Address = responseDto.Address,
-                Password = responseDto.Password
-            });
+            var result = await _userService.CreateUserAsync(responseDto);
 
             if (!result.Success)
                 return BadRequest(result);
@@ -306,7 +297,7 @@ namespace TheCharityPL.Controllers
         /// Update user information
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, [FromBody] EditUserResponseDto responseDto)
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateUserDTO responseDto)
         {
             if (id != responseDto.Id)
                 return BadRequest(new ServiceResponse<object?>
@@ -323,14 +314,7 @@ namespace TheCharityPL.Controllers
                     Message = "Invalid credentials."
                 });
 
-            var result = await _userService.UpdateUserAsync(new UpdateUserDTO
-            {
-                Id = id,
-                UserName = responseDto.UserName,
-                Email = responseDto.Email,
-                PhoneNumber = responseDto.PhoneNumber,
-                Address = responseDto.Address
-            });
+            var result = await _userService.UpdateUserAsync(responseDto);
 
             return HandleResponse(result);
         }
@@ -343,15 +327,8 @@ namespace TheCharityPL.Controllers
         /// Change user password
         /// </summary>
         [HttpPut("{id}/change-password")]
-        public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordResponseDto responseDto)
+        public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordDTO responseDto)
         {
-            if (id != responseDto.UserId)
-                return BadRequest(new ServiceResponse<object?>
-                {
-                    Success = false,
-                    Message = "ID mismatch."
-                });
-
             if (!ModelState.IsValid)
                 return BadRequest(new ServiceResponse<ModelStateDictionary>
                 {
@@ -360,12 +337,7 @@ namespace TheCharityPL.Controllers
                     Message = "Invalid credentials."
                 });
 
-            var result = await _userService.ChangeUserPasswordAsync(id, new ChangePasswordDTO
-            {
-                CurrentPassword = responseDto.CurrentPassword,
-                NewPassword = responseDto.NewPassword,
-                ConfirmPassword = responseDto.ConfirmPassword
-            });
+            var result = await _userService.ChangeUserPasswordAsync(id, responseDto);
 
             if (result.Success)
             {
@@ -464,7 +436,7 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpPost("seed-superadmin")]
         [AllowAnonymous]
-        public async Task<IActionResult> SeedSuperAdmin([FromBody] CreateSuperAdminRequest request)
+        public async Task<IActionResult> SeedSuperAdmin([FromBody] CreateUserDTO request)
         {
             try
             {

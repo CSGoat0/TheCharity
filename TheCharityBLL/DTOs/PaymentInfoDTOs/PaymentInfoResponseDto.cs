@@ -18,6 +18,5 @@ namespace TheCharityBLL.DTOs.PaymentInfoDTOs
         public DateTime? UpdatedOn { get; set; }
         public bool IsDeleted { get; set; }
         public int? OrganizationId { get; set; }
-
     }
 }

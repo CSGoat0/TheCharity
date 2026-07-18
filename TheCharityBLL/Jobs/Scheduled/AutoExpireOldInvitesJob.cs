@@ -6,15 +6,15 @@ using TheCharityBLL.Jobs.Result.Abstraction;
 using TheCharityBLL.Jobs.Result.Implementation;
 using TheCharityDAL.Repositories.Abstraction;
 
-namespace TheCharityBLL.Jobs.Emails
+namespace TheCharityBLL.Jobs.Scheduled
 {
-    public class ExpireOldInvitesJob : BaseJob
+    public class AutoExpireOldInvitesJob : BaseJob
     {
         private readonly ICampaignRepository _campaignRepository;
         private readonly IOrganizationRepository _organizationRepository;
         private readonly IEventDispatcher _eventDispatcher;
 
-        public ExpireOldInvitesJob(
+        public AutoExpireOldInvitesJob(
             ICampaignRepository campaignRepository,
             IEventDispatcher eventDispatcher,
             IOrganizationRepository organizationRepository)
