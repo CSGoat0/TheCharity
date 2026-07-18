@@ -6,7 +6,6 @@ using TheCharityBLL.Authorization.Attributes;
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
-using TheCharityBLL.DTOs.UserResponseDTOs;
 using TheCharityBLL.Services.Abstraction;
 
 namespace TheCharityPL.Controllers
