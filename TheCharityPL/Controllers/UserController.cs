@@ -298,7 +298,7 @@ namespace TheCharityPL.Controllers
         /// Update user information
         /// </summary>
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(string id, [FromBody] EditUserResponseDto responseDto)
+        public async Task<IActionResult> Update(string id, [FromBody] UpdateUserDTO responseDto)
         {
             if (id != responseDto.Id)
                 return BadRequest(new ServiceResponse<object?>
@@ -315,14 +315,7 @@ namespace TheCharityPL.Controllers
                     Message = "Invalid credentials."
                 });
 
-            var result = await _userService.UpdateUserAsync(new UpdateUserDTO
-            {
-                Id = id,
-                UserName = responseDto.UserName,
-                Email = responseDto.Email,
-                PhoneNumber = responseDto.PhoneNumber,
-                Address = responseDto.Address
-            });
+            var result = await _userService.UpdateUserAsync(responseDto);
 
             return HandleResponse(result);
         }
