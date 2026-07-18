@@ -99,7 +99,7 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpPost("register")]
         [AllowAnonymous]
-        public async Task<IActionResult> Register([FromBody] CreateUserResponseDto responseDto)
+        public async Task<IActionResult> Register([FromBody] CreateUserDTO responseDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ServiceResponse<ModelStateDictionary>
@@ -109,15 +109,7 @@ namespace TheCharityPL.Controllers
                     Message = "Invalid credentials."
                 });
 
-            var result = await _userService.CreateUserAsync(new CreateUserDTO
-            {
-                Email = responseDto.Email,
-                UserName = responseDto.UserName,
-                FullName = responseDto.FullName,
-                PhoneNumber = responseDto.PhoneNumber,
-                Address = responseDto.Address,
-                Password = responseDto.Password
-            });
+            var result = await _userService.CreateUserAsync(responseDto);
 
             if (!result.Success)
                 return BadRequest(result);
