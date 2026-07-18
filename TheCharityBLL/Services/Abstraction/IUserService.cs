@@ -4,15 +4,14 @@ using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.DTOs.UserResponseDTOs;
-using TheCharityDAL.Entities;
 
 namespace TheCharityBLL.Services.Abstraction
 {
     public interface IUserService
     {
         // ===== Queries =====
-        Task<ServiceResponse<PagedResultDto<UserListResponseDto>>> GetAllUsersAsync(PaginationParametersDto parametersDto, bool includeDeleted = false);
-        Task<ServiceResponse<UserDetailResponseDto>> GetUserByIdAsync(string userId);
+        Task<ServiceResponse<PagedResultDto<UserResponseDTO>>> GetAllUsersAsync(PaginationParametersDto parametersDto, bool includeDeleted = false);
+        Task<ServiceResponse<UserResponseDTO>> GetUserByIdAsync(string userId);
         Task<ServiceResponse<PagedResultDto<UserResponseDTO>>> GetUsersInRoleAsync(PaginationParametersDto parametersDto, string role);
         Task<ServiceResponse<UserResponseDTO>> GetUserByEmailAsync(string email);
         Task<ServiceResponse<bool>> UserExistsAsync(string userId);

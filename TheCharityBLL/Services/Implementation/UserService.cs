@@ -10,7 +10,6 @@ using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
-using TheCharityBLL.DTOs.UserResponseDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Repositories.Abstraction;
@@ -38,7 +37,7 @@ namespace TheCharityBLL.Services.Repository
 
         // ===== Queries =====
 
-        public async Task<ServiceResponse<PagedResultDto<UserListResponseDto>>> GetAllUsersAsync(PaginationParametersDto parametersDto, bool includeDeleted = false)
+        public async Task<ServiceResponse<PagedResultDto<UserResponseDTO>>> GetAllUsersAsync(PaginationParametersDto parametersDto, bool includeDeleted = false)
         {
             try
             {
@@ -49,9 +48,9 @@ namespace TheCharityBLL.Services.Repository
                     parametersDto.PageSize,
                     includeDeleted);
 
-                var userDtos = _mapper.Map<IEnumerable<UserListResponseDto>>(users);
+                var userDtos = _mapper.Map<IEnumerable<UserResponseDTO>>(users);
 
-                var response = new PagedResultDto<UserListResponseDto>
+                var response = new PagedResultDto<UserResponseDTO>
                 {
                     Items = userDtos,
                     TotalCount = totalCount,
@@ -59,7 +58,7 @@ namespace TheCharityBLL.Services.Repository
                     PageSize = parametersDto.PageSize
                 };
 
-                return new ServiceResponse<PagedResultDto<UserListResponseDto>>
+                return new ServiceResponse<PagedResultDto<UserResponseDTO>>
                 {
                     Success = true,
                     Data = response,
@@ -69,7 +68,7 @@ namespace TheCharityBLL.Services.Repository
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting all users");
-                return new ServiceResponse<PagedResultDto<UserListResponseDto>>
+                return new ServiceResponse<PagedResultDto<UserResponseDTO>>
                 {
                     Success = false,
                     Message = $"An error occurred while retrieving users: {ex.Message}"
@@ -77,11 +76,11 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<ServiceResponse<UserDetailResponseDto>> GetUserByIdAsync(string userId)
+        public async Task<ServiceResponse<UserResponseDTO>> GetUserByIdAsync(string userId)
         {
             if (string.IsNullOrWhiteSpace(userId))
             {
-                return new ServiceResponse<UserDetailResponseDto>
+                return new ServiceResponse<UserResponseDTO>
                 {
                     Success = false,
                     Message = "User ID cannot be null or empty."
@@ -95,16 +94,16 @@ namespace TheCharityBLL.Services.Repository
 
                 if (user == null)
                 {
-                    return new ServiceResponse<UserDetailResponseDto>
+                    return new ServiceResponse<UserResponseDTO>
                     {
                         Success = false,
                         Message = $"User with ID '{userId}' not found."
                     };
                 }
 
-                var response = _mapper.Map<UserDetailResponseDto>(user);
+                var response = _mapper.Map<UserResponseDTO>(user);
 
-                return new ServiceResponse<UserDetailResponseDto>
+                return new ServiceResponse<UserResponseDTO>
                 {
                     Success = true,
                     Data = response,
@@ -114,7 +113,7 @@ namespace TheCharityBLL.Services.Repository
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting user with ID: {UserId}", userId);
-                return new ServiceResponse<UserDetailResponseDto>
+                return new ServiceResponse<UserResponseDTO>
                 {
                     Success = false,
                     Message = $"An error occurred while retrieving the user: {ex.Message}"
