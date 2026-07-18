@@ -335,15 +335,8 @@ namespace TheCharityPL.Controllers
         /// Change user password
         /// </summary>
         [HttpPut("{id}/change-password")]
-        public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordResponseDto responseDto)
+        public async Task<IActionResult> ChangePassword(string id, [FromBody] ChangePasswordDTO responseDto)
         {
-            if (id != responseDto.UserId)
-                return BadRequest(new ServiceResponse<object?>
-                {
-                    Success = false,
-                    Message = "ID mismatch."
-                });
-
             if (!ModelState.IsValid)
                 return BadRequest(new ServiceResponse<ModelStateDictionary>
                 {
@@ -352,12 +345,7 @@ namespace TheCharityPL.Controllers
                     Message = "Invalid credentials."
                 });
 
-            var result = await _userService.ChangeUserPasswordAsync(id, new ChangePasswordDTO
-            {
-                CurrentPassword = responseDto.CurrentPassword,
-                NewPassword = responseDto.NewPassword,
-                ConfirmPassword = responseDto.ConfirmPassword
-            });
+            var result = await _userService.ChangeUserPasswordAsync(id, responseDto);
 
             if (result.Success)
             {
