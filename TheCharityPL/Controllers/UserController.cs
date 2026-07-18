@@ -464,7 +464,7 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpPost("seed-superadmin")]
         [AllowAnonymous]
-        public async Task<IActionResult> SeedSuperAdmin([FromBody] CreateSuperAdminRequest request)
+        public async Task<IActionResult> SeedSuperAdmin([FromBody] CreateUserDTO request)
         {
             try
             {
