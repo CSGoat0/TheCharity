@@ -26,7 +26,7 @@ namespace TheCharityDAL.Entities
         }
         public void EditUsername(string? userName)
         {
-            if (!userName.IsNullOrEmpty())
+            if (!string.IsNullOrEmpty(userName))
             {
                 this.FullName = userName;
                 this.UpdatedOn = DateTime.Now;
@@ -34,7 +34,7 @@ namespace TheCharityDAL.Entities
         }
         public void EditImage(string? imgPath)
         {
-            if (!imgPath.IsNullOrEmpty())
+            if (!string.IsNullOrEmpty(imgPath))
             {
                 this.ImgPath = imgPath;
                 this.UpdatedOn = DateTime.Now;
@@ -42,14 +42,14 @@ namespace TheCharityDAL.Entities
         }
         public void EditAddress(string? address)
         {
-            if (!address.IsNullOrEmpty())
+            if (!string.IsNullOrEmpty(address))
             {
                 this.Address = address;
                 this.UpdatedOn = DateTime.Now;
             }
         }
         public void EditFullName(string? fullName) {
-            if (!fullName.IsNullOrEmpty())
+            if (!string.IsNullOrEmpty(fullName))
             {
                 this.FullName = fullName;
                 this.UpdatedOn = DateTime.Now;
