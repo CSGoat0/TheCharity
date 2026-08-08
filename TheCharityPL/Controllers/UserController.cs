@@ -55,7 +55,7 @@ namespace TheCharityPL.Controllers
 
         private string BuildFrontendLink(string path, string email, string token)
         {
-            var frontendUrl = _configuration["FrontendUrl"];
+            var frontendUrl = _configuration["Jwt:Audience"];
             var encodedToken = Uri.EscapeDataString(token);
             return $"{frontendUrl}/{path}?email={email}&encodedToken={encodedToken}";
         }
