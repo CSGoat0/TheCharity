@@ -148,6 +148,22 @@ namespace TheCharityPL.Controllers
                 });
 
             var result = await _userService.LoginAsync(responseDto.UserName, responseDto.Password);
+
+            if (result.Success)
+            {
+                var user = await _userService.GetUserByEmailAsync(responseDto.UserName);
+                return HandleResponse(new ServiceResponse<object?>
+                {
+                    Success = true,
+                    Data = new
+                    {
+                        Token = result.Data,
+                        User = user.Data
+                    },
+                    Message = "Login successful."
+                });
+            }
+
             return HandleResponse(result);
         }
 
