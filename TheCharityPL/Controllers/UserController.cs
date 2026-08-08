@@ -176,7 +176,7 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpPost("resend-confirmation")]
         [AllowAnonymous]
-        public async Task<IActionResult> ResendEmailConfirmation([FromBody] string email)
+        public async Task<IActionResult> ResendEmailConfirmation([FromQuery] string email)
         {
             if (string.IsNullOrEmpty(email))
                 return BadRequest(new ServiceResponse<object?>
