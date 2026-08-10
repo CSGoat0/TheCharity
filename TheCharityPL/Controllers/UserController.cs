@@ -57,7 +57,7 @@ namespace TheCharityPL.Controllers
         {
             var frontendUrl = _configuration["Jwt:Audience"];
             var encodedToken = Uri.EscapeDataString(token);
-            return $"{frontendUrl}/{path}?email={email}&encodedToken={encodedToken}";
+            return $"{frontendUrl}/#/{path}?email={email}&encodedToken={encodedToken}";
         }
 
         // ==============================
@@ -117,7 +117,7 @@ namespace TheCharityPL.Controllers
             var token = await _userService.GenerateEmailConfirmationTokenAsync(responseDto.Email);
             if (token.Success)
             {
-                var confirmationLink = BuildFrontendLink("api/User/confirm-email", responseDto.Email, token.Data);
+                var confirmationLink = BuildFrontendLink("confirm-email", responseDto.Email, token.Data);
                 await _emailService.SendEmailConfirmationAsync(responseDto.Email, confirmationLink);
             }
 
@@ -199,7 +199,7 @@ namespace TheCharityPL.Controllers
             var token = await _userService.GenerateEmailConfirmationTokenAsync(email);
             if (token.Success)
             {
-                var confirmationLink = BuildFrontendLink("api/User/confirm-email", email, token.Data);
+                var confirmationLink = BuildFrontendLink("confirm-email", email, token.Data);
                 await _emailService.SendEmailConfirmationAsync(email, confirmationLink);
             }
 
