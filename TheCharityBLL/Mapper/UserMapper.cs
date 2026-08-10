@@ -135,14 +135,7 @@ namespace TheCharityBLL.Mapper
         {
             if (dto == null) return null!;
 
-            var user = new User
-                        {
-                            UserName = dto.UserName,
-                            Email = dto.Email,
-                            PhoneNumber = dto.PhoneNumber,
-                        };
-            if (!string.IsNullOrEmpty(dto.Address))
-                user.EditAddress(dto.Address);
+            var user = new User(dto.UserName, dto.FullName, dto.Email, dto.ImgPath, dto.PhoneNumber, dto.Address);
             return user;
         }
 
@@ -162,6 +155,12 @@ namespace TheCharityBLL.Mapper
 
             if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
                 existingUser.PhoneNumber = dto.PhoneNumber;
+
+            if (!string.IsNullOrWhiteSpace(dto.FullName))
+                existingUser.EditFullName(dto.FullName);
+
+            if (!string.IsNullOrWhiteSpace(dto.ImgPath))
+                existingUser.EditImage(dto.ImgPath);
 
             return existingUser;
         }
