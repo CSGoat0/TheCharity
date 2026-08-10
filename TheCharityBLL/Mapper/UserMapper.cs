@@ -159,6 +159,9 @@ namespace TheCharityBLL.Mapper
             if (!string.IsNullOrWhiteSpace(dto.FullName))
                 existingUser.EditFullName(dto.FullName);
 
+            if (!string.IsNullOrWhiteSpace(dto.ImgPath))
+                existingUser.EditImage(dto.ImgPath);
+
             return existingUser;
         }
 
