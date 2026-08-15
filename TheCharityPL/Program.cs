@@ -52,7 +52,6 @@ namespace TheCharityPL
                 }
             });
 
-            // IDK but i got an error and i couldnt figuer out why so i asked claud and it said add this - Mohamed Rashid
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAngular", policy =>
