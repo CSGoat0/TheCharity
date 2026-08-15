@@ -144,14 +144,8 @@ namespace TheCharityBLL.Mapper
             if (dto == null) return null!;
             if (existingUser == null) return null!;
 
-            if (!string.IsNullOrWhiteSpace(dto.UserName))
-                existingUser.EditUsername(dto.UserName);
-
             if (!string.IsNullOrWhiteSpace(dto.Address))
                 existingUser.EditAddress(dto.Address);
-
-            if (!string.IsNullOrWhiteSpace(dto.Email))
-                existingUser.Email = dto.Email;
 
             if (!string.IsNullOrWhiteSpace(dto.PhoneNumber))
                 existingUser.PhoneNumber = dto.PhoneNumber;

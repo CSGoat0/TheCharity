@@ -101,6 +101,12 @@ namespace TheCharityDAL.Repositories.Implementation
             return await _userManager.Users.FirstOrDefaultAsync(u => u.Id == id);
         }
 
+        public async Task<User?> GetUserByUsernameAsync(string username)
+        {
+            return await _userManager.Users
+                .FirstOrDefaultAsync(u => u.UserName == username && !u.IsDeleted);
+        }
+
         public async Task<IList<string>> GetUserRolesAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
