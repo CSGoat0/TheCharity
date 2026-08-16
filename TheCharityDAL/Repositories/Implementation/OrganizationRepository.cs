@@ -314,7 +314,8 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Where(o => o.Id == id && (o.IsDeleted == false))
                 .Include(o => o.ContactMethods.Where(cm => cm.IsDeleted == false))
                 .Include(o => o.PaymentInfo)
-                .Include(o => o.Campaigns.Where(c => c.IsDeleted == false))
+                .Include(o => o.SoloCampaigns.Where(c => !c.IsDeleted))
+                .Include(o => o.SharedCampaigns.Where(c => !c.IsDeleted))
                 .FirstOrDefaultAsync();
         }
 
