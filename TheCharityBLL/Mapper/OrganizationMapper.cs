@@ -1,4 +1,5 @@
 ﻿using Riok.Mapperly.Abstractions;
+using TheCharityBLL.DTOs.CampaignDTOs;
 using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaymentInfoDTOs;
@@ -57,9 +58,53 @@ namespace TheCharityBLL.Mapper
         {
             if (organization == null) return null!;
 
-            // Manually map ALL properties
+            // Get campaigns and filter out deleted ones
+            var soloCampaigns = organization.SoloCampaigns?.Where(c => !c.IsDeleted).ToList() ?? new List<SoloCampaign>();
+            var sharedCampaigns = organization.SharedCampaigns?.Where(c => !c.IsDeleted).ToList() ?? new List<SharedCampaign>();
+
+            // Map Solo Campaigns to CampaignResponseDto
+            var soloCampaignDtos = soloCampaigns.Select(c => new CampaignResponseDto
+            {
+                Id = c.Id,
+                OrganizationId = c.OrganizationId ?? 0,
+                Title = c.Title,
+                Description = c.Description,
+                ImgPath = c.ImgPath,
+                Target = c.Target,
+                Achieved = c.Achieved,
+                Status = c.Status,
+                IsDeleted = c.IsDeleted,
+                RegistrationDate = c.RegistrationDate,
+                UpdatedOn = c.UpdatedOn,
+                Deadline = c.Deadline,
+                DaysRemaining = c.Deadline.HasValue
+                    ? (int?)Math.Max(0, (c.Deadline.Value - DateTime.UtcNow).Days)
+                    : null
+            }).ToList();
+
+            // Map Shared Campaigns to CampaignResponseDto
+            var sharedCampaignDtos = sharedCampaigns.Select(c => new CampaignResponseDto
+            {
+                Id = c.Id,
+                OrganizationId = c.OrganizationId ?? 0,
+                Title = c.Title,
+                Description = c.Description,
+                ImgPath = c.ImgPath,
+                Target = c.Target,
+                Achieved = c.Achieved,
+                Status = c.Status,
+                IsDeleted = c.IsDeleted,
+                RegistrationDate = c.RegistrationDate,
+                UpdatedOn = c.UpdatedOn,
+                Deadline = c.Deadline,
+                DaysRemaining = c.Deadline.HasValue
+                    ? (int?)Math.Max(0, (c.Deadline.Value - DateTime.UtcNow).Days)
+                    : null
+            }).ToList();
+
             var dto = new OrganizationDetailsDto
             {
+                // ===== Map Base properties =====
                 Id = organization.Id,
                 Name = organization.Name,
                 Address = organization.Address,
@@ -73,9 +118,8 @@ namespace TheCharityBLL.Mapper
                 AdminUserName = organization.AdminUser?.UserName ?? organization.AdminUser?.Email ?? string.Empty,
                 AdminUserFullName = organization.AdminUser?.FullName ?? string.Empty,
                 AdminUserEmail = organization.AdminUser?.Email ?? string.Empty,
-                // ===== END =====
 
-                // Map ContactMethods
+                // ===== Map Contact Methods =====
                 ContactMethods = organization.ContactMethods?
                     .Where(cm => !cm.IsDeleted)
                     .Select(cm => new OrgContactMethodResponseDto
@@ -85,16 +129,21 @@ namespace TheCharityBLL.Mapper
                         Type = cm.Type.Value
                     }).ToList() ?? new List<OrgContactMethodResponseDto>(),
 
-                // ===== Map campaign statistics =====
-                SoloCampaignsCount = organization.SoloCampaigns?.Count(c => !c.IsDeleted) ?? 0,
-                SharedCampaignsCount = organization.SharedCampaigns?.Count(c => !c.IsDeleted) ?? 0,
-                TotalCampaignsCount = (organization.SoloCampaigns?.Count(c => !c.IsDeleted) ?? 0) +
-                                      (organization.SharedCampaigns?.Count(c => !c.IsDeleted) ?? 0)
-                // ===== END =====
+                // Solo Campaigns
+                SoloCampaigns = soloCampaignDtos,
+
+                // Shared Campaigns
+                SharedCampaigns = sharedCampaignDtos,
+
+                // Campaign Statistics
+                SoloCampaignsCount = soloCampaigns.Count,
+                SharedCampaignsCount = sharedCampaigns.Count,
+                TotalCampaignsCount = soloCampaigns.Count + sharedCampaigns.Count
             };
 
             return dto;
         }
+
 
         public IEnumerable<OrganizationResponseDto> MapToOrganizationResponseDtos(IEnumerable<Organization> organizations)
         {
