@@ -17,7 +17,10 @@ namespace TheCharityBLL.DTOs.OrganizationDTOs
         public ICollection<OrgContactMethodResponseDto> ContactMethods { get; set; }
             = new List<OrgContactMethodResponseDto>();
 
-        public ICollection<CampaignResponseDto> Campaigns { get; set; }
+        public ICollection<CampaignResponseDto> SoloCampaigns { get; set; }
+         = new List<CampaignResponseDto>();
+
+        public ICollection<CampaignResponseDto> SharedCampaigns { get; set; }
             = new List<CampaignResponseDto>();
 
         /// <example>false</example>
