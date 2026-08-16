@@ -314,7 +314,8 @@ namespace TheCharityDAL.Repositories.Implementation
                 .Where(o => o.Id == id && (o.IsDeleted == false))
                 .Include(o => o.ContactMethods.Where(cm => cm.IsDeleted == false))
                 .Include(o => o.PaymentInfo)
-                .Include(o => o.Campaigns.Where(c => c.IsDeleted == false))
+                .Include(o => o.SoloCampaigns.Where(c => !c.IsDeleted))
+                .Include(o => o.SharedCampaigns.Where(c => !c.IsDeleted))
                 .FirstOrDefaultAsync();
         }
 
@@ -336,7 +337,8 @@ namespace TheCharityDAL.Repositories.Implementation
         {
             var query = _context.Organizations
                 .Where(o => !o.IsDeleted &&
-                    (o.Campaigns == null || !o.Campaigns.Any())).AsQueryable();
+                            (!o.SoloCampaigns.Any() && !o.SharedCampaigns.Any()))
+                .AsQueryable();
 
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
@@ -353,9 +355,10 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithActiveCampaignsAsync(int pageNumber, int pageSize)
         {
             var query = _context.Organizations
-         .Where(o => !o.IsDeleted &&
-                     o.Campaigns != null &&
-                     o.Campaigns.Any(c => c.Status == CampaignStatus.Active)).AsQueryable();
+                .Where(o => !o.IsDeleted &&
+                            (o.SoloCampaigns.Any(c => c.Status == CampaignStatus.Active) ||
+                             o.SharedCampaigns.Any(c => c.Status == CampaignStatus.Active)))
+                .AsQueryable();
 
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
@@ -363,9 +366,10 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithCompletedCampaignsAsync(int pageNumber, int pageSize)
         {
             var query = _context.Organizations
-        .Where(o => !o.IsDeleted &&
-                    o.Campaigns != null &&
-                    o.Campaigns.Any(c => c.Status == CampaignStatus.Completed)).AsQueryable();
+                .Where(o => !o.IsDeleted &&
+                            (o.SoloCampaigns.Any(c => c.Status == CampaignStatus.Completed) ||
+                             o.SharedCampaigns.Any(c => c.Status == CampaignStatus.Completed)))
+                .AsQueryable();
 
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
