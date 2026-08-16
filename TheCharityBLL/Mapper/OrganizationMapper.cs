@@ -104,7 +104,7 @@ namespace TheCharityBLL.Mapper
 
             var dto = new OrganizationDetailsDto
             {
-                // Base properties
+                // ===== Map Base properties =====
                 Id = organization.Id,
                 Name = organization.Name,
                 Address = organization.Address,
@@ -113,13 +113,13 @@ namespace TheCharityBLL.Mapper
                 RegistrationDate = organization.RegistrationDate.Value,
                 UpdatedOn = organization.UpdatedOn,
 
-                // Admin properties
+                // ===== Map Admin properties =====
                 AdminUserId = organization.AdminUserId,
                 AdminUserName = organization.AdminUser?.UserName ?? organization.AdminUser?.Email ?? string.Empty,
                 AdminUserFullName = organization.AdminUser?.FullName ?? string.Empty,
                 AdminUserEmail = organization.AdminUser?.Email ?? string.Empty,
 
-                // Contact Methods
+                // ===== Map Contact Methods =====
                 ContactMethods = organization.ContactMethods?
                     .Where(cm => !cm.IsDeleted)
                     .Select(cm => new OrgContactMethodResponseDto
