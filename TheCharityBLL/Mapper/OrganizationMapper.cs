@@ -4,7 +4,6 @@ using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaymentInfoDTOs;
 using TheCharityDAL.Entities;
-using TheCharityDAL.Enums;
 
 namespace TheCharityBLL.Mapper
 {
