@@ -43,7 +43,6 @@ namespace TheCharityBLL.Services.Abstraction
         // ===== Filtering & Querying =====
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetAllCampaignsAsync(PaginationParametersDto parametersDto, bool includeDeleted = false);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetCampaignsByStatusAsync(PaginationParametersDto parametersDto, CampaignStatus status);
-        Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetCampaignsByTypeAsync(PaginationParametersDto parametersDto, CampaignType type);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetActiveCampaignsAsync(PaginationParametersDto parametersDto);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> SearchCampaignsAsync(PaginationParametersDto parametersDto, string searchTerm);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetDeletedCampaignsAsync(PaginationParametersDto parametersDto);
@@ -60,7 +59,6 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<int>> GetSharedCampaignsCountAsync();
         Task<ServiceResponse<double>> GetTotalMoneyRaisedAsync();
         Task<ServiceResponse<double>> GetAverageAchievementPercentageAsync();
-        Task<ServiceResponse<Dictionary<CampaignType, int>>> GetCampaignCountByTypeAsync();
         Task<ServiceResponse<Dictionary<CampaignStatus, int>>> GetCampaignCountByStatusAsync();
         Task<ServiceResponse<CampaignStatisticsDto>> GetCampaignStatisticsAsync();
 

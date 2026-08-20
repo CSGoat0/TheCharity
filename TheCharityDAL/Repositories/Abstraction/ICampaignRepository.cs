@@ -29,7 +29,6 @@ namespace TheCharityDAL.Repositories.Abstraction
 
         // ===== Filtering & Querying =====
         Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByStatusAsync(int pageNumber, int pageSize, CampaignStatus status);
-        Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByTypeAsync(int pageNumber, int pageSize, CampaignType type);
         Task<(IEnumerable<Campaign> Data, int TotalCount)> SearchCampaignsAsync(int pageNumber, int pageSize, string searchTerm);
         Task<(IEnumerable<Campaign> Data, int TotalCount)> GetDeletedCampaignsAsync(int pageNumber, int pageSize);
 
@@ -64,7 +63,6 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<double> GetTotalMoneyRaisedBySoloCampaignsAsync();
         Task<double> GetTotalMoneyRaisedBySharedCampaignsAsync();
         Task<double> GetAverageAchievementPercentageAsync();
-        Task<Dictionary<CampaignType, int>> GetCampaignCountByTypeAsync();
         Task<Dictionary<CampaignStatus, int>> GetCampaignCountByStatusAsync();
         Task<Dictionary<int, int>> GetCampaignCountByOrganizationAsync();
 
@@ -87,7 +85,6 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<bool> CampaignExistsAsync(int id);
         Task<bool> IsCampaignActiveAsync(int id);
         Task<double> GetCampaignAchievementPercentageAsync(int id);
-        Task<CampaignType?> GetCampaignTypeAsync(int id);
 
         // Campaign Ownership
         Task<bool> IsCampaignOwnedByOrganizationAsync(int campaignId, int organizationId);

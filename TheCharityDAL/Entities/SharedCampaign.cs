@@ -10,7 +10,7 @@ namespace TheCharityDAL.Entities
 
         [ForeignKey(nameof(CreatorOrganizationId))]
         public Organization? CreatorOrganization { get; private set; }
-        public SharedCampaign(string? title, string? description, string? imgPath, int? target, int? achieved, CampaignStatus? status, CampaignType? type, DateTime deadline, int creatorOrganizationId) : base(title, description, imgPath, target, achieved, status, type, deadline)
+        public SharedCampaign(string? title, string? description, string? imgPath, int? target, int? achieved, CampaignStatus? status, DateTime deadline, int creatorOrganizationId) : base(title, description, imgPath, target, achieved, status, deadline)
         {
             CreatorOrganizationId = creatorOrganizationId;
         }
