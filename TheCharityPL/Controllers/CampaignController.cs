@@ -357,17 +357,6 @@ namespace TheCharityPL.Controllers
         }
 
         /// <summary>
-        /// Get campaigns by type
-        /// </summary>
-        [HttpGet("filter/by-type")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetByType([FromQuery] PaginationParametersDto parametersDto,[FromQuery] CampaignType type)
-        {
-            var result = await _campaignService.GetCampaignsByTypeAsync(parametersDto,type);
-            return HandleResponse(result);
-        }
-
-        /// <summary>
         /// Get active campaigns only
         /// </summary>
         [HttpGet("active")]
@@ -534,17 +523,6 @@ namespace TheCharityPL.Controllers
         }
 
         /// <summary>
-        /// Get campaign count by type
-        /// </summary>
-        [HttpGet("statistics/count-by-type")]
-        [AllowAnonymous]
-        public async Task<IActionResult> GetCountByType()
-        {
-            var result = await _campaignService.GetCampaignCountByTypeAsync();
-            return HandleResponse(result);
-        }
-
-        /// <summary>
         /// Get campaign count by status
         /// </summary>
         [HttpGet("statistics/count-by-status")]
@@ -653,24 +631,6 @@ namespace TheCharityPL.Controllers
         {
             var values = Enum.GetValues(typeof(CampaignStatus))
                              .Cast<CampaignStatus>()
-                             .Select(e => new
-                             {
-                                 Id = (int)e,
-                                 Name = e.ToString()
-                             });
-
-            return Ok(values);
-        }
-
-        /// <summary>
-        /// Get available campaign type options
-        /// </summary>
-        [HttpGet("options/types")]
-        [AllowAnonymous]
-        public IActionResult GetTypeOptions()
-        {
-            var values = Enum.GetValues(typeof(CampaignType))
-                             .Cast<CampaignType>()
                              .Select(e => new
                              {
                                  Id = (int)e,

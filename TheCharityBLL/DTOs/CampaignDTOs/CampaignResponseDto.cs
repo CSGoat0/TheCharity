@@ -21,7 +21,7 @@ namespace TheCharityBLL.DTOs.CampaignDTOs
         /// <example>Active</example>
         public CampaignStatus? Status { get; set; }
         /// <example>Solo</example>
-        public CampaignType? Type { get; set; }
+        public string? Type { get; set; }
         /// <example>false</example>
         public bool IsDeleted { get; set; }
         /// <example>2024-02-01T08:00:00</example>

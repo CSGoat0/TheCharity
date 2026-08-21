@@ -139,7 +139,6 @@ namespace TheCharityBLL.Services.Repository
             existingCampaign.EditDescription(updateDto.Description);
             existingCampaign.EditImage(updateDto.ImgPath);
             existingCampaign.EditTarget(updateDto.Target);
-            existingCampaign.EditType(updateDto.Type);
 
             await _campaignRepository.UpdateCampaignAsync(existingCampaign);
 
@@ -296,7 +295,6 @@ namespace TheCharityBLL.Services.Repository
             existingCampaign.EditDescription(updateDto.Description);
             existingCampaign.EditImage(updateDto.ImgPath);
             existingCampaign.EditTarget(updateDto.Target);
-            existingCampaign.EditType(updateDto.Type);
 
             await _campaignRepository.UpdateSoloCampaignAsync(existingCampaign);
 
@@ -453,7 +451,6 @@ namespace TheCharityBLL.Services.Repository
             existingCampaign.EditDescription(updateDto.Description);
             existingCampaign.EditImage(updateDto.ImgPath);
             existingCampaign.EditTarget(updateDto.Target);
-            existingCampaign.EditType(updateDto.Type);
 
             await _campaignRepository.UpdateSharedCampaignAsync(existingCampaign);
 
@@ -726,21 +723,6 @@ namespace TheCharityBLL.Services.Repository
             };
         }
 
-        public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetCampaignsByTypeAsync(PaginationParametersDto parametersDto, CampaignType type)
-        {
-            var campaigns = await _campaignRepository.GetCampaignsByTypeAsync(parametersDto.PageNumber, parametersDto.PageSize, type);
-            var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
-
-            var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
-
-            return new ServiceResponse<PagedResultDto<CampaignResponseDto>>
-            {
-                Success = true,
-                Data = response,
-                Message = $"Campaigns with type {type} retrieved successfully."
-            };
-        }
-
         public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetActiveCampaignsAsync(PaginationParametersDto parametersDto)
         {
             return await GetCampaignsByStatusAsync(parametersDto, CampaignStatus.Active);
@@ -917,18 +899,6 @@ namespace TheCharityBLL.Services.Repository
                 Success = true,
                 Data = average,
                 Message = "Average achievement percentage retrieved successfully."
-            };
-        }
-
-        public async Task<ServiceResponse<Dictionary<CampaignType, int>>> GetCampaignCountByTypeAsync()
-        {
-            var counts = await _campaignRepository.GetCampaignCountByTypeAsync();
-
-            return new ServiceResponse<Dictionary<CampaignType, int>>
-            {
-                Success = true,
-                Data = counts,
-                Message = "Campaign count by type retrieved successfully."
             };
         }
 

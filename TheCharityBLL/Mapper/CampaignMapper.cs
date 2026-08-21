@@ -24,7 +24,12 @@ namespace TheCharityBLL.Mapper
                 Target = campaign.Target,
                 Achieved = campaign.Achieved,
                 Status = campaign.Status,
-                Type = campaign.Type,
+                Type = campaign switch
+                {
+                    SoloCampaign => "Solo",
+                    SharedCampaign => "Shared",
+                    _ => null
+                },
                 IsDeleted = campaign.IsDeleted,
                 RegistrationDate = campaign.RegistrationDate,
                 UpdatedOn = campaign.UpdatedOn,
@@ -58,7 +63,7 @@ namespace TheCharityBLL.Mapper
                 Target = campaign.Target,
                 Achieved = campaign.Achieved,
                 Status = campaign.Status,
-                Type = campaign.Type,
+                Type = "Solo",
                 IsDeleted = campaign.IsDeleted,
                 RegistrationDate = campaign.RegistrationDate,
                 UpdatedOn = campaign.UpdatedOn,
@@ -90,7 +95,7 @@ namespace TheCharityBLL.Mapper
                 Target = campaign.Target,
                 Achieved = campaign.Achieved,
                 Status = campaign.Status,
-                Type = campaign.Type,
+                Type = "Shared",
                 IsDeleted = campaign.IsDeleted,
                 RegistrationDate = campaign.RegistrationDate,
                 UpdatedOn = campaign.UpdatedOn,
@@ -133,7 +138,6 @@ namespace TheCharityBLL.Mapper
                 target: (int?)(dto.Target ?? 100),
                 achieved: 0,
                 status: CampaignStatus.Active,
-                type: CampaignType.type1,
                 organizationId: dto.OrganizationId
             );
         }
@@ -150,7 +154,6 @@ namespace TheCharityBLL.Mapper
                 target: (int?)(dto.Target ?? 100),
                 achieved: 0,
                 status: CampaignStatus.Active,
-                type: CampaignType.type6,
                  creatorOrganizationId: dto.CreatorOrganizationId
             );
         }

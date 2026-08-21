@@ -138,13 +138,6 @@ namespace TheCharityDAL.Repositories.Implementation
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByTypeAsync(int pageNumber, int pageSize, CampaignType type)
-        {
-            var query = _context.Campaigns.Where(c => c.Type == type && (c.IsDeleted == false)).AsQueryable();
-
-            return await query.ToPagedResultAsync(pageNumber, pageSize);
-        }
-
         public async Task<(IEnumerable<Campaign> Data, int TotalCount)> SearchCampaignsAsync(int pageNumber, int pageSize, string searchTerm)
         {
             if (string.IsNullOrWhiteSpace(searchTerm))
@@ -379,17 +372,6 @@ namespace TheCharityDAL.Repositories.Implementation
             return totalPercentage;
         }
 
-        public async Task<Dictionary<CampaignType, int>> GetCampaignCountByTypeAsync()
-        {
-            var result = await _context.Campaigns
-                .Where(c => c.IsDeleted == false)
-                .GroupBy(c => c.Type)
-                .Select(g => new { Type = g.Key, Count = g.Count() })
-                .ToListAsync();
-
-            return result.ToDictionary(r => r.Type ?? CampaignType.type1, r => r.Count);
-        }
-
         public async Task<Dictionary<CampaignStatus, int>> GetCampaignCountByStatusAsync()
         {
             var result = await _context.Campaigns
@@ -588,12 +570,6 @@ namespace TheCharityDAL.Repositories.Implementation
                 return 0;
 
             return (double)(campaign.Achieved.HasValue ? campaign.Achieved : 1).Value / (campaign.Target.HasValue ? campaign.Target : 1).Value * 100;
-        }
-
-        public async Task<CampaignType?> GetCampaignTypeAsync(int id)
-        {
-            var campaign = await GetCampaignByIdAsync(id);
-            return campaign?.Type;
         }
 
         // ===== Campaign Ownership =====

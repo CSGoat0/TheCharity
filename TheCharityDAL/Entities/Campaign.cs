@@ -11,7 +11,6 @@ namespace TheCharityDAL.Entities
         public double? Target { get; private set; } = 100;
         public double? Achieved { get; private set; } = 0;
         public CampaignStatus? Status { get; private set; } = CampaignStatus.Active;
-        public CampaignType? Type { get; private set; }
         public virtual int? OrganizationId { get; protected set; }
         public bool IsDeleted { get; private set; } = false;
         public DateTime? DeletedOn { get; private set; } = null;
@@ -19,7 +18,7 @@ namespace TheCharityDAL.Entities
         public DateTime? UpdatedOn { get; private set; } = null;
         public DateTime? Deadline { get; private set; } = DateTime.Now.AddMonths(1);
         public DateTime? CompletionDate { get; private set; } = null;
-        public Campaign(string? title, string? description, string? imgPath, int? target, int? achieved, CampaignStatus? status, CampaignType? type, DateTime deadline)
+        public Campaign(string? title, string? description, string? imgPath, int? target, int? achieved, CampaignStatus? status, DateTime deadline)
         {
             this.Title = title;
             this.Description = description;
@@ -27,7 +26,6 @@ namespace TheCharityDAL.Entities
             this.Target = target;
             this.Achieved = achieved;
             this.Status = status;
-            this.Type = type;
             this.Deadline = deadline;
         }
         protected Campaign() { }
@@ -80,14 +78,6 @@ namespace TheCharityDAL.Entities
                 if (status == CampaignStatus.Completed)
                     this.CompletionDate = DateTime.Now;
                 else this.CompletionDate = null;
-            }
-        }
-        public void EditType(CampaignType? type)
-        {
-            if (type.HasValue)
-            {
-                this.Type = type;
-                this.UpdatedOn = DateTime.Now;
             }
         }
         public void ExtendDeadline(DateTime newCompletionDate)
