@@ -19,5 +19,6 @@
         public int AccessFailedCount { get; set; }
         public string? FullName { get; set; }
         public string? ImgPath { get; set; }
+        public List<string> Roles { get; set; } = new List<string>();
     }
 }
