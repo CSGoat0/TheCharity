@@ -133,7 +133,7 @@ namespace TheCharityPL.Controllers
         // ==============================
 
         /// <summary>
-        /// Login user and return JWT token
+        /// Login user and return JWT token with user data
         /// </summary>
         [HttpPost("login")]
         [AllowAnonymous]
@@ -151,20 +151,19 @@ namespace TheCharityPL.Controllers
 
             if (result.Success)
             {
-                var user = await _userService.GetUserByEmailAsync(responseDto.UserName);
-                return HandleResponse(new ServiceResponse<object?>
+                return Ok(new ServiceResponse<LoginResultDto>
                 {
                     Success = true,
-                    Data = new
-                    {
-                        Token = result.Data,
-                        User = user.Data
-                    },
+                    Data = result.Data,
                     Message = "Login successful."
                 });
             }
 
-            return HandleResponse(result);
+            return BadRequest(new ServiceResponse<object?>
+            {
+                Success = false,
+                Message = result.Message
+            });
         }
 
         // ==============================

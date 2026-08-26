@@ -101,6 +101,8 @@ namespace TheCharityBLL.Services.Repository
                 }
 
                 var response = _userMapper.MapToUserResponseDto(user);
+                var roles = await _userRepository.GetUserRolesAsync(userId);
+                response.Roles = roles.ToList();
 
                 return new ServiceResponse<UserResponseDTO>
                 {
@@ -183,6 +185,8 @@ namespace TheCharityBLL.Services.Repository
                 }
 
                 var response = _userMapper.MapToUserResponseDto(user);
+                var roles = await _userRepository.GetUserRolesAsync(user.Id);
+                response.Roles = roles.ToList();
 
                 return new ServiceResponse<UserResponseDTO>
                 {
@@ -202,7 +206,7 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<ServiceResponse<string?>> LoginAsync(string usernameOrEmail, string password)
+        public async Task<ServiceResponse<LoginResultDto>> LoginAsync(string usernameOrEmail, string password)
         {
             try
             {
@@ -210,7 +214,7 @@ namespace TheCharityBLL.Services.Repository
 
                 if (user == null || user.IsDeleted)
                 {
-                    return new ServiceResponse<string?>
+                    return new ServiceResponse<LoginResultDto>
                     {
                         Success = false,
                         Message = "Invalid credentials."
@@ -219,7 +223,7 @@ namespace TheCharityBLL.Services.Repository
 
                 if (!user.EmailConfirmed)
                 {
-                    return new ServiceResponse<string?>
+                    return new ServiceResponse<LoginResultDto>
                     {
                         Success = false,
                         Message = "Please confirm your email before logging in."
@@ -230,7 +234,7 @@ namespace TheCharityBLL.Services.Repository
                 if (!passwordValid)
                 {
                     await _userRepository.AccessFailedAsync(user);
-                    return new ServiceResponse<string?>
+                    return new ServiceResponse<LoginResultDto>
                     {
                         Success = false,
                         Message = "Invalid credentials."
@@ -239,20 +243,30 @@ namespace TheCharityBLL.Services.Repository
 
                 await _userRepository.ResetAccessFailedCountAsync(user);
 
+                // Get user DTO with roles
                 var userDto = _userMapper.MapToUserResponseDto(user);
+                var roles = await _userRepository.GetUserRolesAsync(user.Id);
+                userDto.Roles = roles.ToList();
+
                 var token = await GenerateJwtTokenAsync(userDto);
 
-                return new ServiceResponse<string?>
+                var result = new LoginResultDto
+                {
+                    Token = token,
+                    User = userDto
+                };
+
+                return new ServiceResponse<LoginResultDto>
                 {
                     Success = true,
-                    Data = token,
+                    Data = result,
                     Message = "Login successful."
                 };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error during login for: {UsernameOrEmail}", usernameOrEmail);
-                return new ServiceResponse<string?>
+                return new ServiceResponse<LoginResultDto>
                 {
                     Success = false,
                     Message = $"An error occurred during login: {ex.Message}"
@@ -263,11 +277,7 @@ namespace TheCharityBLL.Services.Repository
         public async Task<string> GenerateJwtTokenAsync(UserResponseDTO userDto)
         {
             var user = _userMapper.MapToUser(userDto);
-            return await GenerateJwtTokenInternalAsync(user);
-        }
 
-        private async Task<string> GenerateJwtTokenInternalAsync(User user)
-        {
             var claims = new List<Claim>
             {
                 new Claim(ClaimTypes.NameIdentifier, user.Id),
@@ -1001,7 +1011,7 @@ namespace TheCharityBLL.Services.Repository
                     parametersDto.PageSize,
                     userId);
 
-                // Map to DTO using the user mapper (or create a separate organization mapper)
+                // Map to DTO using the user mapper
                 var organizationDtos = organizations.Select(o => new OrganizationResponseDto
                 {
                     Id = o.Id,
