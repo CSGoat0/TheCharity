@@ -276,17 +276,15 @@ namespace TheCharityBLL.Services.Repository
 
         public async Task<string> GenerateJwtTokenAsync(UserResponseDTO userDto)
         {
-            var user = _userMapper.MapToUser(userDto);
-
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.Id),
-                new Claim(ClaimTypes.Email, user.Email!),
-                new Claim(ClaimTypes.Name, user.UserName!),
+                new Claim(ClaimTypes.NameIdentifier, userDto.Id),
+                new Claim(ClaimTypes.Email, userDto.Email!),
+                new Claim(ClaimTypes.Name, userDto.UserName!),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            var roles = await _userRepository.GetUserRolesAsync(user.Id);
+            var roles = await _userRepository.GetUserRolesAsync(userDto.Id);
 
             foreach (var role in roles)
                 claims.Add(new Claim(ClaimTypes.Role, role));
