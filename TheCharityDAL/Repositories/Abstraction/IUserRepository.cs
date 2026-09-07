@@ -37,6 +37,7 @@ namespace TheCharityDAL.Repositories.Abstraction
 
         // ===== Roles =====
         Task<IList<string>> GetUserRolesAsync(string userId);
+        Task<Dictionary<string, IList<string>>> GetUserRolesForUsersAsync(IEnumerable<string> userIds);
         Task<bool> IsInRoleAsync(string userId, string role);
         Task<IdentityResult> AddToRoleAsync(string userId, string role);
         Task<IdentityResult> RemoveFromRoleAsync(string userId, string role);

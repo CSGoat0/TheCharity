@@ -49,6 +49,19 @@ namespace TheCharityBLL.Services.Repository
 
                 var userDtos = _userMapper.MapToUserResponseDtos(users);
 
+                // Get all roles in one batch query
+                var userIds = userDtos.Select(u => u.Id!).ToList();
+                var userRolesMap = await _userRepository.GetUserRolesForUsersAsync(userIds);
+
+                // Assign roles to each user DTO
+                foreach (var userDto in userDtos)
+                {
+                    if (userRolesMap.TryGetValue(userDto.Id!, out var roles))
+                    {
+                        userDto.Roles = roles.ToList();
+                    }
+                }
+
                 var response = new PagedResultDto<UserResponseDTO>
                 {
                     Items = userDtos,
