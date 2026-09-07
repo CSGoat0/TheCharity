@@ -68,7 +68,6 @@ namespace TheCharityPL.Controllers
         /// Get all users with pagination
         /// </summary>
         [HttpGet]
-        [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAll([FromQuery] PaginationParametersDto parametersDto, [FromQuery] bool includeDeleted = false)
         {
             var result = await _userService.GetAllUsersAsync(parametersDto, includeDeleted);

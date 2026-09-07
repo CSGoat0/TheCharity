@@ -118,6 +118,34 @@ namespace TheCharityDAL.Repositories.Implementation
             return await _userManager.GetRolesAsync(user);
         }
 
+        public async Task<Dictionary<string, IList<string>>> GetUserRolesForUsersAsync(IEnumerable<string> userIds)
+        {
+            var userIdList = userIds.ToList();
+            if (!userIdList.Any())
+                return new Dictionary<string, IList<string>>();
+
+            var userRoles = await _context.UserRoles
+                .Where(ur => userIdList.Contains(ur.UserId))
+                .Join(_context.Roles,
+                      ur => ur.RoleId,
+                      r => r.Id,
+                      (ur, r) => new { ur.UserId, RoleName = r.Name })
+                .GroupBy(x => x.UserId)
+                .ToDictionaryAsync(
+                    g => g.Key,
+                    g => (IList<string>)g.Select(x => x.RoleName).ToList()
+                );
+
+            // Ensure all userIds are present in the dictionary
+            foreach (var userId in userIdList)
+            {
+                if (!userRoles.ContainsKey(userId))
+                    userRoles[userId] = new List<string>();
+            }
+
+            return userRoles;
+        }
+
         public async Task<bool> IsInRoleAsync(string userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId);
