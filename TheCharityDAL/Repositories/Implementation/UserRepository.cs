@@ -146,6 +146,30 @@ namespace TheCharityDAL.Repositories.Implementation
             return userRoles;
         }
 
+        public async Task<Dictionary<string, IEnumerable<OrganizationRole>>> GetUserOrganizationRolesForUsersAsync(IEnumerable<string> userIds)
+        {
+            var userIdList = userIds.ToList();
+            if (!userIdList.Any())
+                return new Dictionary<string, IEnumerable<OrganizationRole>>();
+
+            var userOrgRoles = await _context.OrganizationRoles
+                .Where(r => userIdList.Contains(r.UserId) && !r.IsDeleted)
+                .Include(r => r.Organization)
+                .GroupBy(r => r.UserId)
+                .ToDictionaryAsync(
+                    g => g.Key,
+                    g => (IEnumerable<OrganizationRole>)g.ToList()
+                );
+
+            foreach (var userId in userIdList)
+            {
+                if (!userOrgRoles.ContainsKey(userId))
+                    userOrgRoles[userId] = new List<OrganizationRole>();
+            }
+
+            return userOrgRoles;
+        }
+
         public async Task<bool> IsInRoleAsync(string userId, string role)
         {
             var user = await _userManager.FindByIdAsync(userId);
@@ -350,10 +374,12 @@ namespace TheCharityDAL.Repositories.Implementation
             int pageSize,
             string userId)
         {
-            // Get organization IDs where user is Admin
-            var adminOrgIds = await _context.Organizations
-                .Where(o => o.AdminUserId == userId && !o.IsDeleted)
-                .Select(o => o.Id)
+            // Get organization IDs where user is Admin (from OrganizationRole table)
+            var adminOrgIds = await _context.OrganizationRoles
+                .Where(r => r.UserId == userId &&
+                           r.Role == OrganizationRoleType.Admin &&
+                           !r.IsDeleted)
+                .Select(r => r.OrganizationId)
                 .ToListAsync();
 
             // Get organization IDs where user is SubAdmin
@@ -421,10 +447,11 @@ namespace TheCharityDAL.Repositories.Implementation
             int pageSize,
             string userId)
         {
-            // Get organization IDs where user is Admin
-            var adminOrgIds = await _context.Organizations
-                .Where(o => o.AdminUserId == userId && !o.IsDeleted)
-                .Select(o => o.Id)
+            var adminOrgIds = await _context.OrganizationRoles
+                .Where(r => r.UserId == userId &&
+                           r.Role == OrganizationRoleType.Admin &&
+                           !r.IsDeleted)
+                .Select(r => r.OrganizationId)
                 .ToListAsync();
 
             // Get organization IDs where user is SubAdmin
@@ -490,8 +517,10 @@ namespace TheCharityDAL.Repositories.Implementation
             if (await IsSuperAdminAsync(userId))
                 return true;
 
-            var isAdmin = await _context.Organizations
-                .AnyAsync(o => o.AdminUserId == userId && !o.IsDeleted);
+            var isAdmin = await _context.OrganizationRoles
+                .AnyAsync(r => r.UserId == userId &&
+                              r.Role == OrganizationRoleType.Admin &&
+                              !r.IsDeleted);
 
             var isSubAdmin = await _context.OrganizationRoles
                 .AnyAsync(r => r.UserId == userId &&

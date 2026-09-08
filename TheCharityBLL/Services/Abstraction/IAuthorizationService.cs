@@ -1,4 +1,5 @@
 ﻿using System.Security.Claims;
+using TheCharityDAL.Enums;
 
 namespace TheCharityBLL.Services.Abstraction
 {
@@ -16,6 +17,7 @@ namespace TheCharityBLL.Services.Abstraction
         Task<bool> IsOrganizationAdminAsync(string userId, int organizationId);
         Task<bool> IsOrganizationSubAdminAsync(string userId, int organizationId);
         Task<bool> IsOrganizationAdminOrSubAdminAsync(string userId, int organizationId);
+        Task<OrganizationRoleType?> GetUserRoleInOrganizationAsync(string userId, int organizationId);
 
         // ===== Campaign Permission Checks =====
         Task<bool> CanManageCampaignAsync(string userId, int campaignId);

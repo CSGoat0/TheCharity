@@ -47,14 +47,14 @@ namespace TheCharityBLL.Services.Implementation
 
             if (!organizationId.HasValue) return recipients;
 
-            // 2. Get Organization Admin
+            // Get Organization Admin
             var admin = await _organizationRepository.GetOrganizationAdminAsync(organizationId.Value);
             if (admin != null && !string.IsNullOrEmpty(admin.Email))
             {
                 recipients.Add(admin.Email);
             }
 
-            // 3. Get Organization Sub-Admins
+            // Get Organization Sub-Admins
             var subAdmins = await _organizationRepository.GetOrganizationSubAdminsAsync(1, int.MaxValue, organizationId.Value);
             foreach (var subAdmin in subAdmins.Data)
             {
@@ -64,7 +64,7 @@ namespace TheCharityBLL.Services.Implementation
                 }
             }
 
-            // 4. Get SuperAdmins (users with SuperAdmin Identity Role)
+            // Get SuperAdmins
             var superAdmins = await GetSuperAdminsAsync();
             foreach (var superAdmin in superAdmins)
             {
@@ -181,7 +181,7 @@ namespace TheCharityBLL.Services.Implementation
             {
                 var recipients = new List<string>();
 
-                // 1. Get Organization Admin
+                // Get Organization Admin
                 var admin = await _organizationRepository.GetOrganizationAdminAsync(organizationId);
                 if (admin != null && !string.IsNullOrEmpty(admin.Email))
                 {

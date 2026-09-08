@@ -2,7 +2,9 @@
 using System.Security.Claims;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityDAL.Entities;
+using TheCharityDAL.Enums;
 using TheCharityDAL.Repositories.Abstraction;
+using TheCharityDAL.Repositories.Implementation;
 
 namespace TheCharityBLL.Services.Implementation
 {
@@ -10,13 +12,16 @@ namespace TheCharityBLL.Services.Implementation
     {
         private readonly IUserRepository _userRepository;
         private readonly ICampaignRepository _campaignRepository;
+        private readonly IOrganizationRepository _organizationRepository;
 
         public AuthorizationService(
             IUserRepository userRepository,
-            ICampaignRepository campaignRepository)
+            ICampaignRepository campaignRepository,
+            IOrganizationRepository organizationRepository)
         {
             _userRepository = userRepository;
             _campaignRepository = campaignRepository;
+            _organizationRepository = organizationRepository;
         }
 
         // ===== Helper Methods =====
@@ -257,6 +262,12 @@ namespace TheCharityBLL.Services.Implementation
 
             // ONLY SuperAdmin can perform bulk operations
             return await IsSuperAdminAsync(userId);
+        }
+
+        public async Task<OrganizationRoleType?> GetUserRoleInOrganizationAsync(string userId, int organizationId)
+        {
+            if (string.IsNullOrEmpty(userId)) return null;
+            return await _organizationRepository.GetUserRoleInOrganizationAsync(organizationId, userId);
         }
     }
 }

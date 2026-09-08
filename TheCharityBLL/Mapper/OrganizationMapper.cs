@@ -4,6 +4,7 @@ using TheCharityBLL.DTOs.OrganizationContactMethodDTOs;
 using TheCharityBLL.DTOs.OrganizationDTOs;
 using TheCharityBLL.DTOs.PaymentInfoDTOs;
 using TheCharityDAL.Entities;
+using TheCharityDAL.Enums;
 
 namespace TheCharityBLL.Mapper
 {
@@ -18,11 +19,16 @@ namespace TheCharityBLL.Mapper
         public partial PaymentInfo MapToPaymentInfo(CreatePaymentInfoDto paymentInfo);
         public partial PaymentInfoResponseDto MapToPaymentInfoResponseDto(PaymentInfo paymentInfo);
         public partial IEnumerable<PaymentInfoResponseDto> MapToPaymentInfoResponseDto(IEnumerable<PaymentInfo> paymentInfo);
+
         public OrganizationResponseDto MapToOrganizationResponseDto(Organization organization)
         {
             if (organization == null) return null!;
 
-            // Manually map ALL properties
+            var adminRole = organization.OrganizationRoles?
+                .FirstOrDefault(r => r.Role == OrganizationRoleType.Admin && !r.IsDeleted);
+
+            var adminUser = adminRole?.User;
+
             var dto = new OrganizationResponseDto
             {
                 Id = organization.Id,
@@ -33,12 +39,10 @@ namespace TheCharityBLL.Mapper
                 RegistrationDate = organization.RegistrationDate.Value,
                 UpdatedOn = organization.UpdatedOn,
 
-                // ===== Map Admin properties =====
-                AdminUserId = organization.AdminUserId,
-                AdminUserName = organization.AdminUser?.UserName ?? organization.AdminUser?.Email ?? string.Empty,
-                AdminUserFullName = organization.AdminUser?.FullName ?? string.Empty,
-                AdminUserEmail = organization.AdminUser?.Email ?? string.Empty,
-                // ===== END =====
+                AdminUserId = adminUser?.Id,
+                AdminUserName = adminUser?.UserName ?? adminUser?.Email ?? string.Empty,
+                AdminUserFullName = adminUser?.FullName ?? string.Empty,
+                AdminUserEmail = adminUser?.Email ?? string.Empty,
 
                 // Map ContactMethods
                 ContactMethods = organization.ContactMethods?
@@ -58,7 +62,11 @@ namespace TheCharityBLL.Mapper
         {
             if (organization == null) return null!;
 
-            // Get campaigns and filter out deleted ones
+            var adminRole = organization.OrganizationRoles?
+                .FirstOrDefault(r => r.Role == OrganizationRoleType.Admin && !r.IsDeleted);
+
+            var adminUser = adminRole?.User;
+
             var soloCampaigns = organization.SoloCampaigns?.Where(c => !c.IsDeleted).ToList() ?? new List<SoloCampaign>();
             var sharedCampaigns = organization.SharedCampaigns?.Where(c => !c.IsDeleted).ToList() ?? new List<SharedCampaign>();
 
@@ -113,11 +121,10 @@ namespace TheCharityBLL.Mapper
                 RegistrationDate = organization.RegistrationDate.Value,
                 UpdatedOn = organization.UpdatedOn,
 
-                // ===== Map Admin properties =====
-                AdminUserId = organization.AdminUserId,
-                AdminUserName = organization.AdminUser?.UserName ?? organization.AdminUser?.Email ?? string.Empty,
-                AdminUserFullName = organization.AdminUser?.FullName ?? string.Empty,
-                AdminUserEmail = organization.AdminUser?.Email ?? string.Empty,
+                AdminUserId = adminUser?.Id,
+                AdminUserName = adminUser?.UserName ?? adminUser?.Email ?? string.Empty,
+                AdminUserFullName = adminUser?.FullName ?? string.Empty,
+                AdminUserEmail = adminUser?.Email ?? string.Empty,
 
                 // ===== Map Contact Methods =====
                 ContactMethods = organization.ContactMethods?
@@ -143,7 +150,6 @@ namespace TheCharityBLL.Mapper
 
             return dto;
         }
-
 
         public IEnumerable<OrganizationResponseDto> MapToOrganizationResponseDtos(IEnumerable<Organization> organizations)
         {

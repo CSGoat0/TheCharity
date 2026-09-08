@@ -16,7 +16,7 @@ namespace TheCharityDAL.Repositories.Abstraction
         // ===== Organization Filtering & Search =====
         Task<Organization?> GetOrganizationByNameAsync(string name);
         Task<Organization?> GetOrganizationByPaymentInfoIdAsync(int PaymentInfoId);
-        Task<(IEnumerable<Organization> Data,int TotalCount)> SearchOrganizationsAsync(int pageNumber, int pageSize, string searchTerm);
+        Task<(IEnumerable<Organization> Data, int TotalCount)> SearchOrganizationsAsync(int pageNumber, int pageSize, string searchTerm);
         Task<(IEnumerable<Organization> Data, int TotalCount)> GetDeletedOrganizationsAsync(int pageNumber, int pageSize);
         Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsDropDownAsync(int pageNumber, int pageSize);
         Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsByAddressAsync(int pageNumber, int pageSize, string address);
@@ -26,7 +26,7 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<int> GetActiveOrganizationsCountAsync();
 
         // ===== Organization Contact Methods =====
-        Task<(IEnumerable<OrganizationContactMethod> Data,int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId);
+        Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId);
         Task<OrganizationContactMethod?> GetContactMethodByIdAsync(int contactMethodId);
         Task<OrganizationContactMethod> AddContactMethodAsync(OrganizationContactMethod contactMethod);
         Task<OrganizationContactMethod> UpdateContactMethodAsync(OrganizationContactMethod contactMethod);
@@ -66,26 +66,40 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<bool> ContactMethodExistsAsync(int organizationId, ContactType type, string value);
         Task<int> GetContactMethodCountByTypeAsync(int organizationId, ContactType type);
         Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsByContactTypeAsync(int pageNumber, int pageSize, ContactType type);
-        
+
         // ===== Payment Info Utilities =====
         Task<bool> ValidatePaymentInfoAsync(int organizationId);
         Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithValidPaymentInfoAsync(int pageNumber, int pageSize);
         Task<Dictionary<int, DateTime>> GetOrganizationLastPaymentUpdateAsync();
 
-        // ===== Admin Management =====
+        // ===== UNIFIED ROLE MANAGEMENT =====
+
+        // Admin Management
         Task<Organization> AssignOrganizationAdminAsync(int organizationId, string adminUserId);
         Task<Organization> RemoveOrganizationAdminAsync(int organizationId);
         Task<Organization> TransferOrganizationAdminAsync(int organizationId, string newAdminUserId);
         Task<User?> GetOrganizationAdminAsync(int organizationId);
+        Task<bool> IsUserOrganizationAdminAsync(int organizationId, string userId);
 
-        // ===== SubAdmin Management =====
+        // SubAdmin Management
         Task<(IEnumerable<User> Data, int TotalCount)> GetOrganizationSubAdminsAsync(int pageNumber, int pageSize, int organizationId);
         Task<OrganizationRole> AddSubAdminAsync(int organizationId, string userId);
         Task RemoveSubAdminAsync(int organizationId, string userId);
         Task<bool> IsUserSubAdminAsync(int organizationId, string userId);
 
-        // ===== Organization Role Utilities =====
+        // Combined Role Management
         Task<OrganizationRole> AddOrganizationRoleAsync(int organizationId, string userId, OrganizationRoleType role);
         Task RemoveOrganizationRoleAsync(int organizationId, string userId);
+        Task<OrganizationRoleType?> GetUserRoleInOrganizationAsync(int organizationId, string userId);
+        Task<bool> IsUserInOrganizationRoleAsync(int organizationId, string userId, OrganizationRoleType role);
+        Task<(IEnumerable<User> Data, int TotalCount)> GetOrganizationUsersWithRolesAsync(int pageNumber, int pageSize, int organizationId, OrganizationRoleType? role = null);
+        Task<bool> IsUserOrganizationAdminOrSubAdminAsync(int organizationId, string userId);
+        Task<IEnumerable<User>> GetAllOrganizationUsersWithAnyRoleAsync(int organizationId);
+
+        // ===== User Organization Role Queries =====
+        Task<IEnumerable<OrganizationRole>> GetUserOrganizationRolesAsync(string userId);
+        Task<IEnumerable<int>> GetOrganizationIdsByUserAndRoleAsync(string userId, OrganizationRoleType role);
+        Task<IEnumerable<int>> GetOrganizationIdsByUserAsync(string userId);
+        Task<(IEnumerable<User> Data, int TotalCount)> GetUsersByOrganizationAndRoleAsync(int pageNumber, int pageSize, int organizationId, OrganizationRoleType role);
     }
 }

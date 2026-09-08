@@ -62,5 +62,8 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<(IEnumerable<Organization> Data, int TotalCount)> GetAllOrganizationsUserHasAccessToAsync(int pageNumber, int pageSize, string userId);
         Task<bool> UserHasAnyManagementRoleAsync(string userId);
         Task<(IEnumerable<OrganizationRole> Data, int TotalCount)> GetUserOrganizationRolesAsync(int pageNumber, int pageSize, string userId);
+
+        // ===== Organization Roles Batch =====
+        Task<Dictionary<string, IEnumerable<OrganizationRole>>> GetUserOrganizationRolesForUsersAsync(IEnumerable<string> userIds);
     }
 }

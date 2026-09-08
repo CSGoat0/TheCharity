@@ -42,13 +42,6 @@ namespace TheCharityDAL.Database
                 .WithMany(o => o.SharedCampaigns)
                 .UsingEntity(j => j.ToTable("SharedCampaignOrganizations"));
 
-            // 4. Organization - AdminUser relationship
-            builder.Entity<Organization>()
-                .HasOne(o => o.AdminUser)
-                .WithMany()  // No inverse navigation property
-                .HasForeignKey(o => o.AdminUserId)
-                .OnDelete(DeleteBehavior.Restrict); // Prevent accidental admin deletion
-
             // 5. OrganizationRole - User relationship
             builder.Entity<OrganizationRole>()
                 .HasOne(r => r.User)
