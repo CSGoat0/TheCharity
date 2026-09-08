@@ -10,10 +10,6 @@ namespace TheCharityDAL.Entities
         public string? Name { get; private set; }
         public string? Address { get; private set; }
         public int? PaymentId { get; private set; }
-        public string? AdminUserId { get; private set; }
-
-        [ForeignKey(nameof(AdminUserId))]
-        public User? AdminUser { get; private set; }
         public virtual ICollection<OrganizationRole> OrganizationRoles { get; private set; } = new List<OrganizationRole>();
 
         [ForeignKey(nameof(PaymentId))]
@@ -58,19 +54,6 @@ namespace TheCharityDAL.Entities
                 this.PaymentId = paymentinfoId;
                 this.UpdatedOn = DateTime.UtcNow;
             }
-        }
-        public void AssignAdmin(string adminUserId)
-        {
-            if (!string.IsNullOrEmpty(adminUserId))
-            {
-                AdminUserId = adminUserId;
-                UpdatedOn = DateTime.UtcNow;
-            }
-        }
-        public void RemoveAdmin()
-        {
-            AdminUserId = null;
-            UpdatedOn = DateTime.UtcNow;
         }
         public void Delete()
         {

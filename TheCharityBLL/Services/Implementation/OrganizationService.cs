@@ -26,6 +26,7 @@ namespace TheCharityBLL.Services.Implementation
             _authorizationService = authorizationService;
             _userService = userService;
         }
+
         public async Task<ServiceResponse<OrgContactMethodResponseDto>> CreateContactMethodAsync(CreateOrgContactMethodDto contactMethod)
         {
             if (!await _repository.OrganizationExistsAsync(contactMethod.CompanyId))
@@ -126,7 +127,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetAllOrganizationsAsync(PaginationParametersDto filterDto, bool includeDeleted = false)
         {
-            var organizations = await _repository.GetAllOrganizationsAsync(filterDto.PageNumber,filterDto.PageSize, includeDeleted);
+            var organizations = await _repository.GetAllOrganizationsAsync(filterDto.PageNumber, filterDto.PageSize, includeDeleted);
 
             var organizationDtos = _mapper.MapToOrganizationResponseDtos(organizations.Data);
 
@@ -196,7 +197,7 @@ namespace TheCharityBLL.Services.Implementation
                     Message = $"Organization with ID {organizationId} not found.",
                 };
             }
-            var contactMethods = await _repository.GetContactMethodsByTypeAsync(filterDto.PageNumber,filterDto.PageSize,organizationId, type);
+            var contactMethods = await _repository.GetContactMethodsByTypeAsync(filterDto.PageNumber, filterDto.PageSize, organizationId, type);
             if (!contactMethods.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>
@@ -205,8 +206,6 @@ namespace TheCharityBLL.Services.Implementation
                     Message = "No contact methods found for this type."
                 };
             }
-
-            //var totalCount = contactMethods.TotalCount;
 
             var contactMethodDtos = _mapper.MapToOrganizationContactMethodResponseDtos(contactMethods.Data);
 
@@ -224,7 +223,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetDeletedOrganizationsAsync(PaginationParametersDto filterDto)
         {
-            var deletedOrganizations = await _repository.GetDeletedOrganizationsAsync(filterDto.PageNumber,filterDto.PageSize);
+            var deletedOrganizations = await _repository.GetDeletedOrganizationsAsync(filterDto.PageNumber, filterDto.PageSize);
 
             var organizationDtos = _mapper.MapToOrganizationResponseDtos(deletedOrganizations.Data);
 
@@ -296,7 +295,7 @@ namespace TheCharityBLL.Services.Implementation
                     Message = $"Organization with ID {organizationId} not found.",
                 };
             }
-            var contactMethods = await _repository.GetOrganizationContactMethodsAsync(filterDto.PageNumber,filterDto.PageSize,organizationId);
+            var contactMethods = await _repository.GetOrganizationContactMethodsAsync(filterDto.PageNumber, filterDto.PageSize, organizationId);
             if (!contactMethods.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>
@@ -305,7 +304,7 @@ namespace TheCharityBLL.Services.Implementation
                     Message = "No contact methods found for this organization."
                 };
             }
- 
+
             var contactMethodDtos = _mapper.MapToOrganizationContactMethodResponseDtos(contactMethods.Data);
 
             var result = contactMethods.ToPagedResult(contactMethodDtos, filterDto);
@@ -332,7 +331,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsByAddressAsync(PaginationParametersDto filterDto, string address)
         {
-            var organizations = await _repository.GetOrganizationsByAddressAsync(filterDto.PageNumber,filterDto.PageSize,address);
+            var organizations = await _repository.GetOrganizationsByAddressAsync(filterDto.PageNumber, filterDto.PageSize, address);
             if (!organizations.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
@@ -364,7 +363,7 @@ namespace TheCharityBLL.Services.Implementation
                     Message = "Please enter valid camings count"
                 };
             }
-            var organizations = await _repository.GetOrganizationsByCampaignCountAsync(filterDto.PageNumber,filterDto.PageSize,minCampaigns);
+            var organizations = await _repository.GetOrganizationsByCampaignCountAsync(filterDto.PageNumber, filterDto.PageSize, minCampaigns);
 
             var organizationDtos = _mapper.MapToOrganizationResponseDtos(organizations.Data);
 
@@ -380,7 +379,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsByContactTypeAsync(PaginationParametersDto filterDto, ContactType type)
         {
-            var organizations = await _repository.GetOrganizationsByContactTypeAsync(filterDto.PageNumber,filterDto.PageSize,type);
+            var organizations = await _repository.GetOrganizationsByContactTypeAsync(filterDto.PageNumber, filterDto.PageSize, type);
             if (!organizations.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
@@ -420,7 +419,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsWithActiveCampaignsAsync(PaginationParametersDto filterDto)
         {
-            var organizations = await _repository.GetOrganizationsWithActiveCampaignsAsync(filterDto.PageNumber,filterDto.PageSize);
+            var organizations = await _repository.GetOrganizationsWithActiveCampaignsAsync(filterDto.PageNumber, filterDto.PageSize);
             if (!organizations.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
@@ -468,7 +467,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsWithoutCampaignsAsync(PaginationParametersDto filterDto)
         {
-            var organizations = await _repository.GetOrganizationsWithoutCampaignsAsync(filterDto.PageNumber,filterDto.PageSize);
+            var organizations = await _repository.GetOrganizationsWithoutCampaignsAsync(filterDto.PageNumber, filterDto.PageSize);
             if (!organizations.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
@@ -492,7 +491,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsWithoutPaymentInfoAsync(PaginationParametersDto filterDto)
         {
-            var organizations = await _repository.GetOrganizationsWithoutPaymentInfoAsync(filterDto.PageNumber,filterDto.PageSize);
+            var organizations = await _repository.GetOrganizationsWithoutPaymentInfoAsync(filterDto.PageNumber, filterDto.PageSize);
             if (!organizations.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
@@ -588,7 +587,7 @@ namespace TheCharityBLL.Services.Implementation
                     Message = "Please enter valid day"
                 };
             }
-            var organizations = await _repository.GetRecentlyRegisteredOrganizationsAsync(filterDto.PageNumber,filterDto.PageSize,days);
+            var organizations = await _repository.GetRecentlyRegisteredOrganizationsAsync(filterDto.PageNumber, filterDto.PageSize, days);
             if (!organizations.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
@@ -668,7 +667,7 @@ namespace TheCharityBLL.Services.Implementation
                     Message = "Search term cannot be empty."
                 };
             }
-            var organizations = await _repository.SearchOrganizationsAsync(filterDto.PageNumber,filterDto.PageSize,searchTerm);
+            var organizations = await _repository.SearchOrganizationsAsync(filterDto.PageNumber, filterDto.PageSize, searchTerm);
             if (!organizations.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrganizationResponseDto>>
@@ -768,7 +767,7 @@ namespace TheCharityBLL.Services.Implementation
             var nameExist = await _repository.OrganizationNameExistsAsync(name);
             return new ServiceResponse<bool>
             {
-                Success=true,
+                Success = true,
                 Data = nameExist,
             };
         }
@@ -790,7 +789,7 @@ namespace TheCharityBLL.Services.Implementation
 
                 // Check if user exists
                 var user = await _userService.GetUserByIdAsync(userId);
-                if (user == null)
+                if (user == null || user.Data == null)
                 {
                     return new ServiceResponse<OrganizationRoleResponseDto>
                     {
@@ -967,7 +966,7 @@ namespace TheCharityBLL.Services.Implementation
             }
         }
 
-        // ===== NEW: Organization Admin Management =====
+        // ===== Organization Admin Management =====
 
         public async Task<ServiceResponse<OrganizationResponseDto>> AssignOrganizationAdminAsync(int organizationId, string adminUserId)
         {
@@ -986,7 +985,7 @@ namespace TheCharityBLL.Services.Implementation
 
                 // Check if user exists
                 var user = await _userService.GetUserByIdAsync(adminUserId);
-                if (user == null)
+                if (user == null || user.Data == null)
                 {
                     return new ServiceResponse<OrganizationResponseDto>
                     {
@@ -1075,7 +1074,7 @@ namespace TheCharityBLL.Services.Implementation
 
                 // Check if user exists
                 var user = await _userService.GetUserByIdAsync(newAdminUserId);
-                if (user == null)
+                if (user == null || user.Data == null)
                 {
                     return new ServiceResponse<OrganizationResponseDto>
                     {

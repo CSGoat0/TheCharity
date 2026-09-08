@@ -11,7 +11,6 @@ using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.UserDTOs;
 using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction;
-using TheCharityDAL.Entities;
 using TheCharityDAL.Repositories.Abstraction;
 
 namespace TheCharityBLL.Services.Repository
@@ -49,16 +48,28 @@ namespace TheCharityBLL.Services.Repository
 
                 var userDtos = _userMapper.MapToUserResponseDtos(users);
 
-                // Get all roles in one batch query
                 var userIds = userDtos.Select(u => u.Id!).ToList();
+
+                // Get global roles
                 var userRolesMap = await _userRepository.GetUserRolesForUsersAsync(userIds);
 
-                // Assign roles to each user DTO
+                // Get organization roles
+                var userOrgRolesMap = await _userRepository.GetUserOrganizationRolesForUsersAsync(userIds);
+
                 foreach (var userDto in userDtos)
                 {
                     if (userRolesMap.TryGetValue(userDto.Id!, out var roles))
                     {
                         userDto.Roles = roles.ToList();
+                    }
+
+                    if (userOrgRolesMap.TryGetValue(userDto.Id!, out var orgRoles))
+                    {
+                        foreach (var orgRole in orgRoles)
+                        {
+                            var orgName = orgRole.Organization?.Name ?? "Unknown Organization";
+                            userDto.Roles.Add($"{orgName}: {orgRole.Role}");
+                        }
                     }
                 }
 
@@ -1022,7 +1033,6 @@ namespace TheCharityBLL.Services.Repository
                     parametersDto.PageSize,
                     userId);
 
-                // Map to DTO using the user mapper
                 var organizationDtos = organizations.Select(o => new OrganizationResponseDto
                 {
                     Id = o.Id,
@@ -1031,8 +1041,7 @@ namespace TheCharityBLL.Services.Repository
                     IsDeleted = o.IsDeleted,
                     RegistrationDate = o.RegistrationDate,
                     UpdatedOn = o.UpdatedOn,
-                    PaymentId = o.PaymentId,
-                    AdminUserId = o.AdminUserId
+                    PaymentId = o.PaymentId
                 }).ToList();
 
                 var response = new PagedResultDto<OrganizationResponseDto>
