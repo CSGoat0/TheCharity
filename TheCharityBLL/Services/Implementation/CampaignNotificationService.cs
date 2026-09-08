@@ -2,7 +2,6 @@
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.Services.Enums;
 using TheCharityDAL.Entities;
-using TheCharityDAL.Enums;
 using TheCharityDAL.Repositories.Abstraction;
 
 namespace TheCharityBLL.Services.Implementation
