@@ -21,16 +21,19 @@ namespace TheCharityBLL.Services.Repository
         private readonly UserMapper _userMapper;
         private readonly ILogger<UserService> _logger;
         private readonly IConfiguration _configuration;
+        private readonly IOrganizationRepository _organizationRepository;
 
         public UserService(
             IUserRepository userRepository,
             IConfiguration configuration,
-            ILogger<UserService> logger)
+            ILogger<UserService> logger,
+            IOrganizationRepository organizationRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _userMapper = new UserMapper();
+            _organizationRepository = organizationRepository;
         }
 
         // ===== Queries =====
@@ -125,8 +128,18 @@ namespace TheCharityBLL.Services.Repository
                 }
 
                 var response = _userMapper.MapToUserResponseDto(user);
+
+                // Get global roles
                 var roles = await _userRepository.GetUserRolesAsync(userId);
                 response.Roles = roles.ToList();
+
+                // Get organization roles
+                var orgRoles = await _organizationRepository.GetUserOrganizationRolesAsync(userId);
+                foreach (var orgRole in orgRoles)
+                {
+                    var orgName = orgRole.Organization?.Name ?? "Unknown Organization";
+                    response.Roles.Add($"{orgName}: {orgRole.Role}");
+                }
 
                 return new ServiceResponse<UserResponseDTO>
                 {
