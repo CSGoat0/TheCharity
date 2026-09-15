@@ -66,7 +66,7 @@ namespace TheCharityBLL.Authorization.Handlers
         {
             // Try route values
             if (httpContext.Request.RouteValues.TryGetValue("id", out var idObj) ||
-                httpContext.Request.RouteValues.TryGetValue("organizationId", out idObj))
+                httpContext.Request.RouteValues.TryGetValue("orgId", out idObj))
             {
                 if (int.TryParse(idObj?.ToString(), out int id))
                     return id;
