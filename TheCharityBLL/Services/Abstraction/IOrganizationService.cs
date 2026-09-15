@@ -47,7 +47,6 @@ namespace TheCharityBLL.Services.Abstraction
 
         Task<ServiceResponse<int>> GetContactMethodCountByTypeAsync(int organizationId, ContactType type);
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsByContactTypeAsync(PaginationParametersDto filterDto,ContactType type);
-
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsWithValidPaymentInfoAsync(PaginationParametersDto filterDto);
         Task<ServiceResponse<Dictionary<int, DateTime>>> GetOrganizationLastPaymentUpdateAsync();
 

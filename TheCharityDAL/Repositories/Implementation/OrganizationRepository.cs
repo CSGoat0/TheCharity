@@ -253,6 +253,13 @@ namespace TheCharityDAL.Repositories.Implementation
                 .FirstOrDefaultAsync();
         }
 
+        public async Task<PaymentInfo?> GetPaymentInfoByIntegrationIdAsync(string integrationId)
+        {
+            return await _context.PaymentsInfo
+                .Where(p => p.IntegrationId == integrationId && !p.IsDeleted)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<PaymentInfo> AddPaymentInfoAsync(PaymentInfo paymentInfo)
         {
             _context.PaymentsInfo.Add(paymentInfo);

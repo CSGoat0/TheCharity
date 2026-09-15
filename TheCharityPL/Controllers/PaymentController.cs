@@ -20,20 +20,20 @@ namespace TheCharityPL.Controllers
         private readonly IDonationService _donationService;
         private readonly ILogger<PaymentController> _logger;
         private readonly IUserService _userService;
-        private readonly IOrganizationService _organizationService;
+        private readonly IPaymentInfoService _paymentInfoService;
 
         public PaymentController(
             IPaymobService paymobService,
             IDonationService donationService,
             ILogger<PaymentController> logger,
             IUserService userService,
-            IOrganizationService organizationService)
+            IPaymentInfoService paymentInfoService)
         {
             _paymobService = paymobService ?? throw new ArgumentNullException(nameof(paymobService));
             _donationService = donationService ?? throw new ArgumentNullException(nameof(donationService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
-            _organizationService = organizationService ?? throw new ArgumentNullException(nameof(organizationService));
+            _paymentInfoService = paymentInfoService ?? throw new ArgumentNullException(nameof(paymentInfoService));
         }
 
         // ==============================
@@ -287,7 +287,7 @@ namespace TheCharityPL.Controllers
 
             // Look up the payment info by integration ID (the integration that processed this transaction)
             var integrationId = transaction.IntegrationId.ToString();
-            var paymentInfoResult = await _organizationService.GetPaymentInfoByIntegrationIdAsync(integrationId);
+            var paymentInfoResult = await _paymentInfoService.GetPaymentInfoByIntegrationIdAsync(integrationId);
 
             if (!paymentInfoResult.Success || paymentInfoResult.Data == null || string.IsNullOrEmpty(paymentInfoResult.Data.HmacKey))
             {
