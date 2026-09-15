@@ -37,6 +37,7 @@ namespace TheCharityDAL.Repositories.Abstraction
         // ===== Payment Info Management =====
         Task<PaymentInfo?> GetPaymentInfoByOrganizationIdAsync(int organizationId);
         Task<PaymentInfo?> GetPaymentInfoByIdAsync(int paymentInfoId);
+        Task<PaymentInfo?> GetPaymentInfoByIntegrationIdAsync(string integrationId);
         Task<PaymentInfo> AddPaymentInfoAsync(PaymentInfo paymentInfo);
         Task<PaymentInfo> UpdatePaymentInfoAsync(PaymentInfo paymentInfo);
         Task DeletePaymentInfoAsync(int paymentInfoId);

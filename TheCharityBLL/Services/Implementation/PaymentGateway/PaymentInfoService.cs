@@ -5,6 +5,7 @@ using TheCharityBLL.Mapper;
 using TheCharityBLL.Services.Abstraction.Payment;
 using TheCharityDAL.Entities;
 using TheCharityDAL.Repositories.Abstraction;
+using TheCharityDAL.Repositories.Implementation;
 
 namespace TheCharityBLL.Services.Implementation.PaymentGateway
 {
@@ -81,6 +82,37 @@ namespace TheCharityBLL.Services.Implementation.PaymentGateway
             var organization = await _organizationRepository.GetOrganizationByPaymentInfoIdAsync(paymentInfoId);
 
             paymentInfoResponseDto.OrganizationId = organization?.Id;
+
+            return new ServiceResponse<PaymentInfoResponseDto?>
+            {
+                Success = true,
+                Data = paymentInfoResponseDto,
+                Message = "Payment info retrieved successfully."
+            };
+        }
+
+        public async Task<ServiceResponse<PaymentInfoResponseDto?>> GetPaymentInfoByIntegrationIdAsync(string integrationId)
+        {
+            if (string.IsNullOrWhiteSpace(integrationId))
+            {
+                return new ServiceResponse<PaymentInfoResponseDto?>
+                {
+                    Success = false,
+                    Message = "Integration ID cannot be null or empty."
+                };
+            }
+
+            var paymentInfo = await _organizationRepository.GetPaymentInfoByIntegrationIdAsync(integrationId);
+            if (paymentInfo == null)
+            {
+                return new ServiceResponse<PaymentInfoResponseDto?>
+                {
+                    Success = false,
+                    Message = $"No payment info found for integration ID {integrationId}."
+                };
+            }
+
+            var paymentInfoResponseDto = _paymentInfoMapper.MapToPaymentInfoResponseDto(paymentInfo);
 
             return new ServiceResponse<PaymentInfoResponseDto?>
             {

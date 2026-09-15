@@ -5,7 +5,6 @@ using System.Security.Cryptography;
 using System.Text;
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.DonationDTOs;
-using TheCharityBLL.DTOs.PaginationDTOs;
 using TheCharityBLL.DTOs.PaymentDTOs;
 using TheCharityBLL.Services.Abstraction;
 using TheCharityBLL.Services.Abstraction.MoneyDonation;
@@ -20,21 +19,21 @@ namespace TheCharityPL.Controllers
         private readonly IPaymobService _paymobService;
         private readonly IDonationService _donationService;
         private readonly ILogger<PaymentController> _logger;
-        private readonly IConfiguration _configuration;
         private readonly IUserService _userService;
+        private readonly IPaymentInfoService _paymentInfoService;
 
         public PaymentController(
             IPaymobService paymobService,
             IDonationService donationService,
             ILogger<PaymentController> logger,
-            IConfiguration configuration,
-            IUserService userService)
+            IUserService userService,
+            IPaymentInfoService paymentInfoService)
         {
             _paymobService = paymobService ?? throw new ArgumentNullException(nameof(paymobService));
             _donationService = donationService ?? throw new ArgumentNullException(nameof(donationService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _paymentInfoService = paymentInfoService ?? throw new ArgumentNullException(nameof(paymentInfoService));
         }
 
         // ==============================
@@ -69,7 +68,6 @@ namespace TheCharityPL.Controllers
             {
                 _logger.LogInformation("Creating payment for user: {UserId}, CampaignId: {CampaignId}", userId, request.CampaignId);
 
-                // Fetch user via repository to build real billing data
                 var userResult = await _userService.GetUserByIdAsync(userId);
                 if (!userResult.Success || userResult.Data == null)
                 {
@@ -120,7 +118,7 @@ namespace TheCharityPL.Controllers
                 return StatusCode(500, new ServiceResponse<object?>
                 {
                     Success = false,
-                    Message = $"An error occurred while creating the payment: {ex.Message}"
+                    Message = "An error occurred while creating the payment."
                 });
             }
         }
@@ -156,8 +154,14 @@ namespace TheCharityPL.Controllers
                 var transaction = wrapper.Obj;
 
                 // 1. Verify HMAC signature
-                var receivedHmac = Request.Query["hmac"].ToString();
-                if (!VerifyHmac(transaction, receivedHmac))
+                var receivedHmac = wrapper.Hmac;
+                if (string.IsNullOrEmpty(receivedHmac))
+                {
+                    // Fallback: some Paymob configurations send HMAC as a query parameter
+                    receivedHmac = Request.Query["hmac"].ToString();
+                }
+
+                if (!await VerifyHmacAsync(transaction, receivedHmac))
                 {
                     _logger.LogWarning("Invalid HMAC for transaction {TransactionId}.", transaction.Id);
                     return Unauthorized(new ServiceResponse<object?>
@@ -249,7 +253,6 @@ namespace TheCharityPL.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                // Thrown by DonationService when IsDonationValidAsync returns false
                 _logger.LogWarning(ex, "Donation validation failed during callback.");
                 return Ok(new ServiceResponse<object?>
                 {
@@ -274,14 +277,27 @@ namespace TheCharityPL.Controllers
         // Private Methods
         // ==============================
 
-        private bool VerifyHmac(PaymobTransaction transaction, string receivedHmac)
+        private async Task<bool> VerifyHmacAsync(PaymobTransaction transaction, string receivedHmac)
         {
-            var secret = _configuration["Paymob:HmacKey"];
-            if (string.IsNullOrEmpty(secret) || string.IsNullOrEmpty(receivedHmac))
+            if (string.IsNullOrEmpty(receivedHmac))
             {
-                _logger.LogWarning("HMAC verification failed: missing secret or received HMAC");
+                _logger.LogWarning("HMAC verification failed: missing received HMAC.");
                 return false;
             }
+
+            // Look up the payment info by integration ID (the integration that processed this transaction)
+            var integrationId = transaction.IntegrationId.ToString();
+            var paymentInfoResult = await _paymentInfoService.GetPaymentInfoByIntegrationIdAsync(integrationId);
+
+            if (!paymentInfoResult.Success || paymentInfoResult.Data == null || string.IsNullOrEmpty(paymentInfoResult.Data.HmacKey))
+            {
+                _logger.LogWarning(
+                    "HMAC verification failed: no payment info / HMAC key found for integration {IntegrationId}.",
+                    integrationId);
+                return false;
+            }
+
+            var secret = paymentInfoResult.Data.HmacKey;
 
             try
             {
@@ -309,8 +325,6 @@ namespace TheCharityPL.Controllers
                     transaction.Success.ToString().ToLowerInvariant()
                 );
 
-                _logger.LogDebug("HMAC data string: {Data}", data);
-
                 using var hmac = new HMACSHA512(Encoding.UTF8.GetBytes(secret));
                 var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(data));
                 var computed = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
@@ -319,8 +333,7 @@ namespace TheCharityPL.Controllers
 
                 if (!isValid)
                 {
-                    _logger.LogWarning("HMAC mismatch. Computed: {Computed}, Received: {Received}",
-                        computed, receivedHmac.ToLowerInvariant());
+                    _logger.LogWarning("HMAC mismatch for transaction {TransactionId}.", transaction.Id);
                 }
 
                 return isValid;

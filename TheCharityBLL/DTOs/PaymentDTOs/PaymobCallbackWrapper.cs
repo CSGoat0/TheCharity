@@ -1,6 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace TheCharityBLL.DTOs.PaymentDTOs
 {
@@ -14,6 +12,9 @@ namespace TheCharityBLL.DTOs.PaymentDTOs
 
         [JsonPropertyName("accept_fees")]
         public decimal AcceptFees { get; set; }
+
+        [JsonPropertyName("hmac")]
+        public string? Hmac { get; set; }
 
         [JsonPropertyName("issuer_bank")]
         public object? IssuerBank { get; set; }
