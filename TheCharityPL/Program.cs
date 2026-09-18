@@ -19,12 +19,13 @@ namespace TheCharityPL
             builder.Services.TheCharityConfiguration(builder.Configuration);
             builder.Services.ThirdPartyAuthentication(builder.Configuration);
             builder.Services.AddHangfireServices();
+
             // Add services to the container.
             builder.Services.AddControllers().AddJsonOptions(options =>
             {
                 options.JsonSerializerOptions.PropertyNameCaseInsensitive = true;
-                // This prevents unknown properties from crashing deserialization
-            }); ;
+            });
+
             // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen(c =>
@@ -52,11 +53,21 @@ namespace TheCharityPL
                 }
             });
 
+            // ---- Load CORS origins from configuration ----
+            var allowedOrigins = builder.Configuration
+                .GetSection("Cors:AllowedOrigins")
+                .Get<string[]>() ?? Array.Empty<string>();
+
+            if (allowedOrigins.Length == 0)
+            {
+                throw new Exception("No CORS origins configured. Add Cors:AllowedOrigins to appsettings.json.");
+            }
+
             builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowAngular", policy =>
                 {
-                    policy.WithOrigins("http://localhost:4200")
+                    policy.WithOrigins(allowedOrigins)
                         .AllowAnyHeader()
                         .AllowAnyMethod()
                         .AllowCredentials();
@@ -86,7 +97,7 @@ namespace TheCharityPL
 
             var app = builder.Build();
 
-            // Configure Hangfire dashboard (secured - Super Admin only)
+            // Configure Hangfire dashboard
             app.UseHangfireDashboard("/hangfire", new DashboardOptions
             {
                 DashboardTitle = "The Charity Platform - Background Jobs",
@@ -100,14 +111,14 @@ namespace TheCharityPL
                 jobRegistry.RegisterAllRecurringJobs();
             }
 
-            app.MapHealthChecks("/health");// check if the db connected or not
+            app.MapHealthChecks("/health");
 
             // Configure the HTTP request pipeline.
             app.UseSwagger();
             app.UseSwaggerUI();
             app.UseDeveloperExceptionPage();
 
-            //global exception handling middleware
+            // global exception handling middleware
             app.UseMiddleware<ExceptionMiddleware>();
 
             app.UseHttpsRedirection();
