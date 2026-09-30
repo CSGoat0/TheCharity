@@ -62,13 +62,13 @@ namespace TheCharityBLL.Mapper
                 existingPaymentInfo.EditApiKey(dto.ApiKey);
 
             if (!string.IsNullOrWhiteSpace(dto.IntegrationId))
-                existingPaymentInfo.EditApiKey(dto.IntegrationId);
+                existingPaymentInfo.EditIntegrationId(dto.IntegrationId);
 
             if (!string.IsNullOrWhiteSpace(dto.IframeId))
-                existingPaymentInfo.EditApiKey(dto.IframeId);
+                existingPaymentInfo.EditIframeId(dto.IframeId);
 
             if (!string.IsNullOrWhiteSpace(dto.HmacKey))
-                existingPaymentInfo.EditApiKey(dto.HmacKey);
+                existingPaymentInfo.EditHmacKey(dto.HmacKey);
 
             return existingPaymentInfo;
         }
