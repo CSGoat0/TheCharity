@@ -1,4 +1,4 @@
-# TheCharity Platform
+# TheCharity — Platform
 
 > A modern, multi-tenant fundraising platform built with ASP.NET Core 8.0, featuring event-driven architecture, background job processing, and a robust role-based authorization system.
 
