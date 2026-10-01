@@ -91,21 +91,21 @@
 
 ```
 ┌────────────────────────────────────────────────────────────┐
-│                    PRESENTATION LAYER                     │
-│  • API Controllers (JWT Auth)                           │
-│  • Custom Authorization Attributes                      │
-│  • Middleware (Global Error Handling)                   │
+│                    PRESENTATION LAYER                      │
+│  • API Controllers (JWT Auth)                              │
+│  • Custom Authorization Attributes                         │
+│  • Middleware (Global Error Handling)                      │
 ├────────────────────────────────────────────────────────────┤
-│                    BUSINESS LOGIC LAYER                  │
-│  • Services (Campaign, Organization, Donation, User)    │
-│  • Event Dispatcher + Handlers                         │
-│  • Background Jobs (Hangfire)                          │
-│  • DTOs + Mappers                                      │
+│                    BUSINESS LOGIC LAYER                    │
+│  • Services (Campaign, Organization, Donation, User)       │
+│  • Event Dispatcher + Handlers                             │
+│  • Background Jobs (Hangfire)                              │
+│  • DTOs + Mappers                                          │
 ├────────────────────────────────────────────────────────────┤
-│                    DATA ACCESS LAYER                     │
-│  • Entities + DbContext                                │
-│  • Repository Pattern                                  │
-│  • Migrations                                          │
+│                    DATA ACCESS LAYER                       │
+│  • Entities + DbContext                                    │
+│  • Repository Pattern                                      │
+│  • Migrations                                              │
 └────────────────────────────────────────────────────────────┘
 ```
 
