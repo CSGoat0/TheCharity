@@ -74,13 +74,6 @@ namespace TheCharityDAL.Database
                 .WithMany()
                 .HasForeignKey(i => i.InvitedByUserId)
                 .OnDelete(DeleteBehavior.Restrict);
-
-            // 8. Soft delete query filters
-            builder.Entity<User>().HasQueryFilter(u => !u.IsDeleted);
-            builder.Entity<Campaign>().HasQueryFilter(c => !c.IsDeleted);
-            builder.Entity<Organization>().HasQueryFilter(o => !o.IsDeleted);
-            builder.Entity<OrganizationRole>().HasQueryFilter(r => !r.IsDeleted);
-            builder.Entity<SharedCampaignInvite>().HasQueryFilter(i => !i.IsDeleted);
         }
     }
 }
