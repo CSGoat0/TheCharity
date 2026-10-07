@@ -35,7 +35,7 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<Organization?> GetOrganizationByIdAsync(int id)
         {
             return await _context.Organizations
-                .Where(o => o.Id == id)
+                .Where(o => o.Id == id && (o.IsDeleted == false))
                 .Include(o => o.ContactMethods.Where(cm => cm.IsDeleted == false))
                 .Include(o => o.PaymentInfo)
                 .Include(o => o.OrganizationRoles.Where(r => !r.IsDeleted))
@@ -180,8 +180,15 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<OrganizationContactMethod?> GetContactMethodByIdAsync(int contactMethodId)
         {
             return await _context.OrganizationContactMethods
-                .Where(cm => cm.Id == contactMethodId)
+                .Where(cm => cm.Id == contactMethodId &&
+                           (cm.IsDeleted == false))
                 .FirstOrDefaultAsync();
+        }
+
+        public async Task<bool> ContactMethodExistsByIdAsync(int contactMethodId)
+        {
+            return await _context.OrganizationContactMethods
+                .AnyAsync(cm => cm.Id == contactMethodId);
         }
 
         public async Task<OrganizationContactMethod> AddContactMethodAsync(OrganizationContactMethod contactMethod)
