@@ -29,15 +29,15 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<OrgContactMethodResponseDto>> CreateContactMethodAsync(CreateOrgContactMethodDto contactMethod)
         {
-            if (!await _repository.OrganizationExistsAsync(contactMethod.CompanyId))
+            if (!await _repository.OrganizationExistsAsync(contactMethod.OrganizationId))
             {
                 return new ServiceResponse<OrgContactMethodResponseDto>
                 {
                     Success = false,
-                    Message = $"Organization with ID {contactMethod.CompanyId} not found."
+                    Message = $"Organization with ID {contactMethod.OrganizationId} not found."
                 };
             }
-            if (await _repository.ContactMethodExistsAsync(contactMethod.CompanyId, contactMethod.Type, contactMethod.Value))
+            if (await _repository.ContactMethodExistsAsync(contactMethod.OrganizationId, contactMethod.Type, contactMethod.Value))
             {
                 return new ServiceResponse<OrgContactMethodResponseDto>
                 {
