@@ -187,7 +187,7 @@ namespace TheCharityBLL.Services.Implementation
             };
         }
 
-        public async Task<ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>> GetContactMethodsByTypeAsync(PaginationParametersDto filterDto, int organizationId, ContactType type)
+        public async Task<ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>> GetContactMethodsByTypeAsync(PaginationParametersDto filterDto, int organizationId, ContactType type, bool includeDeleted = false)
         {
             if (!await _repository.OrganizationExistsAsync(organizationId))
             {
@@ -197,7 +197,7 @@ namespace TheCharityBLL.Services.Implementation
                     Message = $"Organization with ID {organizationId} not found.",
                 };
             }
-            var contactMethods = await _repository.GetContactMethodsByTypeAsync(filterDto.PageNumber, filterDto.PageSize, organizationId, type);
+            var contactMethods = await _repository.GetContactMethodsByTypeAsync(filterDto.PageNumber, filterDto.PageSize, organizationId, type, includeDeleted);
             if (!contactMethods.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>
@@ -285,7 +285,7 @@ namespace TheCharityBLL.Services.Implementation
             };
         }
 
-        public async Task<ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>> GetOrganizationContactMethodsAsync(PaginationParametersDto filterDto, int organizationId)
+        public async Task<ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>> GetOrganizationContactMethodsAsync(PaginationParametersDto filterDto, int organizationId, bool includeDeleted = false)
         {
             if (!await _repository.OrganizationExistsAsync(organizationId))
             {
@@ -295,7 +295,7 @@ namespace TheCharityBLL.Services.Implementation
                     Message = $"Organization with ID {organizationId} not found.",
                 };
             }
-            var contactMethods = await _repository.GetOrganizationContactMethodsAsync(filterDto.PageNumber, filterDto.PageSize, organizationId);
+            var contactMethods = await _repository.GetOrganizationContactMethodsAsync(filterDto.PageNumber, filterDto.PageSize, organizationId, includeDeleted);
             if (!contactMethods.Data.Any())
             {
                 return new ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>
@@ -623,7 +623,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<bool>> RestoreContactMethodAsync(int contactMethodId)
         {
-            if (await _repository.GetContactMethodByIdAsync(contactMethodId) == null)
+            if (!await _repository.ContactMethodExistsByIdAsync(contactMethodId))
             {
                 return new ServiceResponse<bool>
                 {

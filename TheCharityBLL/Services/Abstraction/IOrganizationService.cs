@@ -9,10 +9,10 @@ namespace TheCharityBLL.Services.Abstraction
 {
     public interface IOrganizationService
     {
-        Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetAllOrganizationsAsync(PaginationParametersDto filterDto,bool includeDeleted = false);
+        Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetAllOrganizationsAsync(PaginationParametersDto filterDto, bool includeDeleted = false);
         Task<ServiceResponse<OrganizationResponseDto>> GetOrganizationByIdAsync(int id);
         Task<ServiceResponse<OrganizationResponseDto>> CreateOrganizationAsync(CreateOrganizationDto organization);
-        Task<ServiceResponse<OrganizationResponseDto>> UpdateOrganizationAsync(int id,UpdateOrganizationDto organization);
+        Task<ServiceResponse<OrganizationResponseDto>> UpdateOrganizationAsync(int id, UpdateOrganizationDto organization);
         Task<ServiceResponse<bool>> DeleteOrganizationAsync(int id);
         Task<ServiceResponse<bool>> RestoreOrganizationAsync(int id);
 
@@ -24,13 +24,13 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<int>> GetTotalOrganizationsCountAsync();
         Task<ServiceResponse<int>> GetActiveOrganizationsCountAsync();
 
-        Task<ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>> GetOrganizationContactMethodsAsync(PaginationParametersDto filterDto, int organizationId);
+        Task<ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>> GetOrganizationContactMethodsAsync(PaginationParametersDto filterDto, int organizationId, bool includeDeleted = false);
         Task<ServiceResponse<OrgContactMethodResponseDto>> GetContactMethodByIdAsync(int contactMethodId);
         Task<ServiceResponse<OrgContactMethodResponseDto>> CreateContactMethodAsync(CreateOrgContactMethodDto contactMethod);
-        Task<ServiceResponse<OrgContactMethodResponseDto>> UpdateContactMethodAsync(int id,UpdateOrgContactMethodDto contactMethod);
+        Task<ServiceResponse<OrgContactMethodResponseDto>> UpdateContactMethodAsync(int id, UpdateOrgContactMethodDto contactMethod);
         Task<ServiceResponse<bool>> DeleteContactMethodAsync(int contactMethodId);
         Task<ServiceResponse<bool>> RestoreContactMethodAsync(int contactMethodId);
-        Task<ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>> GetContactMethodsByTypeAsync(PaginationParametersDto filterDto,int organizationId, ContactType type);
+        Task<ServiceResponse<PagedResultDto<OrgContactMethodResponseDto>>> GetContactMethodsByTypeAsync(PaginationParametersDto filterDto, int organizationId, ContactType type, bool includeDeleted = false);
 
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsByCampaignCountAsync(PaginationParametersDto filterDto, int minCampaigns = 1);
 
@@ -46,7 +46,7 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsWithCompletedCampaignsAsync(PaginationParametersDto filterDto);
 
         Task<ServiceResponse<int>> GetContactMethodCountByTypeAsync(int organizationId, ContactType type);
-        Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsByContactTypeAsync(PaginationParametersDto filterDto,ContactType type);
+        Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsByContactTypeAsync(PaginationParametersDto filterDto, ContactType type);
         Task<ServiceResponse<PagedResultDto<OrganizationResponseDto>>> GetOrganizationsWithValidPaymentInfoAsync(PaginationParametersDto filterDto);
         Task<ServiceResponse<Dictionary<int, DateTime>>> GetOrganizationLastPaymentUpdateAsync();
 
