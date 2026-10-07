@@ -22,6 +22,6 @@ namespace TheCharityBLL.DTOs.OrganizationContactMethodDTOs
 
         /// <example>1</example>
         [Required(ErrorMessage = "CompanyId is required.")]
-        public int CompanyId { get; set; }
+        public int OrganizationId { get; set; }
     }
 }
