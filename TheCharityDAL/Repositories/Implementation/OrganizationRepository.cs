@@ -168,7 +168,7 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId)
         {
             var query = _context.OrganizationContactMethods
-                .Where(cm => cm.CompanyId == organizationId &&
+                .Where(cm => cm.OrganizationId == organizationId &&
                            (cm.IsDeleted == false))
                 .AsQueryable();
 
@@ -223,7 +223,7 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetContactMethodsByTypeAsync(int pageNumber, int pageSize, int organizationId, ContactType type)
         {
             var query = _context.OrganizationContactMethods
-                   .Where(cm => cm.CompanyId == organizationId &&
+                   .Where(cm => cm.OrganizationId == organizationId &&
                         cm.Type == type &&
                         !cm.IsDeleted)
                    .AsQueryable();
@@ -421,7 +421,7 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<bool> ContactMethodExistsAsync(int organizationId, ContactType type, string value)
         {
             return await _context.OrganizationContactMethods
-                .AnyAsync(cm => cm.CompanyId == organizationId &&
+                .AnyAsync(cm => cm.OrganizationId == organizationId &&
                                cm.Type == type &&
                                cm.Value == value &&
                                (cm.IsDeleted == false));
@@ -430,7 +430,7 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<int> GetContactMethodCountByTypeAsync(int organizationId, ContactType type)
         {
             return await _context.OrganizationContactMethods
-                .Where(cm => cm.CompanyId == organizationId &&
+                .Where(cm => cm.OrganizationId == organizationId &&
                            cm.Type == type &&
                            (cm.IsDeleted == false))
                 .CountAsync();
