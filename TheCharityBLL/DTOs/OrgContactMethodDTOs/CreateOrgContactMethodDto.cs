@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 using TheCharityDAL.Enums;
 
 namespace TheCharityBLL.DTOs.OrganizationContactMethodDTOs
@@ -21,7 +16,7 @@ namespace TheCharityBLL.DTOs.OrganizationContactMethodDTOs
         public ContactType Type { get; set; }
 
         /// <example>1</example>
-        [Required(ErrorMessage = "CompanyId is required.")]
-        public int CompanyId { get; set; }
+        [Required(ErrorMessage = "OrganizationId is required.")]
+        public int OrganizationId { get; set; }
     }
 }

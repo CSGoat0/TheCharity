@@ -13,14 +13,14 @@ namespace TheCharityDAL.Entities
         public DateTime? DeletedOn { get; private set; }
         public DateTime? RegistrationDate { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedOn { get; private set; }
-        public int? CompanyId { get; private set; }
+        public int? OrganizationId { get; private set; }
 
-        [ForeignKey(nameof(CompanyId))]
+        [ForeignKey(nameof(OrganizationId))]
         public Organization? organization { get; private set; }
-        public OrganizationContactMethod(string? value, ContactType? type, int? companyId) { 
+        public OrganizationContactMethod(string? value, ContactType? type, int? organizationId) { 
             this.Value = value;
             this.Type = type;
-            this.CompanyId = companyId;
+            this.OrganizationId = organizationId;
         }
         public void EditValue(string? value) {
             if (!value.IsNullOrEmpty())
