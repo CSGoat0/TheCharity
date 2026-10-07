@@ -623,7 +623,7 @@ namespace TheCharityBLL.Services.Implementation
 
         public async Task<ServiceResponse<bool>> RestoreContactMethodAsync(int contactMethodId)
         {
-            if (await _repository.GetContactMethodByIdAsync(contactMethodId) == null)
+            if (!await _repository.ContactMethodExistsByIdAsync(contactMethodId))
             {
                 return new ServiceResponse<bool>
                 {
