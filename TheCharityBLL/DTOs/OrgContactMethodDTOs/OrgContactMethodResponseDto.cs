@@ -15,7 +15,7 @@ namespace TheCharityBLL.DTOs.OrganizationContactMethodDTOs
         public ContactType Type { get; set; }
 
         /// <example>1</example>
-        public int CompanyId { get; set; }
+        public int OrganizationId { get; set; }
 
         /// <example>false</example>
         public bool IsDeleted { get; set; }
