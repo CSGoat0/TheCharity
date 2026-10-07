@@ -702,7 +702,7 @@ namespace TheCharityBLL.Services.Implementation
             }
             if (existcontactMethod.Value != contactMethod.Value || existcontactMethod.Type != contactMethod.Type)
             {
-                if (await _repository.ContactMethodExistsAsync((int)existcontactMethod.CompanyId, (ContactType)contactMethod.Type, contactMethod.Value))
+                if (await _repository.ContactMethodExistsAsync((int)existcontactMethod.OrganizationId, (ContactType)contactMethod.Type, contactMethod.Value))
                 {
                     return new ServiceResponse<OrgContactMethodResponseDto>
                     {
