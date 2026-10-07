@@ -17,10 +17,10 @@ namespace TheCharityDAL.Entities
 
         [ForeignKey(nameof(OrganizationId))]
         public Organization? organization { get; private set; }
-        public OrganizationContactMethod(string? value, ContactType? type, int? companyId) { 
+        public OrganizationContactMethod(string? value, ContactType? type, int? organizationId) { 
             this.Value = value;
             this.Type = type;
-            this.OrganizationId = companyId;
+            this.OrganizationId = organizationId;
         }
         public void EditValue(string? value) {
             if (!value.IsNullOrEmpty())
