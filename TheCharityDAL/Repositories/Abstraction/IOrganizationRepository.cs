@@ -26,13 +26,13 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<int> GetActiveOrganizationsCountAsync();
 
         // ===== Organization Contact Methods =====
-        Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId);
+        Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId, bool includeDeleted = false);
         Task<OrganizationContactMethod?> GetContactMethodByIdAsync(int contactMethodId);
         Task<OrganizationContactMethod> AddContactMethodAsync(OrganizationContactMethod contactMethod);
         Task<OrganizationContactMethod> UpdateContactMethodAsync(OrganizationContactMethod contactMethod);
         Task DeleteContactMethodAsync(int contactMethodId);
         Task RestoreContactMethodAsync(int contactMethodId);
-        Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetContactMethodsByTypeAsync(int pageNumber, int pageSize, int organizationId, ContactType type);
+        Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetContactMethodsByTypeAsync(int pageNumber, int pageSize, int organizationId, ContactType type, bool includeDeleted = false);
 
         // ===== Payment Info Management =====
         Task<PaymentInfo?> GetPaymentInfoByOrganizationIdAsync(int organizationId);

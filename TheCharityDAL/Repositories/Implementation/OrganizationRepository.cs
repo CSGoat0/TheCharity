@@ -35,7 +35,7 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<Organization?> GetOrganizationByIdAsync(int id)
         {
             return await _context.Organizations
-                .Where(o => o.Id == id && (o.IsDeleted == false))
+                .Where(o => o.Id == id)
                 .Include(o => o.ContactMethods.Where(cm => cm.IsDeleted == false))
                 .Include(o => o.PaymentInfo)
                 .Include(o => o.OrganizationRoles.Where(r => !r.IsDeleted))
@@ -165,12 +165,14 @@ namespace TheCharityDAL.Repositories.Implementation
         }
 
         // ===== Organization Contact Methods =====
-        public async Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId)
+        public async Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId, bool includeDeleted = false)
         {
             var query = _context.OrganizationContactMethods
-                .Where(cm => cm.OrganizationId == organizationId &&
-                           (cm.IsDeleted == false))
+                .Where(cm => cm.OrganizationId == organizationId)
                 .AsQueryable();
+
+            if (!includeDeleted)
+                query = query.Where(cm => cm.IsDeleted == false);
 
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
@@ -178,8 +180,7 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task<OrganizationContactMethod?> GetContactMethodByIdAsync(int contactMethodId)
         {
             return await _context.OrganizationContactMethods
-                .Where(cm => cm.Id == contactMethodId &&
-                           (cm.IsDeleted == false))
+                .Where(cm => cm.Id == contactMethodId)
                 .FirstOrDefaultAsync();
         }
 
@@ -220,13 +221,15 @@ namespace TheCharityDAL.Repositories.Implementation
             }
         }
 
-        public async Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetContactMethodsByTypeAsync(int pageNumber, int pageSize, int organizationId, ContactType type)
+        public async Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetContactMethodsByTypeAsync(int pageNumber, int pageSize, int organizationId, ContactType type, bool includeDeleted = false)
         {
             var query = _context.OrganizationContactMethods
                    .Where(cm => cm.OrganizationId == organizationId &&
-                        cm.Type == type &&
-                        !cm.IsDeleted)
+                        cm.Type == type)
                    .AsQueryable();
+
+            if (!includeDeleted)
+                query = query.Where(cm => !cm.IsDeleted);
 
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
