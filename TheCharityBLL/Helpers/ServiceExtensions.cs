@@ -175,13 +175,13 @@ namespace TheCharityBLL.Helpers
                     Configuration["Jwt:Key"] ?? throw new InvalidOperationException("JWT Key not configured")))
             };
         })
-        .AddCookie("ExternalCookie"); // dedicated scheme for OAuth handshake only
-        //.AddGoogle(options =>
-        //{
-        //    options.SignInScheme = "ExternalCookie"; // scoped here only
-        //    options.ClientId = Configuration["Authentication:Google:ClientID"];
-        //    options.ClientSecret = Configuration["Authentication:Google:SecretKey"];
-        //})
+        .AddCookie("ExternalCookie") // dedicated scheme for OAuth handshake only
+        .AddGoogle(options =>
+        {
+            options.SignInScheme = "ExternalCookie"; // scoped here only
+            options.ClientId = Configuration["Authentication:Google:ClientID"];
+            options.ClientSecret = Configuration["Authentication:Google:SecretKey"];
+        });
         //.AddFacebook(options =>
         //{
         //    options.SignInScheme = "ExternalCookie"; // scoped here only
