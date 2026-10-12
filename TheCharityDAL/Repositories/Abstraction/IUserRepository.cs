@@ -11,7 +11,7 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<IdentityResult> UpdateUserAsync(User user);
         Task<IdentityResult> DeleteUserAsync(User user);
         Task<IdentityResult> RestoreUserAsync(string id);
-        Task AddLoginAsync(User user, UserLoginInfo loginInfo);
+        Task AddLoginAsync(string userId, UserLoginInfo loginInfo);
         Task<IdentityResult> CreateExternalUserAsync(string email);
 
         // ===== Lookup =====
