@@ -269,9 +269,9 @@ namespace TheCharityDAL.Repositories.Implementation
             return await _userManager.GetLoginsAsync(user);
         }
 
-        public async Task AddLoginAsync(User user, UserLoginInfo loginInfo)
+        public async Task AddLoginAsync(string userId, UserLoginInfo loginInfo)
         {
-            var trackedUser = await _userManager.FindByIdAsync(user.Id);
+            var trackedUser = await _userManager.FindByIdAsync(userId);
             if (trackedUser == null)
                 throw new Exception("User not found");
 
