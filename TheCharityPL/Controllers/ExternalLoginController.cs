@@ -14,13 +14,16 @@ namespace TheCharityPL.Controllers
     {
         private readonly IUserService _userService;
         private readonly ILogger<ExternalLoginController> _logger;
+        private readonly IConfiguration _configuration;
 
         public ExternalLoginController(
             IUserService userService,
-            ILogger<ExternalLoginController> logger)
+            ILogger<ExternalLoginController> logger,
+            IConfiguration configuration)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
         // ==============================
@@ -134,16 +137,25 @@ namespace TheCharityPL.Controllers
 
                 _logger.LogInformation("External login successful for user: {Email}", email);
 
-                return Ok(new ServiceResponse<Dictionary<string, string>>
+                // Redirect the browser to the frontend callback route with the token and returnUrl
+                // as query params. The Angular route will pick these up, store the token, and
+                // navigate the user to the returnUrl.
+                var frontendCallback = _configuration["Frontend:ExternalLoginCallbackUrl"];
+
+                if (string.IsNullOrWhiteSpace(frontendCallback))
                 {
-                    Success = true,
-                    Data = new Dictionary<string, string>
+                    _logger.LogError("Frontend:ExternalLoginCallbackUrl is not configured.");
+                    return StatusCode(500, new ServiceResponse<object?>
                     {
-                        ["token"] = token,
-                        ["returnUrl"] = returnUrl
-                    },
-                    Message = "Login successful."
-                });
+                        Success = false,
+                        Message = "Frontend callback URL is not configured on the server."
+                    });
+                }
+
+                var redirectUrl =
+                    $"{frontendCallback}?token={Uri.EscapeDataString(token)}&returnUrl={Uri.EscapeDataString(returnUrl)}";
+
+                return Redirect(redirectUrl);
             }
             catch (Exception ex)
             {
