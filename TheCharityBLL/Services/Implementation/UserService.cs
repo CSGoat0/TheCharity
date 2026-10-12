@@ -342,8 +342,10 @@ namespace TheCharityBLL.Services.Repository
 
         public async Task<bool> IsExternalLoginLinkedAsync(string providerKey, string loginProvider, UserResponseDTO userDto)
         {
-            var user = _userMapper.MapToUser(userDto);
-            var userLogins = await _userRepository.GetLoginsAsync(user);
+            if (userDto == null || string.IsNullOrEmpty(userDto.Id))
+                return false;
+
+            var userLogins = await _userRepository.GetLoginsAsync(userDto.Id);
             var existingLogin = userLogins.FirstOrDefault(l =>
                 l.LoginProvider == loginProvider && l.ProviderKey == providerKey);
             return existingLogin != null;
