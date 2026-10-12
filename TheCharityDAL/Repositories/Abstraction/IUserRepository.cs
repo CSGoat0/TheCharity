@@ -11,7 +11,7 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<IdentityResult> UpdateUserAsync(User user);
         Task<IdentityResult> DeleteUserAsync(User user);
         Task<IdentityResult> RestoreUserAsync(string id);
-        Task AddLoginAsync(User user, UserLoginInfo loginInfo);
+        Task AddLoginAsync(string userId, UserLoginInfo loginInfo);
         Task<IdentityResult> CreateExternalUserAsync(string email);
 
         // ===== Lookup =====
@@ -22,7 +22,7 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<(IEnumerable<User> Data, int TotalCount)> GetAllUsersAsync(int pageNumber, int pageSize, bool includeDeleted = false);
         Task<bool> UserExistsAsync(string userId);
         Task<bool> IsUserDeletedAsync(string userId);
-        Task<IList<UserLoginInfo>> GetLoginsAsync(User user);
+        Task<IList<UserLoginInfo>> GetLoginsAsync(string userId);
 
         // ===== Password =====
         Task<bool> CheckPasswordAsync(User user, string password);

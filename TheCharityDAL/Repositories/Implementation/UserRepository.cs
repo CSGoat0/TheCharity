@@ -264,14 +264,16 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task AccessFailedAsync(User user)
             => await _userManager.AccessFailedAsync(user);
 
-        public async Task<IList<UserLoginInfo>> GetLoginsAsync(User user)
+        public async Task<IList<UserLoginInfo>> GetLoginsAsync(string userId)
         {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return new List<UserLoginInfo>();
             return await _userManager.GetLoginsAsync(user);
         }
 
-        public async Task AddLoginAsync(User user, UserLoginInfo loginInfo)
+        public async Task AddLoginAsync(string userId, UserLoginInfo loginInfo)
         {
-            var trackedUser = await _userManager.FindByIdAsync(user.Id);
+            var trackedUser = await _userManager.FindByIdAsync(userId);
             if (trackedUser == null)
                 throw new Exception("User not found");
 
