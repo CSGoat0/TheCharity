@@ -610,8 +610,10 @@ namespace TheCharityBLL.Services.Repository
 
         public async Task AddLoginAsync(UserResponseDTO userDto, UserLoginInfo loginInfo)
         {
-            var user = _userMapper.MapToUser(userDto);
-            await _userRepository.AddLoginAsync(user, loginInfo);
+            if (userDto == null || string.IsNullOrEmpty(userDto.Id))
+                throw new ArgumentException("User DTO or user ID is null/empty.", nameof(userDto));
+
+            await _userRepository.AddLoginAsync(userDto.Id, loginInfo);
         }
 
         // ===== Password =====
