@@ -264,8 +264,10 @@ namespace TheCharityDAL.Repositories.Implementation
         public async Task AccessFailedAsync(User user)
             => await _userManager.AccessFailedAsync(user);
 
-        public async Task<IList<UserLoginInfo>> GetLoginsAsync(User user)
+        public async Task<IList<UserLoginInfo>> GetLoginsAsync(string userId)
         {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return new List<UserLoginInfo>();
             return await _userManager.GetLoginsAsync(user);
         }
 
