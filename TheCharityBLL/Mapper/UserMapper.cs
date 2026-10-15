@@ -116,6 +116,9 @@ namespace TheCharityBLL.Mapper
             if (dto == null) return null!;
             if (existingUser == null) return null!;
 
+            if (!string.IsNullOrWhiteSpace(dto.UserName))
+                existingUser.EditUsername(dto.UserName);
+
             if (!string.IsNullOrWhiteSpace(dto.Address))
                 existingUser.EditAddress(dto.Address);
 
@@ -133,7 +136,7 @@ namespace TheCharityBLL.Mapper
 
         // ===== Login Mappings =====
 
-        public User MapToUser(LoginResponseDto dto)
+        public User MapToUser(LoginRequestDto dto)
         {
             if (dto == null) return null!;
 
