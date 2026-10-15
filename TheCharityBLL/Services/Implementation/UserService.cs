@@ -380,9 +380,8 @@ namespace TheCharityBLL.Services.Repository
                     };
                 }
 
-                // Check if username is already taken
-                var existingUsername = await _userRepository.GetUserByUsernameAsync(createUserDTO.UserName);
-                if (existingUsername != null)
+                // Check if username is already taken (including soft-deleted users)
+                if (await _userRepository.UserExistsByUsernameAsync(createUserDTO.UserName!))
                 {
                     _logger.LogWarning("Registration attempt with existing username: {Username}", createUserDTO.UserName);
                     return new ServiceResponse<IdentityResult>
