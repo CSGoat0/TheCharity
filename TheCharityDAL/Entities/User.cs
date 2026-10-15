@@ -28,7 +28,7 @@ namespace TheCharityDAL.Entities
         {
             if (!string.IsNullOrEmpty(userName))
             {
-                this.FullName = userName;
+                this.UserName = userName;
                 this.UpdatedOn = DateTime.Now;
             }
         }
