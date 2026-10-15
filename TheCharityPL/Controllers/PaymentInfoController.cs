@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
+using TheCharityBLL.Authorization.Attributes;
 using TheCharityBLL.DTOs;
 using TheCharityBLL.DTOs.PaymentInfoDTOs;
 using TheCharityBLL.Services.Abstraction.Payment;
@@ -24,34 +25,35 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// get payment info ( paymob api keys ) related to specific organization by organization id  
         /// </summary>
-        // ─── GET api/paymentinfo/by-organization/{organizationId} ───────────────────
+        // ─── GET api/paymentinfo/by-organization/{orgId} ────────────────────────────
 
-        [HttpGet("by-organization/{organizationId}")]
-        public async Task<IActionResult> GetByOrganizationId(int organizationId)
+        [HttpGet("by-organization/{orgId}")]
+        [CanUpdatePaymentInfo]
+        public async Task<IActionResult> GetByOrganizationId(int orgId)
         {
             try
             {
-                _logger.LogInformation("Loading payment info for organization ID: {OrganizationId}", organizationId);
+                _logger.LogInformation("Loading payment info for organization ID: {OrganizationId}", orgId);
 
-                var result = await _paymentInfoService.GetPaymentInfoByOrganizationIdAsync(organizationId);
+                var result = await _paymentInfoService.GetPaymentInfoByOrganizationIdAsync(orgId);
 
                 if (result == null)
                 {
-                    _logger.LogWarning("No payment info found for organization ID: {OrganizationId}", organizationId);
-                    return NotFound(new ServiceResponse<object?> {Success=false, Message = $"No payment info found for organization ID '{organizationId}'." });
+                    _logger.LogWarning("No payment info found for organization ID: {OrganizationId}", orgId);
+                    return NotFound(new ServiceResponse<object?> { Success = false, Message = $"No payment info found for organization ID '{orgId}'." });
                 }
 
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning(ex, "Organization with ID {OrganizationId} not found.", organizationId);
-                return NotFound(new ServiceResponse<object?> {Success = false, Message = ex.Message });
+                _logger.LogWarning(ex, "Organization with ID {OrganizationId} not found.", orgId);
+                return NotFound(new ServiceResponse<object?> { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error loading payment info for organization ID: {OrganizationId}", organizationId);
-                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while loading payment info." });
+                _logger.LogError(ex, "Error loading payment info for organization ID: {OrganizationId}", orgId);
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while loading payment info." });
             }
         }
         /// <summary>
@@ -60,6 +62,7 @@ namespace TheCharityPL.Controllers
         // ─── GET api/paymentinfo/{paymentInfoId} ────────────────────────────────────
 
         [HttpGet("{paymentInfoId}")]
+        [IsSuperAdmin]
         public async Task<IActionResult> GetById(int paymentInfoId)
         {
             try
@@ -84,16 +87,16 @@ namespace TheCharityPL.Controllers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error loading payment info with ID: {PaymentInfoId}", paymentInfoId);
-                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while loading payment info." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while loading payment info." });
             }
         }
         /// <summary>
         /// store payment info ( paymob api keys ) in db, related to specific organization   
         /// </summary>
-        // ─── POST api/paymentinfo/{organizationId} ───────────────────────────────────
+        // ─── POST api/paymentinfo ────────────────────────────────────────────────────
 
         [HttpPost]
-       
+        [CanUpdatePaymentInfo]
         public async Task<IActionResult> Create([FromBody] CreatePaymentInfoDto dto)
         {
             if (!ModelState.IsValid)
@@ -102,18 +105,18 @@ namespace TheCharityPL.Controllers
 
             try
             {
-               
-                var created = await _paymentInfoService.CreatePaymentInfoAsync( dto);
+
+                var created = await _paymentInfoService.CreatePaymentInfoAsync(dto);
                 if (created == null)
-                    return BadRequest(new ServiceResponse<object?> {Success = false, Message = "The Organization Id isn`t Valid." });
+                    return BadRequest(new ServiceResponse<object?> { Success = false, Message = "The Organization Id isn`t Valid." });
 
                 _logger.LogInformation("Payment info created successfully with ID: {PaymentInfoId}",
                     created.Data.Id);
 
-                return Ok( created );
+                return Ok(created);
             }
-            
-           
+
+
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error creating payment info ");
@@ -126,7 +129,7 @@ namespace TheCharityPL.Controllers
         // ─── PUT api/paymentinfo/{paymentInfoId} ────────────────────────────────────
 
         [HttpPut("{paymentInfoId}")]
-     
+        [CanUpdatePaymentInfo]
         public async Task<IActionResult> Update(int paymentInfoId, [FromBody] UpdatePaymentInfoDto dto)
         {
             if (!ModelState.IsValid)
@@ -143,7 +146,7 @@ namespace TheCharityPL.Controllers
 
                 _logger.LogInformation("Payment info updated successfully with ID: {PaymentInfoId}", paymentInfoId);
 
-                return Ok(updated );
+                return Ok(updated);
             }
             catch (KeyNotFoundException ex)
             {
@@ -153,12 +156,12 @@ namespace TheCharityPL.Controllers
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning(ex, "Conflict updating payment info with ID: {PaymentInfoId}", paymentInfoId);
-                return BadRequest(new ServiceResponse<object?> {Success = false, Message = ex.Message });
+                return BadRequest(new ServiceResponse<object?> { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error updating payment info with ID: {PaymentInfoId}", paymentInfoId);
-                return StatusCode(500, new ServiceResponse<object?> {Success = false, Message = "An error occurred while updating payment info." });
+                return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while updating payment info." });
             }
         }
         /// <summary>
@@ -167,7 +170,7 @@ namespace TheCharityPL.Controllers
         // ─── DELETE api/paymentinfo/{paymentInfoId} ──────────────────────────────────
 
         [HttpDelete("{paymentInfoId}")]
-     
+        [CanUpdatePaymentInfo]
         public async Task<IActionResult> Delete(int paymentInfoId)
         {
             try
@@ -182,12 +185,12 @@ namespace TheCharityPL.Controllers
 
                 _logger.LogInformation("Payment info deleted successfully with ID: {PaymentInfoId}", paymentInfoId);
 
-                return Ok(new ServiceResponse<object?> {Success = true, Message = "Payment info deleted successfully." });
+                return Ok(new ServiceResponse<object?> { Success = true, Message = "Payment info deleted successfully." });
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex, "Payment info with ID {PaymentInfoId} not found.", paymentInfoId);
-                return NotFound(new ServiceResponse<object?> {Success = false, Message = ex.Message });
+                return NotFound(new ServiceResponse<object?> { Success = false, Message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
@@ -206,7 +209,7 @@ namespace TheCharityPL.Controllers
         // ─── POST api/paymentinfo/restore/{paymentInfoId} ────────────────────────────
 
         [HttpPost("restore/{paymentInfoId}")]
-       
+        [IsSuperAdmin]
         public async Task<IActionResult> Restore(int paymentInfoId)
         {
             try
@@ -215,22 +218,22 @@ namespace TheCharityPL.Controllers
 
                 var result = await _paymentInfoService.RestorePaymentInfoAsync(paymentInfoId);
 
-               if ( ! result.Data )
+                if (!result.Data)
                     return BadRequest(new ServiceResponse<object?> { Success = false, Message = "PaymentInfo Id isn`t valid." });
 
                 _logger.LogInformation("Payment info restored successfully with ID: {PaymentInfoId}", paymentInfoId);
 
-                return Ok(new ServiceResponse<object?> {Success=true, Message = "Payment info restored successfully." });
+                return Ok(new ServiceResponse<object?> { Success = true, Message = "Payment info restored successfully." });
             }
             catch (KeyNotFoundException ex)
             {
                 _logger.LogWarning(ex, "Payment info with ID {PaymentInfoId} not found.", paymentInfoId);
-                return NotFound(new ServiceResponse<object?> {Success = false, Message = ex.Message });
+                return NotFound(new ServiceResponse<object?> { Success = false, Message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
                 _logger.LogWarning(ex, "Conflict restoring payment info with ID: {PaymentInfoId}", paymentInfoId);
-                return BadRequest(new ServiceResponse<object?> {Success = false, Message = ex.Message });
+                return BadRequest(new ServiceResponse<object?> { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
@@ -241,54 +244,56 @@ namespace TheCharityPL.Controllers
         /// <summary>
         /// check if the organization have payment info ( paymob api keys )  
         /// </summary>
-        // ─── GET api/paymentinfo/has/{organizationId} ────────────────────────────────
+        // ─── GET api/paymentinfo/has/{orgId} ─────────────────────────────────────────
 
-        [HttpGet("has/{organizationId}")]
-        public async Task<IActionResult> HasPaymentInfo(int organizationId)
+        [HttpGet("has/{orgId}")]
+        [CanUpdatePaymentInfo]
+        public async Task<IActionResult> HasPaymentInfo(int orgId)
         {
             try
             {
-                _logger.LogInformation("Checking payment info existence for organization ID: {OrganizationId}", organizationId);
+                _logger.LogInformation("Checking payment info existence for organization ID: {OrganizationId}", orgId);
 
-                var result = await _paymentInfoService.HasPaymentInfoAsync(organizationId);
+                var result = await _paymentInfoService.HasPaymentInfoAsync(orgId);
 
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning(ex, "Organization with ID {OrganizationId} not found.", organizationId);
+                _logger.LogWarning(ex, "Organization with ID {OrganizationId} not found.", orgId);
                 return NotFound(new ServiceResponse<object?> { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking payment info existence for organization ID: {OrganizationId}", organizationId);
+                _logger.LogError(ex, "Error checking payment info existence for organization ID: {OrganizationId}", orgId);
                 return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while checking payment info." });
             }
         }
         /// <summary>
         /// check if the organization have payment info ( paymob api keys )  
         /// </summary>
-        // ─── GET api/paymentinfo/validate/{organizationId} ───────────────────────────
+        // ─── GET api/paymentinfo/validate/{orgId} ────────────────────────────────────
 
-        [HttpGet("validate/{organizationId}")]
-        public async Task<IActionResult> ValidatePaymentInfo(int organizationId)
+        [HttpGet("validate/{orgId}")]
+        [CanUpdatePaymentInfo]
+        public async Task<IActionResult> ValidatePaymentInfo(int orgId)
         {
             try
             {
-                _logger.LogInformation("Validating payment info for organization ID: {OrganizationId}", organizationId);
+                _logger.LogInformation("Validating payment info for organization ID: {OrganizationId}", orgId);
 
-                var isValid = await _paymentInfoService.ValidatePaymentInfoAsync(organizationId);
+                var isValid = await _paymentInfoService.ValidatePaymentInfoAsync(orgId);
 
                 return Ok(isValid);
             }
             catch (KeyNotFoundException ex)
             {
-                _logger.LogWarning(ex, "Organization with ID {OrganizationId} not found.", organizationId);
-                return NotFound(new ServiceResponse<object?> {Success=false, Message = ex.Message });
+                _logger.LogWarning(ex, "Organization with ID {OrganizationId} not found.", orgId);
+                return NotFound(new ServiceResponse<object?> { Success = false, Message = ex.Message });
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error validating payment info for organization ID: {OrganizationId}", organizationId);
+                _logger.LogError(ex, "Error validating payment info for organization ID: {OrganizationId}", orgId);
                 return StatusCode(500, new ServiceResponse<object?> { Success = false, Message = "An error occurred while validating payment info." });
             }
         }
