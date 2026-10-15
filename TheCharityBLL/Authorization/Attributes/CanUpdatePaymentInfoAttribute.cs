@@ -1,16 +1,20 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Mvc;
+using TheCharityBLL.Authorization.Filters;
 
 namespace TheCharityBLL.Authorization.Attributes
 {
     /// <summary>
-    /// Allows access to users who can update payment info for the organization.
+    /// Allows access to users who can update payment info for the target organization.
     /// This includes SuperAdmin and OrganizationAdmin (NOT SubAdmin).
+    ///
+    /// Implemented as a filter because the organization id may only be available
+    /// in the request body (or must be resolved from a related resource).
     /// </summary>
-    public class CanUpdatePaymentInfoAttribute : AuthorizeAttribute
+    public class CanUpdatePaymentInfoAttribute : ServiceFilterAttribute
     {
         public CanUpdatePaymentInfoAttribute()
+            : base(typeof(CanUpdatePaymentInfoFilter))
         {
-            Policy = "CanUpdatePaymentInfo";
         }
     }
 }

@@ -123,12 +123,12 @@ namespace TheCharityBLL.Helpers
             services.AddScoped<IAuthorizationHandler, CanManageCampaignHandler>();
             services.AddScoped<IAuthorizationHandler, CanManageOrganizationHandler>();
             services.AddScoped<IAuthorizationHandler, CanPerformBulkOperationsHandler>();
-            services.AddScoped<IAuthorizationHandler, CanUpdatePaymentInfoHandler>();
             services.AddScoped<IAuthorizationHandler, IsSharedCampaignCreatorHandler>();
             services.AddScoped<IAuthorizationHandler, IsSuperAdminHandler>();
             // Register Authorization Filters
             services.AddScoped<CanCreateCampaignFilter>();
             services.AddScoped<CanManageSubAdminsFilter>();
+            services.AddScoped<CanUpdatePaymentInfoFilter>();
             // Add Authorization Policies
             services.AddAuthorization(options =>
             {
@@ -140,9 +140,6 @@ namespace TheCharityBLL.Helpers
 
                 options.AddPolicy("CanPerformBulkOperations", policy =>
                     policy.Requirements.Add(new CanPerformBulkOperationsRequirement()));
-
-                options.AddPolicy("CanUpdatePaymentInfo", policy =>
-                    policy.Requirements.Add(new CanUpdatePaymentInfoRequirement()));
 
                 options.AddPolicy("IsSharedCampaignCreator", policy =>
                     policy.Requirements.Add(new IsSharedCampaignCreatorRequirement()));
