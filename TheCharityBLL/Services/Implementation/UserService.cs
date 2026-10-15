@@ -380,9 +380,8 @@ namespace TheCharityBLL.Services.Repository
                     };
                 }
 
-                // Check if username is already taken
-                var existingUsername = await _userRepository.GetUserByUsernameAsync(createUserDTO.UserName);
-                if (existingUsername != null)
+                // Check if username is already taken (including soft-deleted users)
+                if (await _userRepository.UserExistsByUsernameAsync(createUserDTO.UserName!))
                 {
                     _logger.LogWarning("Registration attempt with existing username: {Username}", createUserDTO.UserName);
                     return new ServiceResponse<IdentityResult>
@@ -448,6 +447,21 @@ namespace TheCharityBLL.Services.Repository
                         Success = false,
                         Message = $"User with ID '{updateUserDTO.Id}' not found."
                     };
+                }
+
+                // If the request includes a new username, verify it isn't taken.
+                if (!string.IsNullOrWhiteSpace(updateUserDTO.UserName)
+                    && !string.Equals(updateUserDTO.UserName, user.UserName, StringComparison.Ordinal))
+                {
+                    if (await _userRepository.UserExistsByUsernameAsync(updateUserDTO.UserName))
+                    {
+                        _logger.LogWarning("Update attempt with an existing username: {Username}", updateUserDTO.UserName);
+                        return new ServiceResponse<IdentityResult>
+                        {
+                            Success = false,
+                            Message = "This username is already taken. Please choose a different username."
+                        };
+                    }
                 }
 
                 // Use mapper to update user

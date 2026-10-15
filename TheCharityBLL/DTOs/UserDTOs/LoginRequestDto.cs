@@ -2,7 +2,7 @@
 
 namespace TheCharityBLL.DTOs.UserDTOs
 {
-    public class LoginResponseDto
+    public class LoginRequestDto
     {
         [Required(ErrorMessage = "Username is required")]
         [Display(Name = "Username")]
