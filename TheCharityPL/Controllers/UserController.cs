@@ -136,7 +136,7 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpPost("login")]
         [AllowAnonymous]
-        public async Task<IActionResult> Login([FromBody] LoginResponseDto responseDto)
+        public async Task<IActionResult> Login([FromBody] LoginRequestDto responseDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ServiceResponse<ModelStateDictionary>
