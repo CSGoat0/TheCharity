@@ -35,34 +35,6 @@ namespace TheCharityBLL.Mapper
             };
         }
 
-        public User MapToUser(UserResponseDTO dto)
-        {
-            if (dto == null) return null!;
-
-            var user = new User
-            {
-                UserName = dto.UserName,
-                Email = dto.Email,
-                PhoneNumber = dto.PhoneNumber,
-                EmailConfirmed = dto.EmailConfirmed,
-                PhoneNumberConfirmed = dto.PhoneNumberConfirmed,
-                TwoFactorEnabled = dto.TwoFactorEnabled,
-                LockoutEnabled = dto.LockoutEnabled,
-                LockoutEnd = dto.LockoutEnd,
-                AccessFailedCount = dto.AccessFailedCount,
-            };
-            if (!string.IsNullOrEmpty(dto.Address)) {
-                user.EditAddress(dto.Address);
-            }
-            if (!string.IsNullOrEmpty(dto.FullName)) { 
-                user.EditFullName(dto.FullName);
-            }
-            if (!string.IsNullOrEmpty(dto.ImgPath)) { 
-                user.EditImage(dto.ImgPath);
-            }
-            return user;
-        }
-
         public IEnumerable<UserResponseDTO> MapToUserResponseDtos(IEnumerable<User> users)
         {
             if (users == null) return Enumerable.Empty<UserResponseDTO>();
