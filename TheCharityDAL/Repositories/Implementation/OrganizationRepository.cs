@@ -191,6 +191,14 @@ namespace TheCharityDAL.Repositories.Implementation
                 .AnyAsync(cm => cm.Id == contactMethodId);
         }
 
+        public async Task<int?> GetOrganizationIdByContactMethodIdAsync(int contactMethodId)
+        {
+            return await _context.OrganizationContactMethods
+                .Where(cm => cm.Id == contactMethodId)
+                .Select(cm => cm.OrganizationId)
+                .FirstOrDefaultAsync();
+        }
+
         public async Task<OrganizationContactMethod> AddContactMethodAsync(OrganizationContactMethod contactMethod)
         {
             _context.OrganizationContactMethods.Add(contactMethod);
