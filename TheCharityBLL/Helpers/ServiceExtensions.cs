@@ -128,6 +128,7 @@ namespace TheCharityBLL.Helpers
             // Register Authorization Filters
             services.AddScoped<CanCreateCampaignFilter>();
             services.AddScoped<CanManageSubAdminsFilter>();
+            services.AddScoped<CanUpdatePaymentInfoFilter>();
             // Add Authorization Policies
             services.AddAuthorization(options =>
             {
