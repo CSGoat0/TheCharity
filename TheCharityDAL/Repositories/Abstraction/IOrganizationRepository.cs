@@ -29,6 +29,7 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<(IEnumerable<OrganizationContactMethod> Data, int TotalCount)> GetOrganizationContactMethodsAsync(int pageNumber, int pageSize, int organizationId, bool includeDeleted = false);
         Task<OrganizationContactMethod?> GetContactMethodByIdAsync(int contactMethodId);
         Task<bool> ContactMethodExistsByIdAsync(int contactMethodId);
+        Task<int?> GetOrganizationIdByContactMethodIdAsync(int contactMethodId);
         Task<OrganizationContactMethod> AddContactMethodAsync(OrganizationContactMethod contactMethod);
         Task<OrganizationContactMethod> UpdateContactMethodAsync(OrganizationContactMethod contactMethod);
         Task DeleteContactMethodAsync(int contactMethodId);
