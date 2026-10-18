@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TheCharityBLL.DTOs.PaymentInfoDTOs
 {
@@ -23,9 +18,9 @@ namespace TheCharityBLL.DTOs.PaymentInfoDTOs
 
         [Required(ErrorMessage = "HmacKey is required.")]
         [MaxLength(300, ErrorMessage = "HmacKey cannot exceed 300 characters.")]
-        public string HmacKey { get; set; }
+        public string HmacKey { get; set; } = null!;
 
-        [Required(ErrorMessage = "The Organization is Required")]
+        [Range(1, int.MaxValue, ErrorMessage = "OrganizationId must be a positive integer.")]
         public int OrganizationId { get; set; }
     }
 }
