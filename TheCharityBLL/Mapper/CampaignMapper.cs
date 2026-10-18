@@ -17,7 +17,8 @@ namespace TheCharityBLL.Mapper
             return new CampaignResponseDto
             {
                 Id = campaign.Id,
-                OrganizationId = campaign.OrganizationId ?? 0,
+                OrganizationId = campaign.OrganizationId
+                    ?? (campaign is SharedCampaign shared ? shared.CreatorOrganizationId : 0),
                 Title = campaign.Title,
                 Description = campaign.Description,
                 ImgPath = campaign.ImgPath,
@@ -154,7 +155,7 @@ namespace TheCharityBLL.Mapper
                 target: (int?)(dto.Target ?? 100),
                 achieved: 0,
                 status: CampaignStatus.Active,
-                 creatorOrganizationId: dto.CreatorOrganizationId
+                creatorOrganizationId: dto.CreatorOrganizationId
             );
         }
     }
