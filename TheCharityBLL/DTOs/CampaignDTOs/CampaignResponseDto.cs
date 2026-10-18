@@ -32,5 +32,7 @@ namespace TheCharityBLL.DTOs.CampaignDTOs
         public DateTime? Deadline { get; set; }
         /// <example>15</example>
         public int? DaysRemaining { get; set; }
+        /// <example>true</example>
+        public bool CanReceiveDonations { get; set; }
     }
 }

@@ -73,6 +73,7 @@ namespace TheCharityDAL.Repositories.Abstraction
 
         // ===== Payment Info Utilities =====
         Task<bool> ValidatePaymentInfoAsync(int organizationId);
+        Task<Dictionary<int, bool>> GetValidPaymentInfoStatusForOrganizationsAsync(IEnumerable<int> organizationIds);
         Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithValidPaymentInfoAsync(int pageNumber, int pageSize);
         Task<Dictionary<int, DateTime>> GetOrganizationLastPaymentUpdateAsync();
 

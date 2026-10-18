@@ -46,6 +46,7 @@ namespace TheCharityBLL.Services.Repository
             }
 
             var response = _mapper.MapToResponseDto(campaign);
+            await PopulateCanReceiveDonationsAsync(new[] { response });
             return new ServiceResponse<CampaignResponseDto>
             {
                 Success = true,
@@ -53,62 +54,6 @@ namespace TheCharityBLL.Services.Repository
                 Message = "Campaign retrieved successfully."
             };
         }
-
-        //public async Task<ServiceResponse<CampaignDetailsResponseDto>> GetCampaignDetailsByIdAsync(int id)
-        //{
-        //    var campaign = await _campaignRepository.GetCampaignByIdAsync(id);
-        //    if (campaign == null)
-        //    {
-        //        return new ServiceResponse<CampaignDetailsResponseDto>
-        //        {
-        //            Success = false,
-        //            Message = $"Campaign with ID {id} not found."
-        //        };
-        //    }
-
-        //    // Get only the 10 most recent donations (paginated)
-        //    const int pageNumber = 1;
-        //    const int pageSize = 10;
-
-        //    var (donations, totalDonationsCount) = await _donationRepository
-        //        .GetDonationsByCampaignAsync(pageNumber, pageSize, id);
-
-        //    var recentDonations = donations
-        //        .OrderByDescending(d => d.RegistrationDate)
-        //        .Select(d => new DonationBasicDto
-        //        {
-        //            Id = d.Id,
-        //            Amount = d.Amount,
-        //            RegistrationDate = d.RegistrationDate,
-        //            UserName = d.User?.UserName ?? "Anonymous"
-        //        }).ToList();
-
-        //    var response = new CampaignDetailsResponseDto
-        //    {
-        //        Id = campaign.Id,
-        //        Title = campaign.Title,
-        //        Description = campaign.Description,
-        //        ImgPath = campaign.ImgPath,
-        //        Target = campaign.Target,
-        //        Achieved = campaign.Achieved,
-        //        Status = campaign.Status,
-        //        Type = campaign.Type,
-        //        IsDeleted = campaign.IsDeleted,
-        //        RegistrationDate = campaign.RegistrationDate,
-        //        UpdatedOn = campaign.UpdatedOn,
-        //        AchievementPercentage = CalculatePercentage(campaign.Achieved, campaign.Target),
-        //        RemainingAmount = (campaign.Target ?? 0) - (campaign.Achieved ?? 0),
-        //        TotalDonationsCount = totalDonationsCount,  // Use the total count from the paged result
-        //        RecentDonations = recentDonations
-        //    };
-
-        //    return new ServiceResponse<CampaignDetailsResponseDto>
-        //    {
-        //        Success = true,
-        //        Data = response,
-        //        Message = "Campaign details retrieved successfully."
-        //    };
-        //}
 
         public async Task<ServiceResponse<bool>> UpdateCampaignAsync(UpdateCampaignDto updateDto)
         {
@@ -187,7 +132,7 @@ namespace TheCharityBLL.Services.Repository
 
         // ===== Solo Campaign Operations =====
 
-        public async Task<ServiceResponse<PagedResultDto<SoloCampaignResponseDto>>> GetAllSoloCampaignsAsync(PaginationParametersDto parametersDto,bool includeDeleted = false)
+        public async Task<ServiceResponse<PagedResultDto<SoloCampaignResponseDto>>> GetAllSoloCampaignsAsync(PaginationParametersDto parametersDto, bool includeDeleted = false)
         {
             (IEnumerable<SoloCampaign> Data, int TotalCount) campaigns;
 
@@ -202,7 +147,8 @@ namespace TheCharityBLL.Services.Repository
                 campaigns = await _campaignRepository.GetAllSoloCampaignsAsync(parametersDto.PageNumber, parametersDto.PageSize);
             }
 
-            var campaignsDtos=_mapper.MapToSoloResponseDtos(campaigns.Data);
+            var campaignsDtos = _mapper.MapToSoloResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -227,6 +173,7 @@ namespace TheCharityBLL.Services.Repository
             }
 
             var response = _mapper.MapToSoloResponseDto(campaign);
+            await PopulateCanReceiveDonationsAsync(new[] { response });
 
             return new ServiceResponse<SoloCampaignResponseDto>
             {
@@ -317,9 +264,10 @@ namespace TheCharityBLL.Services.Repository
                 };
             }
 
-            var campaigns = await _campaignRepository.GetSoloCampaignsByOrganizationIdAsync(parametersDto.PageNumber,parametersDto.PageSize,organizationId);
+            var campaigns = await _campaignRepository.GetSoloCampaignsByOrganizationIdAsync(parametersDto.PageNumber, parametersDto.PageSize, organizationId);
             var campaignsDto = _mapper.MapToSoloResponseDtos(campaigns.Data);
-            
+            await PopulateCanReceiveDonationsAsync(campaignsDto);
+
             var response = campaigns.ToPagedResult(campaignsDto, parametersDto);
 
             return new ServiceResponse<PagedResultDto<SoloCampaignResponseDto>>
@@ -334,6 +282,7 @@ namespace TheCharityBLL.Services.Repository
         {
             var campaigns = await _campaignRepository.GetSoloCampaignsByStatusAsync(parametersDto.PageNumber, parametersDto.PageSize, status);
             var campaignsDto = _mapper.MapToSoloResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDto);
 
             var response = campaigns.ToPagedResult(campaignsDto, parametersDto);
 
@@ -347,9 +296,9 @@ namespace TheCharityBLL.Services.Repository
 
         // ===== Shared Campaign Operations =====
 
-        public async Task<ServiceResponse<PagedResultDto<SharedCampaignResponseDto>>> GetAllSharedCampaignsAsync(PaginationParametersDto parametersDto,bool includeDeleted = false)
+        public async Task<ServiceResponse<PagedResultDto<SharedCampaignResponseDto>>> GetAllSharedCampaignsAsync(PaginationParametersDto parametersDto, bool includeDeleted = false)
         {
-            (IEnumerable<SharedCampaign> Data,int TotalCount) campaigns;
+            (IEnumerable<SharedCampaign> Data, int TotalCount) campaigns;
 
             if (includeDeleted)
             {
@@ -363,6 +312,7 @@ namespace TheCharityBLL.Services.Repository
             }
 
             var campaignsDtos = _mapper.MapToSharedResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
             return new ServiceResponse<PagedResultDto<SharedCampaignResponseDto>>
@@ -386,6 +336,7 @@ namespace TheCharityBLL.Services.Repository
             }
 
             var response = _mapper.MapToSharedResponseDto(campaign);
+            await PopulateCanReceiveDonationsAsync(new[] { response });
 
             return new ServiceResponse<SharedCampaignResponseDto>
             {
@@ -475,6 +426,7 @@ namespace TheCharityBLL.Services.Repository
 
             var campaigns = await _campaignRepository.GetSharedCampaignsByOrganizationIdAsync(parametersDto.PageNumber, parametersDto.PageSize, organizationId);
             var campaignsDtos = _mapper.MapToSharedResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -490,6 +442,7 @@ namespace TheCharityBLL.Services.Repository
         {
             var campaigns = await _campaignRepository.GetSharedCampaignsByStatusAsync(parametersDto.PageNumber, parametersDto.PageSize, status);
             var campaignsDtos = _mapper.MapToSharedResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -652,7 +605,7 @@ namespace TheCharityBLL.Services.Repository
             {
                 await UpdateCampaignStatusAsync(campaignId, CampaignStatus.Completed);
             }
-   
+
             return new ServiceResponse<bool>
             {
                 Success = true,
@@ -697,6 +650,7 @@ namespace TheCharityBLL.Services.Repository
         {
             var campaigns = await _campaignRepository.GetAllCampaignsAsync(parametersDto.PageNumber, parametersDto.PageSize, includeDeleted);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -712,6 +666,7 @@ namespace TheCharityBLL.Services.Repository
         {
             var campaigns = await _campaignRepository.GetCampaignsByStatusAsync(parametersDto.PageNumber, parametersDto.PageSize, status);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -737,6 +692,7 @@ namespace TheCharityBLL.Services.Repository
 
             var campaigns = await _campaignRepository.SearchCampaignsAsync(parametersDto.PageNumber, parametersDto.PageSize, searchTerm);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -752,6 +708,7 @@ namespace TheCharityBLL.Services.Repository
         {
             var campaigns = await _campaignRepository.GetDeletedCampaignsAsync(parametersDto.PageNumber, parametersDto.PageSize);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -778,6 +735,7 @@ namespace TheCharityBLL.Services.Repository
 
             var campaigns = await _campaignRepository.GetCampaignsByTargetRangeAsync(parametersDto.PageNumber, parametersDto.PageSize, minTarget, maxTarget);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -802,6 +760,7 @@ namespace TheCharityBLL.Services.Repository
 
             var campaigns = await _campaignRepository.GetCampaignsByAchievementPercentageAsync(parametersDto.PageNumber, parametersDto.PageSize, minPercentage);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -817,6 +776,7 @@ namespace TheCharityBLL.Services.Repository
         {
             var campaigns = await _campaignRepository.GetCampaignsEndingSoonAsync(parametersDto.PageNumber, parametersDto.PageSize, remainingValue);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -944,6 +904,13 @@ namespace TheCharityBLL.Services.Repository
                 StatisticsDate = DateTime.UtcNow
             };
 
+            // Populate CanReceiveDonations for the two embedded campaign DTOs.
+            var embedded = new List<CampaignResponseDto>();
+            if (statistics.MostSuccessfulCampaign != null) embedded.Add(statistics.MostSuccessfulCampaign);
+            if (statistics.MostDonatedCampaign != null) embedded.Add(statistics.MostDonatedCampaign);
+            if (embedded.Any())
+                await PopulateCanReceiveDonationsAsync(embedded);
+
             return new ServiceResponse<CampaignStatisticsDto>
             {
                 Success = true,
@@ -960,6 +927,7 @@ namespace TheCharityBLL.Services.Repository
 
             var campaigns = await _campaignRepository.GetTopCampaignsByAchievementAsync(parametersDto.PageNumber, parametersDto.PageSize, limit);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -977,6 +945,7 @@ namespace TheCharityBLL.Services.Repository
 
             var campaigns = await _campaignRepository.GetTopCampaignsByDonationsAsync(parametersDto.PageNumber, parametersDto.PageSize, limit);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -988,12 +957,13 @@ namespace TheCharityBLL.Services.Repository
             };
         }
 
-        public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetRecentCampaignsAsync(PaginationParametersDto parametersDto,int days = 30)
+        public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetRecentCampaignsAsync(PaginationParametersDto parametersDto, int days = 30)
         {
             if (days <= 0) days = 30;
 
             var campaigns = await _campaignRepository.GetRecentCampaignsAsync(parametersDto.PageNumber, parametersDto.PageSize, days);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -1018,6 +988,7 @@ namespace TheCharityBLL.Services.Repository
 
             var campaigns = await _campaignRepository.GetUrgentCampaignsAsync(parametersDto.PageNumber, parametersDto.PageSize, minPercentage);
             var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
             var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -1037,6 +1008,7 @@ namespace TheCharityBLL.Services.Repository
             {
                 var campaigns = await _campaignRepository.GetCampaignsByDeadlineAsync(parametersDto.PageNumber, parametersDto.PageSize, deadlineDate, includeDeleted);
                 var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+                await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
                 var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -1063,6 +1035,7 @@ namespace TheCharityBLL.Services.Repository
             {
                 var campaigns = await _campaignRepository.GetExpiredCampaignsAsync(parametersDto.PageNumber, parametersDto.PageSize);
                 var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+                await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
                 var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
 
@@ -1083,7 +1056,7 @@ namespace TheCharityBLL.Services.Repository
             }
         }
 
-        public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetCampaignsExpiringSoonAsync(PaginationParametersDto parametersDto,int daysThreshold = 7)
+        public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetCampaignsExpiringSoonAsync(PaginationParametersDto parametersDto, int daysThreshold = 7)
         {
             try
             {
@@ -1091,14 +1064,9 @@ namespace TheCharityBLL.Services.Repository
 
                 var campaigns = await _campaignRepository.GetCampaignsExpiringSoonAsync(parametersDto.PageNumber, parametersDto.PageSize, daysThreshold);
                 var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+                await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
                 var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
-
-                // Calculate days remaining for each campaign
-                foreach (var dto in campaignsDtos)
-                {
-                    // You might want to add a DaysRemaining property to CampaignResponseDto
-                }
 
                 return new ServiceResponse<PagedResultDto<CampaignResponseDto>>
                 {
@@ -1130,6 +1098,7 @@ namespace TheCharityBLL.Services.Repository
                     .GetCampaignsExpiringSoonAsync(pageNumber, pageSize, daysThreshold);
 
                 var campaignsDtos = _mapper.MapToResponseDtos(campaigns);
+                await PopulateCanReceiveDonationsAsync(campaignsDtos);
 
                 return new ServiceResponse<IEnumerable<CampaignResponseDto>>
                 {
@@ -1273,12 +1242,40 @@ namespace TheCharityBLL.Services.Repository
 
         // ===== Private Helpers =====
 
-        private static double CalculatePercentage(double? achieved, double? target)
+        /// <summary>
+        /// Populates the CanReceiveDonations flag on a collection of campaign response DTOs.
+        /// Performs a single batched lookup across all distinct organization ids in the collection.
+        /// Any campaign whose organization cannot be resolved defaults to false (fail-safe).
+        /// </summary>
+        private async Task PopulateCanReceiveDonationsAsync(IEnumerable<CampaignResponseDto> campaigns)
         {
-            if (!achieved.HasValue || !target.HasValue || target.Value == 0)
-                return 0;
+            var dtos = campaigns.Where(c => c != null).ToList();
+            if (!dtos.Any()) return;
 
-            return Math.Round((achieved.Value / target.Value) * 100, 2);
+            var orgIds = dtos
+                .Select(c => c.OrganizationId)
+                .Where(id => id > 0)
+                .Distinct()
+                .ToList();
+
+            if (!orgIds.Any())
+            {
+                // No valid org ids — default all to false (fail-safe).
+                foreach (var dto in dtos)
+                    dto.CanReceiveDonations = false;
+                return;
+            }
+
+            var statusMap = await _organizationRepository
+                .GetValidPaymentInfoStatusForOrganizationsAsync(orgIds);
+
+            foreach (var dto in dtos)
+            {
+                dto.CanReceiveDonations =
+                    dto.OrganizationId > 0
+                    && statusMap.TryGetValue(dto.OrganizationId, out var valid)
+                    && valid;
+            }
         }
     }
 }
