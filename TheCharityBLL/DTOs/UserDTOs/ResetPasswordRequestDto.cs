@@ -2,7 +2,7 @@
 
 namespace TheCharityBLL.DTOs.UserDTOs
 {
-    public class ResetPasswordResponseDto
+    public class ResetPasswordRequestDto
     {
         [Required(ErrorMessage = "Email is required.")]
         [EmailAddress(ErrorMessage = "Please enter a valid email address.")]
