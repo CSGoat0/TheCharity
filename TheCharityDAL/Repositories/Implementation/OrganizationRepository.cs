@@ -486,6 +486,41 @@ namespace TheCharityDAL.Repositories.Implementation
                    !string.IsNullOrEmpty(paymentInfo.IframeId);
         }
 
+        public async Task<Dictionary<int, bool>> GetValidPaymentInfoStatusForOrganizationsAsync(IEnumerable<int> organizationIds)
+        {
+            var ids = organizationIds.Distinct().ToList();
+
+            if (!ids.Any())
+                return new Dictionary<int, bool>();
+
+            var result = await _context.Organizations
+                .Where(o => ids.Contains(o.Id) && !o.IsDeleted)
+                .Select(o => new
+                {
+                    o.Id,
+                    HasValidPaymentInfo =
+                        o.PaymentId != null &&
+                        _context.PaymentsInfo.Any(p =>
+                            p.Id == o.PaymentId &&
+                            !p.IsDeleted &&
+                            !string.IsNullOrEmpty(p.ApiKey) &&
+                            !string.IsNullOrEmpty(p.HmacKey) &&
+                            !string.IsNullOrEmpty(p.IntegrationId) &&
+                            !string.IsNullOrEmpty(p.IframeId))
+                })
+                .ToListAsync();
+
+            // Ensure every requested id is present, defaulting to false.
+            var map = result.ToDictionary(r => r.Id, r => r.HasValidPaymentInfo);
+            foreach (var id in ids)
+            {
+                if (!map.ContainsKey(id))
+                    map[id] = false;
+            }
+
+            return map;
+        }
+
         public async Task<(IEnumerable<Organization> Data, int TotalCount)> GetOrganizationsWithValidPaymentInfoAsync(int pageNumber, int pageSize)
         {
             var validOrgIds = await _context.Organizations
