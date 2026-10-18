@@ -16,7 +16,7 @@ namespace TheCharityBLL.DTOs.OrganizationContactMethodDTOs
         public ContactType Type { get; set; }
 
         /// <example>1</example>
-        [Required(ErrorMessage = "OrganizationId is required.")]
+        [Range(1, int.MaxValue, ErrorMessage = "OrganizationId must be a positive integer.")]
         public int OrganizationId { get; set; }
     }
 }
