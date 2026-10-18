@@ -270,7 +270,7 @@ namespace TheCharityPL.Controllers
 
         [HttpPost("reset-password")]
         [AllowAnonymous]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordResponseDto model)
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequestDto model)
         {
             if (!ModelState.IsValid)
                 return BadRequest(new ServiceResponse<ModelStateDictionary>
