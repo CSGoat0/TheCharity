@@ -9,6 +9,7 @@ namespace TheCharityBLL.DTOs.DonationDTOs
         public double? Amount { get; set; }
 
         [Required(ErrorMessage = "UserId is required.")]
+        [MaxLength(450)]
         public string UserId { get; set; } = null!;
 
         [Required(ErrorMessage = "CampaignId is required.")]

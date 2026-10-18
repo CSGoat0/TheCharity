@@ -24,7 +24,7 @@ namespace TheCharityDAL.Entities
             this.UserId = userId;
             this.CampaignId = campaignId;
         }
-        public void EditAmount(int? amount)
+        public void EditAmount(double? amount)
         {
             if (amount.HasValue)
             {
