@@ -324,7 +324,7 @@ namespace TheCharityPL.Controllers
         /// </summary>
         [HttpPatch("{campaignId:int}/increment-money")]
         [AllowAnonymous]
-        public async Task<IActionResult> IncrementCampaignMoney(int campaignId, [FromBody] IncrementCampaignMoneyDto dto)
+        public async Task<IActionResult> IncrementCampaignMoney(int campaignId, [FromBody] UpdateCampaignMoneyDto dto)
         {
             var result = await _campaignService.IncrementCampaignMoneyAsync(campaignId, dto.Amount);
             return HandleResponse(result, notFoundOnFailure: true);
