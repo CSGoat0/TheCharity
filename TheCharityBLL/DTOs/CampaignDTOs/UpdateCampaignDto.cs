@@ -17,7 +17,8 @@ namespace TheCharityBLL.DTOs.CampaignDTOs
         [MaxLength(1000, ErrorMessage = "Description cannot exceed 1000 characters.")]
         public string? Description { get; set; }
 
-        /// <example>/images/updated_campaign.jpg</example>
+        /// <example>https://example.com/campaigns/updated.jpg</example>
+        [Url(ErrorMessage = "ImgPath must be a valid URL.")]
         [MaxLength(500, ErrorMessage = "ImgPath cannot exceed 500 characters.")]
         public string? ImgPath { get; set; }
 
