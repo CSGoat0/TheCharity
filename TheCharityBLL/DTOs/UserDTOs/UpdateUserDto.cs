@@ -17,6 +17,7 @@ namespace TheCharityBLL.DTOs.UserDTOs
         [MaxLength(200, ErrorMessage = "Full name cannot exceed 200 characters.")]
         public string? FullName { get; set; }
 
+        [Url(ErrorMessage = "ImgPath must be a valid URL.")]
         [MaxLength(500, ErrorMessage = "Image path cannot exceed 500 characters.")]
         public string? ImgPath { get; set; }
 
