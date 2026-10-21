@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace TheCharityBLL.DTOs.OrganizationDTOs
 {
@@ -18,5 +13,9 @@ namespace TheCharityBLL.DTOs.OrganizationDTOs
         [MaxLength(500, ErrorMessage = "Address cannot exceed 500 characters.")]
         public string? Address { get; set; }
 
+        /// <example>https://example.com/logos/foodbank.png</example>
+        [Url(ErrorMessage = "ImgPath must be a valid URL.")]
+        [MaxLength(500, ErrorMessage = "ImgPath cannot exceed 500 characters.")]
+        public string? ImgPath { get; set; }
     }
 }

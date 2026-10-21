@@ -29,6 +29,7 @@ namespace TheCharityBLL.DTOs.UserDTOs
         [MaxLength(100, ErrorMessage = "Password cannot exceed 100 characters.")]
         public string? Password { get; set; }
 
+        [Url(ErrorMessage = "ImgPath must be a valid URL.")]
         [MaxLength(500, ErrorMessage = "Image path cannot exceed 500 characters.")]
         public string? ImgPath { get; set; }
 

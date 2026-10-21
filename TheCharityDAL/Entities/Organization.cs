@@ -9,6 +9,7 @@ namespace TheCharityDAL.Entities
         public int Id { get; private set; }
         public string? Name { get; private set; }
         public string? Address { get; private set; }
+        public string? ImgPath { get; private set; }
         public int? PaymentId { get; private set; }
         public virtual ICollection<OrganizationRole> OrganizationRoles { get; private set; } = new List<OrganizationRole>();
 
@@ -25,12 +26,15 @@ namespace TheCharityDAL.Entities
         public DateTime? DeletedOn { get; private set; }
         public DateTime? RegistrationDate { get; private set; } = DateTime.UtcNow;
         public DateTime? UpdatedOn { get; private set; }
-        public Organization(string? name, string? address)
+
+        public Organization(string? name, string? address, string? imgPath)
         {
             this.Name = name;
             this.Address = address;
+            this.ImgPath = imgPath;
             this.PaymentId = null;
         }
+
         public void EditName(string? name)
         {
             if (!string.IsNullOrEmpty(name))
@@ -47,9 +51,17 @@ namespace TheCharityDAL.Entities
                 this.UpdatedOn = DateTime.UtcNow;
             }
         }
+        public void EditImage(string? imgPath)
+        {
+            if (!string.IsNullOrEmpty(imgPath))
+            {
+                this.ImgPath = imgPath;
+                this.UpdatedOn = DateTime.UtcNow;
+            }
+        }
         public void EditPaymentInfoId(int? paymentinfoId)
         {
-            if (paymentinfoId>0 || paymentinfoId==null)
+            if (paymentinfoId > 0 || paymentinfoId == null)
             {
                 this.PaymentId = paymentinfoId;
                 this.UpdatedOn = DateTime.UtcNow;

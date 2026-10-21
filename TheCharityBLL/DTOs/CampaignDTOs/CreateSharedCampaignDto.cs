@@ -9,7 +9,8 @@ namespace TheCharityBLL.DTOs.CampaignDTOs
         [MinLength(1, ErrorMessage = "At least one participating organization is required.")]
         public List<int> OrganizationIds { get; set; } = new List<int>();
 
-        /// <example>/images/shared_campaign.jpg</example>
+        /// <example>https://example.com/campaigns/shared.jpg</example>
+        [Url(ErrorMessage = "ImgPath must be a valid URL.")]
         [MaxLength(500, ErrorMessage = "ImgPath cannot exceed 500 characters.")]
         public string? ImgPath { get; set; }
 

@@ -8,7 +8,8 @@ namespace TheCharityBLL.DTOs.CampaignDTOs
         [Range(1, int.MaxValue, ErrorMessage = "OrganizationId must be a positive integer.")]
         public int OrganizationId { get; set; }
 
-        /// <example>/images/solo_campaign.jpg</example>
+        /// <example>https://example.com/campaigns/solo.jpg</example>
+        [Url(ErrorMessage = "ImgPath must be a valid URL.")]
         [MaxLength(500, ErrorMessage = "ImgPath cannot exceed 500 characters.")]
         public string? ImgPath { get; set; }
 
