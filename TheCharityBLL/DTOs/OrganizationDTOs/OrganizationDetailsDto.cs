@@ -14,6 +14,9 @@ namespace TheCharityBLL.DTOs.OrganizationDTOs
         /// <example>Cairo, Egypt</example>
         public string? Address { get; set; }
 
+        /// <example>https://example.com/logos/foodbank.png</example>
+        public string? ImgPath { get; set; }
+
         public ICollection<OrgContactMethodResponseDto> ContactMethods { get; set; }
             = new List<OrgContactMethodResponseDto>();
 
