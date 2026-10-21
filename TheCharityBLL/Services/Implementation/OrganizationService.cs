@@ -752,6 +752,10 @@ namespace TheCharityBLL.Services.Implementation
             {
                 existingOrganization.EditAddress(organization.Address);
             }
+            if (!string.IsNullOrWhiteSpace(organization.ImgPath))
+            {
+                existingOrganization.EditImage(organization.ImgPath);
+            }
             var updateOrganization = await _repository.UpdateOrganizationAsync(existingOrganization);
             var organizationDto = _mapper.MapToOrganizationResponseDto(updateOrganization);
             return new ServiceResponse<OrganizationResponseDto>
