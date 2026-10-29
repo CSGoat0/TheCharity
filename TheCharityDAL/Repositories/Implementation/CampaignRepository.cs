@@ -201,13 +201,7 @@ namespace TheCharityDAL.Repositories.Implementation
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
-        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetFilteredCampaignsAsync(
-    int pageNumber,
-    int pageSize,
-    string? searchTerm,
-    CampaignStatus? status,
-    string? type,
-    bool includeDeleted = false)
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetFilteredCampaignsAsync( int pageNumber, int pageSize, string? searchTerm, CampaignStatus? status, string? type, bool includeDeleted = false)
         {
             var query = _context.Campaigns.AsQueryable();
 
