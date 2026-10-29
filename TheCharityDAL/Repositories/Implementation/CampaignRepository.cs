@@ -201,6 +201,46 @@ namespace TheCharityDAL.Repositories.Implementation
             return await query.ToPagedResultAsync(pageNumber, pageSize);
         }
 
+        public async Task<(IEnumerable<Campaign> Data, int TotalCount)> GetFilteredCampaignsAsync( int pageNumber, int pageSize, string? searchTerm, CampaignStatus? status, string? type, bool includeDeleted = false)
+        {
+            var query = _context.Campaigns.AsQueryable();
+
+            // 1. Include Deleted
+            if (!includeDeleted)
+            {
+                query = query.Where(c => c.IsDeleted == false);
+            }
+
+            // 2. Search Term (Title or Description)
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(c =>
+                    (c.Title != null && c.Title.Contains(searchTerm)) ||
+                    (c.Description != null && c.Description.Contains(searchTerm)));
+            }
+
+            // 3. Status
+            if (status.HasValue)
+            {
+                query = query.Where(c => c.Status == status.Value);
+            }
+
+            // 4. Type (Solo / Shared)
+            if (!string.IsNullOrWhiteSpace(type))
+            {
+                if (type.Equals("Solo", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.OfType<SoloCampaign>();
+                }
+                else if (type.Equals("Shared", StringComparison.OrdinalIgnoreCase))
+                {
+                    query = query.OfType<SharedCampaign>();
+                }
+            }
+
+            return await query.ToPagedResultAsync(pageNumber, pageSize);
+        }
+
         // ===== SharedCampaign Specific Operations =====
         public async Task AddOrganizationToSharedCampaignAsync(int sharedCampaignId, Organization organization)
         {

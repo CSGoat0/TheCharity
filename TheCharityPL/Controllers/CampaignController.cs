@@ -415,6 +415,28 @@ namespace TheCharityPL.Controllers
             return HandleResponse(result);
         }
 
+        /// <summary>
+        /// Get campaigns with unified filtering (search, status, type, includeDeleted)
+        /// </summary>
+        [HttpGet("filter")]
+        [AllowAnonymous]
+        public async Task<IActionResult> GetFiltered(
+            [FromQuery] PaginationParametersDto parametersDto,
+            [FromQuery] string? searchTerm,
+            [FromQuery] CampaignStatus? status,
+            [FromQuery] string? type,
+            [FromQuery] bool includeDeleted = false)
+        {
+            var result = await _campaignService.GetFilteredCampaignsAsync(
+                parametersDto,
+                searchTerm,
+                status,
+                type,
+                includeDeleted);
+
+            return HandleResponse(result);
+        }
+
         // ==============================
         // Advanced Filtering
         // ==============================

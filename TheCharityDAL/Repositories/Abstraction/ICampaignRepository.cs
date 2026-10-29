@@ -31,6 +31,7 @@ namespace TheCharityDAL.Repositories.Abstraction
         Task<(IEnumerable<Campaign> Data, int TotalCount)> GetCampaignsByStatusAsync(int pageNumber, int pageSize, CampaignStatus status);
         Task<(IEnumerable<Campaign> Data, int TotalCount)> SearchCampaignsAsync(int pageNumber, int pageSize, string searchTerm);
         Task<(IEnumerable<Campaign> Data, int TotalCount)> GetDeletedCampaignsAsync(int pageNumber, int pageSize);
+        Task<(IEnumerable<Campaign> Data, int TotalCount)> GetFilteredCampaignsAsync(int pageNumber, int pageSize, string? searchTerm, CampaignStatus? status, string? type, bool includeDeleted = false);
 
         // Type-specific filtering
         Task<(IEnumerable<SoloCampaign> Data, int TotalCount)> GetSoloCampaignsByOrganizationIdAsync(int pageNumber, int pageSize, int organizationId);
