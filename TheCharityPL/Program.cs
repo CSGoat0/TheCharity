@@ -113,10 +113,12 @@ namespace TheCharityPL
 
             app.MapHealthChecks("/health");
 
-            // Configure the HTTP request pipeline.
-            app.UseSwagger();
-            app.UseSwaggerUI();
-            app.UseDeveloperExceptionPage();
+            if (app.Environment.IsDevelopment()) {
+                // Configure the HTTP request pipeline.
+                app.UseSwagger();
+                app.UseSwaggerUI();
+                app.UseDeveloperExceptionPage();
+            }
 
             // global exception handling middleware
             app.UseMiddleware<ExceptionMiddleware>();
@@ -126,9 +128,6 @@ namespace TheCharityPL
             app.UseCors("AllowAngular");
             app.UseAuthentication();
             app.UseAuthorization();
-
-            // map to swagger view as start view
-            app.MapGet("/", () => Results.Redirect("/swagger"));
 
             app.MapControllers();
 
