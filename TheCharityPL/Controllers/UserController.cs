@@ -449,7 +449,7 @@ namespace TheCharityPL.Controllers
         /// Seed the first SuperAdmin (should be disabled in production)
         /// </summary>
         [HttpPost("seed-superadmin")]
-        [AllowAnonymous]
+        [IsSuperAdmin]
         public async Task<IActionResult> SeedSuperAdmin([FromBody] CreateUserDTO request)
         {
             try
