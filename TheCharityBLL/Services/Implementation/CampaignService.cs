@@ -294,6 +294,29 @@ namespace TheCharityBLL.Services.Repository
             };
         }
 
+        public async Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetFilteredCampaignsAsync( PaginationParametersDto parametersDto, string? searchTerm, CampaignStatus? status, string? type, bool includeDeleted = false)
+        {
+            var campaigns = await _campaignRepository.GetFilteredCampaignsAsync(
+                parametersDto.PageNumber,
+                parametersDto.PageSize,
+                searchTerm,
+                status,
+                type,
+                includeDeleted);
+
+            var campaignsDtos = _mapper.MapToResponseDtos(campaigns.Data);
+            await PopulateCanReceiveDonationsAsync(campaignsDtos);
+
+            var response = campaigns.ToPagedResult(campaignsDtos, parametersDto);
+
+            return new ServiceResponse<PagedResultDto<CampaignResponseDto>>
+            {
+                Success = true,
+                Data = response,
+                Message = "Filtered campaigns retrieved successfully."
+            };
+        }
+
         // ===== Shared Campaign Operations =====
 
         public async Task<ServiceResponse<PagedResultDto<SharedCampaignResponseDto>>> GetAllSharedCampaignsAsync(PaginationParametersDto parametersDto, bool includeDeleted = false)
