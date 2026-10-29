@@ -46,6 +46,7 @@ namespace TheCharityBLL.Services.Abstraction
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetActiveCampaignsAsync(PaginationParametersDto parametersDto);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> SearchCampaignsAsync(PaginationParametersDto parametersDto, string searchTerm);
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetDeletedCampaignsAsync(PaginationParametersDto parametersDto);
+        Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetFilteredCampaignsAsync( PaginationParametersDto parametersDto, string? searchTerm, CampaignStatus? status, string? type, bool includeDeleted = false);
 
         // ===== Advanced Filtering =====
         Task<ServiceResponse<PagedResultDto<CampaignResponseDto>>> GetCampaignsByTargetRangeAsync(PaginationParametersDto parametersDto, double minTarget, double maxTarget);
